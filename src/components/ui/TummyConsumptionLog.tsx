@@ -90,10 +90,9 @@ export function TummyConsumptionLog({
             label="Number of Servings"
             value={servings}
             onChange={setServings}
-            onComplete={handleComplete}
+            onConfirm={handleComplete}
             unit="servings"
             maxLength={4}
-            allowDecimal={true}
           />
         ) : (
           <TummyCard>
