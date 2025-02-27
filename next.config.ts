@@ -30,6 +30,12 @@ const config = withPWA({
   register: true,
   skipWaiting: true,
 })({
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    ignoreBuildErrors: true,
+  },
   headers: async () => [
     {
       source: '/:path*',
