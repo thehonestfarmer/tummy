@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#7C3AED"/>
+  
+  <!-- Outer progress ring -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="160" 
+    stroke="#FFFFFF" 
+    stroke-width="24" 
+    stroke-opacity="0.2"
+  />
+  
+  <!-- Progress indicator -->
+  <path 
+    d="M256 96A160 160 0 0 1 416 256"
+    stroke="#FFFFFF" 
+    stroke-width="24" 
+    stroke-linecap="round"
+  />
+  
+  <!-- Inner bowl -->
+  <path 
+    d="M336 256c0 44.183-35.817 80-80 80s-80-35.817-80-80c0-44.183 35.817-80 80-80 44.183 0 80 35.817 80 80zM176 256h160"
+    stroke="#FFFFFF" 
+    stroke-width="24" 
+    stroke-linecap="round"
+  />
+  
+  <!-- Decorative elements -->
+  <circle cx="256" cy="256" r="32" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="16" fill="#7C3AED"/>
+  
+  <!-- Small dots -->
+  <g fill="#FFFFFF" fill-opacity="0.6">
+    <circle cx="256" cy="160" r="8"/>
+    <circle cx="352" cy="256" r="8"/>
+    <circle cx="256" cy="352" r="8"/>
+    <circle cx="160" cy="256" r="8"/>
+  </g>
+</svg> 
