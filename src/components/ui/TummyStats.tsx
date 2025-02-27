@@ -1,6 +1,5 @@
 'use client';
 
-import { tummyTheme as theme } from './theme';
 
 interface TummyStatsProps {
   items: Array<{

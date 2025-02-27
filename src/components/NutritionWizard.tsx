@@ -145,22 +145,6 @@ export default function NutritionWizard({ barcode, photos, onSave, onComplete, o
     }
   };
 
-  const handleSubmit = () => {
-    const data: Omit<FoodItem, 'id' | 'createdAt' | 'updatedAt'> = {
-      barcode,
-      servingSize: `${formData.servingSize} ${formData.servingUnit}`,
-      servingsPerContainer: formData.servingsPerContainer,
-      calories: Number(formData.calories),
-      protein: Number(formData.protein),
-      carbohydrates: Number(formData.carbohydrates),
-      sugar: Number(formData.sugar),
-      fiber: Number(formData.fiber),
-      fat: Number(formData.fat),
-      sodium: Number(formData.sodium),
-    };
-    onSave(data);
-  };
-
   const getFieldLabel = (field: keyof FormData): string => {
     switch (field) {
       case 'servingSize':
@@ -261,7 +245,7 @@ export default function NutritionWizard({ barcode, photos, onSave, onComplete, o
                       Item Added Successfully!
                     </h4>
                     <p className="opacity-70">
-                      You've logged {newItemsCount} new item{newItemsCount !== 1 ? 's' : ''} in the last 24 hours
+                      You&apos;ve logged {newItemsCount} new item{newItemsCount !== 1 ? 's' : ''} in the last 24 hours
                     </p>
                   </div>
 

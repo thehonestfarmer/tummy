@@ -76,7 +76,7 @@ export function TummyTimeline({ consumptions, timeRanges }: TummyTimelineProps) 
 
             <div className="space-y-4">
               {group.items.length > 0 ? (
-                group.items.map((consumption, itemIndex) => (
+                group.items.map((consumption) => (
                   <TummyCard
                     key={consumption.id}
                     className="relative"

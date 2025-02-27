@@ -17,7 +17,6 @@ export default function Home() {
     photos: { photoData: string }[];
   })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [newItemsCount, setNewItemsCount] = useState(0);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
 
   const loadRecentData = async (filter: TimeFilter) => {
@@ -49,7 +48,6 @@ export default function Home() {
       );
 
       setRecentConsumptions(consumptionsWithFood);
-      setNewItemsCount(newItems.length);
     } catch (error) {
       console.error('Failed to load recent consumptions:', error);
     } finally {

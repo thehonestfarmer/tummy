@@ -102,7 +102,7 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
         Quagga.stop();
       }
     };
-  }, []);
+  }, [Quagga]);
 
   // Draw detection results on canvas
   const drawResult = (result: QuaggaResult) => {

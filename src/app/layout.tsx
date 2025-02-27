@@ -1,7 +1,6 @@
 import './globals.css';
 import { Rajdhani } from 'next/font/google';
 import localFont from 'next/font/local';
-import { TummyLayout } from '../components/ui/TummyLayout';
 import { Navigation } from '../components/ui/Navigation';
 
 const rajdhani = Rajdhani({
