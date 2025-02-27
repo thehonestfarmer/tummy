@@ -1,101 +1,233 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { TummyCard } from '../components/ui/TummyCard';
+import { TummyStats } from '../components/ui/TummyStats';
+import { TummyButton } from '../components/ui/TummyButton';
+import { db, type ConsumptionRecord, type FoodItem } from '../lib/db';
+import { tummyTheme as theme } from '../components/ui/theme';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+type TimeFilter = '4h' | '12h' | '24h';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [recentConsumptions, setRecentConsumptions] = useState<(ConsumptionRecord & { 
+    foodItem: FoodItem;
+    photos: { photoData: string }[];
+  })[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newItemsCount, setNewItemsCount] = useState(0);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const loadRecentData = async (filter: TimeFilter) => {
+    setIsLoading(true);
+    try {
+      // Get consumptions based on time filter
+      const endTime = new Date();
+      const hours = filter === '4h' ? 4 : filter === '12h' ? 12 : 24;
+      const startTime = new Date(endTime.getTime() - (hours * 60 * 60 * 1000));
+      const consumptions = await db.getConsumptionsByTimeRange(startTime, endTime);
+      
+      // Load food items and photos for each consumption
+      const consumptionsWithFood = await Promise.all(
+        consumptions.map(async (consumption) => {
+          const foodItem = await db.findFoodById(consumption.foodItemId);
+          const photos = await db.getPhotosByFoodId(consumption.foodItemId);
+          return {
+            ...consumption,
+            foodItem: foodItem!,
+            photos,
+          };
+        })
+      );
+
+      // Get all food items created in the last 24 hours (this stays at 24h)
+      const allFoodItems = await db.getAllFoodItems();
+      const newItems = allFoodItems.filter(item => 
+        new Date(item.createdAt).getTime() > startTime.getTime()
+      );
+
+      setRecentConsumptions(consumptionsWithFood);
+      setNewItemsCount(newItems.length);
+    } catch (error) {
+      console.error('Failed to load recent consumptions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecentData(timeFilter);
+  }, [timeFilter]);
+
+  // Get start and end of current calendar day
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  // Format date as M/D/YYYY
+  const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+
+  // Calculate totals for current calendar day only
+  const todaysConsumptions = recentConsumptions.filter(consumption => {
+    const consumptionDate = new Date(consumption.timestamp);
+    return consumptionDate >= startOfDay && consumptionDate <= endOfDay;
+  });
+
+  const stats = [
+    {
+      label: 'Calories',
+      value: todaysConsumptions.reduce(
+        (total, { foodItem = { calories: 0 }, servingsConsumed }) => 
+          total + ((foodItem?.calories ?? 0) * servingsConsumed), 
+        0
+      ),
+      color: theme.colors.primary.DEFAULT,
+      backgroundColor: `${theme.colors.primary.DEFAULT}15`,
+    },
+    {
+      label: 'Protein',
+      value: todaysConsumptions.reduce(
+        (total, { foodItem = { protein: 0 }, servingsConsumed }) => 
+          total + ((foodItem?.protein ?? 0) * servingsConsumed), 
+        0
+      ),
+      unit: 'g',
+      color: theme.colors.secondary.DEFAULT,
+      backgroundColor: `${theme.colors.secondary.DEFAULT}15`,
+    }
+  ];
+
+  return (
+    <div className="p-4 pb-24 max-w-lg mx-auto space-y-6">
+      <header className="text-center mb-8">
+        <h1 
+          className="text-4xl font-bold mb-2 font-mono"
+          style={{ 
+            color: theme.colors.primary.DEFAULT,
+            textShadow: '0 0 10px rgba(124, 58, 237, 0.2)'
+          }}
+        >
+          TUMMY
+        </h1>
+        <p className="text-sm font-mono" style={{ color: theme.colors.secondary.DEFAULT }}>
+          {formattedDate}
+        </p>
+      </header>
+
+      {/* Stats Overview */}
+      <TummyStats items={stats} />
+
+      {/* Quick Actions */}
+      <TummyCard
+        header={
+          <h2 className="text-lg font-semibold font-mono">Quick Actions</h2>
+        }
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <Link href="/scan" className="block">
+            <TummyButton variant="accent" className="w-full" glowing>
+              Scan Item
+            </TummyButton>
+          </Link>
+          <Link href="/add" className="block">
+            <TummyButton variant="secondary" className="w-full">
+              Add Item
+            </TummyButton>
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </TummyCard>
+
+      {/* Recent Activity */}
+      <TummyCard
+        header={
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold font-mono">Recent Activity</h2>
+            <div className="flex gap-2">
+              {(['4h', '12h', '24h'] as TimeFilter[]).map((filter) => (
+                <motion.button
+                  key={filter}
+                  onClick={() => setTimeFilter(filter)}
+                  className="px-2 py-1 rounded text-sm font-mono"
+                  style={{
+                    backgroundColor: timeFilter === filter 
+                      ? theme.colors.primary.DEFAULT 
+                      : theme.colors.background.DEFAULT,
+                    color: timeFilter === filter
+                      ? theme.colors.primary.foreground
+                      : theme.colors.background.foreground,
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {filter}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        }
+      >
+        {isLoading ? (
+          <div className="text-center py-8 opacity-70">Loading...</div>
+        ) : recentConsumptions.length > 0 ? (
+          <div className="space-y-4">
+            {recentConsumptions.slice(0, 3).map((consumption) => (
+              <div 
+                key={consumption.id}
+                className="p-3 rounded"
+                style={{ backgroundColor: theme.colors.background.DEFAULT }}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex gap-2">
+                    {consumption.photos.map((photo, index) => (
+                      <div 
+                        key={index}
+                        className="w-12 h-12 rounded overflow-hidden"
+                        style={{ backgroundColor: `${theme.colors.primary.DEFAULT}22` }}
+                      >
+                        <img
+                          src={photo.photoData}
+                          alt={`Product photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <span 
+                    className="text-sm font-mono"
+                    style={{ color: theme.colors.primary.DEFAULT }}
+                  >
+                    {new Date(consumption.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="block opacity-70">Servings</span>
+                    <span className="font-mono">{consumption.servingsConsumed}</span>
+                  </div>
+                  <div>
+                    <span className="block opacity-70">Calories</span>
+                    <span className="font-mono">
+                      {Math.round((consumption.foodItem?.calories ?? 0) * consumption.servingsConsumed)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block opacity-70">Protein</span>
+                    <span className="font-mono">
+                      {Math.round((consumption.foodItem?.protein ?? 0) * consumption.servingsConsumed)}g
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 opacity-70">
+            No activity in the last {timeFilter === '4h' ? '4 hours' : timeFilter === '12h' ? '12 hours' : '24 hours'}.
+            {timeFilter !== '24h' && ' Try a longer time range.'}
+          </div>
+        )}
+      </TummyCard>
     </div>
   );
 }
