@@ -41,12 +41,6 @@ export default function Home() {
         })
       );
 
-      // Get all food items created in the last 24 hours (this stays at 24h)
-      const allFoodItems = await db.getAllFoodItems();
-      const newItems = allFoodItems.filter(item => 
-        new Date(item.createdAt).getTime() > startTime.getTime()
-      );
-
       setRecentConsumptions(consumptionsWithFood);
     } catch (error) {
       console.error('Failed to load recent consumptions:', error);
