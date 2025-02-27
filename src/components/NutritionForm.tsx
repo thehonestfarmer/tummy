@@ -35,7 +35,7 @@ export default function NutritionForm({ barcode, initialData, parsedData, onSave
   useEffect(() => {
     if (parsedData) {
       setFormData({
-        name: parsedData.name || '',
+        name: parsedData.name?.toString() || '',
         servingSize: parsedData.servingSize || '',
         servingsPerContainer: parsedData.servingsPerContainer || '',
         calories: parsedData.calories?.toString() || '',
