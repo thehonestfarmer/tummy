@@ -1,30 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-let Quagga: any = null;
+import type { QuaggaStatic, QuaggaResult } from 'quagga';
+
+let Quagga: QuaggaStatic | null = null;
 
 interface BarcodeScannerProps {
   onDetected: (code: string) => void;
   onCancel: () => void;
-}
-
-interface QuaggaResult {
-  codeResult: {
-    code: string;
-    format: string;
-  };
-  box?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  boxes?: Array<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }>;
 }
 
 export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerProps) {
@@ -32,7 +15,6 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [lastResult, setLastResult] = useState<QuaggaResult | null>(null);
 
@@ -102,11 +84,11 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
         if (!permissionGranted) return;
 
         // Dynamically import Quagga
-        Quagga = (await import('quagga')).default;
+        const QuaggaModule = await import('quagga');
+        Quagga = QuaggaModule.default;
         
         // Initialize Quagga
         await initQuagga();
-        setIsInitialized(true);
       } catch (err) {
         console.error('Scanner initialization error:', err);
         setError('Failed to initialize camera');
@@ -125,7 +107,7 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
   // Draw detection results on canvas
   const drawResult = (result: QuaggaResult) => {
     const canvas = overlayCanvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !Quagga) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -173,17 +155,22 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
   };
 
   const initQuagga = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !Quagga) return;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
+      if (!Quagga) {
+        reject(new Error('Quagga not initialized'));
+        return;
+      }
+
       Quagga.init({
         inputStream: {
           name: "Live",
           type: "LiveStream",
-          target: videoRef.current,
+          target: videoRef.current!,
           constraints: {
             facingMode: "environment",
-            aspectRatio: { min: 1, max: 2 },  // Ensure reasonable aspect ratios
+            aspectRatio: { min: 1, max: 2 },
             width: { min: 640, ideal: 1280, max: 1920 },
             height: { min: 480, ideal: 720, max: 1080 }
           },
@@ -191,7 +178,6 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
         decoder: {
           readers: [
             "ean_reader",      // EAN-13
-            // "ean_8_reader",    // EAN-8
             "upc_reader",      // UPC
             "upc_e_reader",    // UPC-E
           ],
@@ -203,64 +189,80 @@ export default function BarcodeScanner({ onDetected, onCancel }: BarcodeScannerP
           halfSample: true
         },
         frequency: 10
-      }, (err: any) => {
+      }, (err) => {
         if (err) {
-          setError('Failed to initialize scanner');
+          const errorMessage = err instanceof Error ? err.message : 'Unknown initialization error';
+          setError(`Failed to initialize scanner: ${errorMessage}`);
           reject(err);
           return;
         }
         
-        Quagga.start();
-
-        // Set initial canvas dimensions after video is ready
-        const video = videoRef.current?.querySelector('video');
-        if (video && overlayCanvasRef.current) {
-          video.addEventListener('loadedmetadata', () => {
-            overlayCanvasRef.current!.width = video.videoWidth;
-            overlayCanvasRef.current!.height = video.videoHeight;
-          });
+        if (!Quagga) {
+          reject(new Error('Quagga instance was lost during initialization'));
+          return;
         }
+        
+        try {
+          Quagga.start();
 
-        // Process frames
-        Quagga.onProcessed((result: any) => {
-          const canvas = overlayCanvasRef.current;
-          if (!canvas) return;
-
-          // Adjust canvas size to match video
+          // Set initial canvas dimensions after video is ready
           const video = videoRef.current?.querySelector('video');
-          if (video) {
-            canvas.width = video.offsetWidth;
-            canvas.height = video.offsetHeight;
+          if (video && overlayCanvasRef.current) {
+            video.addEventListener('loadedmetadata', () => {
+              if (overlayCanvasRef.current) {
+                overlayCanvasRef.current.width = video.videoWidth;
+                overlayCanvasRef.current.height = video.videoHeight;
+              }
+            });
           }
 
-          if (result) {
-            drawResult(result);
-            if (result.codeResult && result.codeResult.code) {
-              setLastResult(result);
+          // Process frames
+          Quagga.onProcessed((result) => {
+            const canvas = overlayCanvasRef.current;
+            if (!canvas) return;
+
+            // Adjust canvas size to match video
+            const video = videoRef.current?.querySelector('video');
+            if (video) {
+              canvas.width = video.offsetWidth;
+              canvas.height = video.offsetHeight;
             }
-          }
-        });
-        
-        // Handle successful detection
-        Quagga.onDetected((result: QuaggaResult) => {
-          const code = result.codeResult.code;
-          const format = result.codeResult.format;
+
+            if (result) {
+              drawResult(result);
+              if (result.codeResult && result.codeResult.code) {
+                setLastResult(result);
+              }
+            }
+          });
           
-          // Validate EAN-13 format
-          if (format === 'ean_13' && !/^\d{13}$/.test(code)) {
-            return;
-          }
+          // Handle successful detection
+          Quagga.onDetected((result) => {
+            const code = result.codeResult.code;
+            const format = result.codeResult.format;
+            
+            // Validate EAN-13 format
+            if (format === 'ean_13' && !/^\d{13}$/.test(code)) {
+              return;
+            }
+            
+            console.log(`Detected ${format}: ${code}`);
+            setIsScanning(true);
+            setLastResult(result);
+            onDetected(code);
+            
+            // Stop scanning after successful detection
+            if (Quagga) {
+              Quagga.stop();
+            }
+          });
           
-          console.log(`Detected ${format}: ${code}`);
-          setIsScanning(true);
-          setLastResult(result);
-          onDetected(code);
-          
-          // Stop scanning after successful detection
-          Quagga.stop();
-        });
-        
-        resolve(undefined);
+          resolve();
+        } catch (startError) {
+          const errorMessage = startError instanceof Error ? startError.message : 'Unknown error starting scanner';
+          setError(`Failed to start scanner: ${errorMessage}`);
+          reject(startError);
+        }
       });
     });
   };

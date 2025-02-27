@@ -5,7 +5,6 @@ import { TummyCard } from '../../components/ui/TummyCard';
 import { db, type FoodItem } from '../../lib/db';
 import { tummyTheme as theme } from '../../components/ui/theme';
 import { Input } from '../../components/ui/Input';
-import { motion } from 'framer-motion';
 
 export default function AddItemPage() {
   const [frequentItems, setFrequentItems] = useState<(FoodItem & { photos: { photoData: string }[] })[]>([]);

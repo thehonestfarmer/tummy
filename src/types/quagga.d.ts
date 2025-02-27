@@ -1,38 +1,57 @@
 declare module 'quagga' {
-  interface QuaggaConfig {
+  export interface QuaggaConfig {
     inputStream: {
       name?: string;
       type: string;
       target: HTMLElement;
-      constraints?: {
-        width?: number;
-        height?: number;
+      constraints: {
         facingMode?: string;
+        width?: { min?: number; max?: number; ideal?: number };
+        height?: { min?: number; max?: number; ideal?: number };
+        aspectRatio?: { min?: number; max?: number };
       };
     };
     decoder: {
       readers: string[];
+      multiple?: boolean;
     };
+    locate?: boolean;
+    locator?: {
+      patchSize?: string;
+      halfSample?: boolean;
+    };
+    frequency?: number;
   }
 
-  interface CodeResult {
-    code: string;
-    format: string;
+  export interface QuaggaResult {
+    codeResult: {
+      code: string;
+      format: string;
+    };
+    box?: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    boxes?: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>;
   }
 
-  interface QuaggaResult {
-    codeResult: CodeResult;
+  export interface QuaggaStatic {
+    init: (config: QuaggaConfig, callback?: (err: Error | null) => void) => Promise<void>;
+    start: () => void;
+    stop: () => void;
+    onDetected: (callback: (result: QuaggaResult) => void) => void;
+    onProcessed: (callback: (result: QuaggaResult | null) => void) => void;
+    offDetected: (callback: (result: QuaggaResult) => void) => void;
+    offProcessed: (callback: (result: QuaggaResult | null) => void) => void;
   }
 
-  function init(config: QuaggaConfig, callback?: (err: any) => void): void;
-  function start(): void;
-  function stop(): void;
-  function onDetected(callback: (result: QuaggaResult) => void): void;
-
-  export default {
-    init,
-    start,
-    stop,
-    onDetected,
-  };
+  const Quagga: QuaggaStatic;
+  export default Quagga;
 } 

@@ -2,10 +2,10 @@ import Tesseract from 'tesseract.js';
 
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
-function debugLog(message: string, data?: any) {
+function debugLog(message: string, data?: unknown): void {
   if (DEBUG_MODE) {
-    if (data) {
-      console.log(`[Tesseract] ${message}`, data);
+    if (data !== undefined) {
+      console.log(`[Tesseract] ${message}:`, data);
     } else {
       console.log(`[Tesseract] ${message}`);
     }

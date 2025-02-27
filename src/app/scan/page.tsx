@@ -8,9 +8,7 @@ import { TummyButton } from '../../components/ui/TummyButton';
 import { TummyCard } from '../../components/ui/TummyCard';
 import { TummyPhotoCapture } from '../../components/ui/TummyPhotoCapture';
 import { db, type FoodItem } from '../../lib/db';
-import type { NutritionMatch } from '../../lib/nutritionParser';
 import { tummyTheme as theme } from '../../components/ui/theme';
-import { PermissionRequest } from '../../components/PermissionRequest';
 
 type ScanningState = 'barcode' | 'photos' | 'nutrition' | 'consumption';
 
@@ -25,12 +23,12 @@ interface CapturedPhoto {
 
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
-function debugLog(message: string, data?: any) {
+function debugLog(message: string, data?: unknown): void {
   if (DEBUG_MODE) {
-    if (data) {
-      console.log(`[BarcodeScanner] ${message}:`, data);
+    if (data !== undefined) {
+      console.log(`[ScanPage] ${message}:`, data);
     } else {
-      console.log(`[BarcodeScanner] ${message}`);
+      console.log(`[ScanPage] ${message}`);
     }
   }
 }
@@ -163,6 +161,10 @@ export default function ScanPage() {
       case 'photos': return 2;
       case 'nutrition': return 3;
       case 'consumption': return 4;
+      default: {
+        const exhaustiveCheck: never = scanningState;
+        return exhaustiveCheck;
+      }
     }
   };
 

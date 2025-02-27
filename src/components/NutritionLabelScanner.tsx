@@ -4,9 +4,10 @@ import { useRef, useState, useEffect } from 'react';
 import { createTesseractWorker } from '../lib/tesseract';
 import { parseNutritionText } from '../lib/nutritionParser';
 import { translateText } from '../lib/translate';
+import type { NutritionMatch } from '../lib/nutritionParser';
 
 interface NutritionLabelScannerProps {
-  onScanComplete: (data: string, parsedData?: any) => void;
+  onScanComplete: (data: string, parsedData?: NutritionMatch) => void;
   onCancel: () => void;
 }
 
@@ -16,17 +17,17 @@ const DEBUG_MODE = process.env.NODE_ENV === 'development';
 export default function NutritionLabelScanner({ onScanComplete, onCancel }: NutritionLabelScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isScanning, setIsScanning] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState<string>('');
-  const [debugLog, setDebugLog] = useState<string[]>([]);
 
-  const addDebugLog = (message: string, data?: any) => {
-    if (DEBUG_MODE) {
-      const logMessage = data ? `${message}: ${JSON.stringify(data, null, 2)}` : message;
-      console.log(`[NutritionLabelScanner] ${logMessage}`);
-      setDebugLog(prev => [...prev, `${new Date().toISOString()} - ${logMessage}`]);
-    }
+  const addDebugLog = (message: string, data?: unknown): void => {
+    const timestamp = new Date().toISOString();
+    const logMessage = data !== undefined 
+      ? `${message}: ${JSON.stringify(data, null, 2)}` 
+      : message;
+    setDebugLogs(prev => [...prev, `[${timestamp}] ${logMessage}`]);
   };
 
   useEffect(() => {
@@ -200,9 +201,9 @@ export default function NutritionLabelScanner({ onScanComplete, onCancel }: Nutr
           </div>
         )}
 
-        {DEBUG_MODE && debugLog.length > 0 && (
+        {DEBUG_MODE && debugLogs.length > 0 && (
           <div className="max-h-40 overflow-y-auto p-4 bg-gray-50 text-xs font-mono">
-            {debugLog.map((log, index) => (
+            {debugLogs.map((log, index) => (
               <div key={index} className="whitespace-pre-wrap text-gray-900">{log}</div>
             ))}
           </div>

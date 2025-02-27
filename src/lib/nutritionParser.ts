@@ -1,5 +1,5 @@
 export interface NutritionMatch {
-  name?: string;
+  [key: string]: string | number | undefined;
   servingSize?: string;
   servingsPerContainer?: string;
   calories?: number;
