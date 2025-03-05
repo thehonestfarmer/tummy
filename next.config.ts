@@ -30,19 +30,6 @@ const config = withPWA({
   register: true,
   skipWaiting: true,
   disable: isDev,
-  runtimeCaching: [
-    {
-      urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'offlineCache',
-        expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    }
-  ]
 })({
   typescript: {
     // !! WARN !!
