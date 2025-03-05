@@ -26,12 +26,19 @@ export const metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'Tummy',
+    startupImage: [
+      {
+        url: '/splash/apple-splash-2048-2732.png',
+        media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)'
+      }
+    ]
   },
   viewport: {
     width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+    viewportFit: 'cover'
   },
   icons: {
     apple: [
@@ -50,12 +57,18 @@ export default function RootLayout({
       <head>
         <meta name="application-name" content="Tummy" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Tummy" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-config" content="none" />
+        <meta name="msapplication-TileColor" content="#7C3AED" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="theme-color" content="#7C3AED" />
+        
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#7C3AED" />
       </head>
       <body className="h-screen flex flex-col bg-gray-900">
         <main className="flex-1 overflow-y-auto">

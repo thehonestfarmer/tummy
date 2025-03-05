@@ -2,11 +2,15 @@
   "name": "Tummy - Food Tracker",
   "short_name": "Tummy",
   "description": "Track your food intake with barcode scanning and nutrition information",
-  "start_url": "/",
+  "start_url": "/?standalone=true",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#1F2937",
   "theme_color": "#7C3AED",
   "orientation": "portrait",
+  "scope": "/",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
