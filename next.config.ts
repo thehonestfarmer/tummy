@@ -11,7 +11,8 @@ const devCSP = [
   "style-src 'self' 'unsafe-inline'",
   "media-src 'self' blob: data:",
   "img-src 'self' blob: data:",
-  "connect-src 'self' blob: data: https://cdn.jsdelivr.net https://api.mymemory.translated.net",
+  "connect-src 'self' blob: data: https://cdn.jsdelivr.net",
+  "manifest-src 'self'"
 ].join('; ');
 
 // CSP for production - more restrictive
@@ -22,7 +23,8 @@ const prodCSP = [
   "style-src 'self' 'unsafe-inline'",
   "media-src 'self' blob: data:",
   "img-src 'self' blob: data:",
-  "connect-src 'self' blob: data: https://api.mymemory.translated.net",
+  "connect-src 'self' blob: data:",
+  "manifest-src 'self'"
 ].join('; ');
 
 const config = withPWA({
@@ -30,6 +32,7 @@ const config = withPWA({
   register: true,
   skipWaiting: true,
   disable: isDev,
+  sw: '/workbox-config.js'
 })({
   typescript: {
     // !! WARN !!
@@ -44,6 +47,10 @@ const config = withPWA({
         {
           key: 'Content-Security-Policy',
           value: isDev ? devCSP : prodCSP
+        },
+        {
+          key: 'Service-Worker-Allowed',
+          value: '/'
         }
       ]
     }
