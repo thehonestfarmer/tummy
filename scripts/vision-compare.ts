@@ -36,6 +36,8 @@ await sql.end();
 type Score = {
   foods: number;
   failed: number;
+  /** Never attempted because the account had no credit: not the model's failure. */
+  unbilled: number;
   perfect: number;
   misreads: number;
   byField: Map<string, number>;
@@ -46,12 +48,17 @@ type Score = {
 
 const models = new Map<string, Score>();
 const fresh = (): Score => ({
-  foods: 0, failed: 0, perfect: 0, misreads: 0, byField: new Map(), estimateOff: [], latencies: [], fellBack: 0,
+  foods: 0, failed: 0, unbilled: 0, perfect: 0, misreads: 0, byField: new Map(), estimateOff: [], latencies: [], fellBack: 0,
 });
 
 for (const row of rows) {
   const s = models.get(row.model) ?? fresh();
   models.set(row.model, s);
+  // Gemini's credit can take a day to land; reads refused for it say nothing about the model.
+  if (!row.output && row.error && /out of credit/i.test(row.error)) {
+    s.unbilled += 1;
+    continue;
+  }
   s.foods += 1;
   if (!row.output) {
     s.failed += 1;
@@ -93,6 +100,7 @@ const row = (label: string, f: (s: Score) => string) =>
   lines.push(`| ${label} | ${names.map((m) => f(models.get(m)!)).join(" | ")} |`);
 row("Foods read", (s) => String(s.foods));
 row("Failed to read", (s) => String(s.failed));
+row("Not read: account out of credit", (s) => String(s.unbilled));
 row("Read with no misreads", (s) => `${s.perfect} (${pct(s.perfect, s.foods - s.failed)})`);
 row("Misread fields, total", (s) => String(s.misreads));
 for (const field of PRINTED_FIELDS) row(`… ${field}`, (s) => String(s.byField.get(field) ?? 0));
