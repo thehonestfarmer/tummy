@@ -230,11 +230,21 @@ export async function updateEntry(me: User, id: number, patch: { grams?: unknown
       local_date = coalesce(${(date as string | undefined) ?? null}::date, local_date)
     where id = ${id} and user_id = ${me.id}
     returning id`;
-  if (!rows.length) throw new Error("That entry is gone.");
+  if (!rows.length) throw new Error("That entry isn't one of yours, or it's gone.");
 }
 
-export async function deleteEntry(me: User, id: number) {
-  await sql`delete from food_entries where id = ${id} and user_id = ${me.id}`;
+/**
+ * Your own entry. With `both`, the partner's half of the same shared meal
+ * too, since either of you can log a shared meal into both days (§5.7).
+ */
+export async function deleteEntry(me: User, id: number, both = false): Promise<string[]> {
+  const rows = await sql<{ name: string }[]>`
+    delete from food_entries
+    where (id = ${id} and user_id = ${me.id})
+       or (${both} and shared_meal_id is not null and shared_meal_id = (
+             select shared_meal_id from food_entries where id = ${id} and user_id = ${me.id}))
+    returning name`;
+  return rows.map((r) => r.name);
 }
 
 /**

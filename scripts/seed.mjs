@@ -43,5 +43,53 @@ const added = await sql`
   returning user_id`;
 console.log(`  targets  ${added.length} starting target(s) added`);
 
+/*
+ * Starting guidance (mcpspec.md §7), from the summary there of the Oct 2026
+ * targets doc and the training notes. Only where a section is still empty,
+ * so edits made since, by either of you or by Claude, are never overwritten.
+ * Bear reviews these before launch.
+ */
+const SAME_DAY =
+  "Same target every day, including the 20K-step day: on that day, an optional +200–250 kcal, protein-led, " +
+  "if hunger is high.";
+const GUIDANCE = {
+  bear: {
+    standing_rules: `${SAME_DAY} Protein first. Gaining slowly: a surplus of about +250 kcal a day. Fat floor about 45g.`,
+    weight: "Daily weigh-ins; judge by the 7-day average. Expect water swings from sodium, soreness, and fasting.",
+    training:
+      "Check the back traffic light each morning. If it isn't green, swap loaded hinges for the plan's alternative.",
+    tone: "Direct, numbers-first.",
+  },
+  bunny: {
+    standing_rules:
+      `${SAME_DAY} Protein first; in the deficit, cut carbs or fat, never protein. Losing about 0.4 kg a week ` +
+      "(about −425 kcal a day). Fat floor about 45g.",
+    weight:
+      "Trend only. Never state a daily weight. Waist is measured weekly. Judge by the 7-day trend, and expect " +
+      "water swings from sodium, soreness, and fasting.",
+    training: "Double progression on dumbbell work; 2.5kg is the smallest jump.",
+    tone: "Plain and encouraging; lead with what to do.",
+  },
+};
+const SHARED = {
+  fasting:
+    "Hit full calories and protein inside the eating window. Break the fast with about 40g of protein, then the " +
+    "main meal. Salt water during the fast.",
+  safety_stops:
+    "Dizziness, shakiness, lightheadedness, or a racing heart means eat now, whatever the plan. Hunger alone doesn't.",
+};
+let sections = 0;
+for (const [slug, own] of Object.entries(GUIDANCE)) {
+  for (const [section, body] of Object.entries({ ...own, ...SHARED })) {
+    const rows = await sql`
+      insert into guidance (user_id, section, body)
+      select id, ${section}, ${body} from users where slug = ${slug}
+      on conflict (user_id, section) do nothing
+      returning section`;
+    sections += rows.length;
+  }
+}
+console.log(`  guidance  ${sections} section(s) added`);
+
 await sql.end();
 console.log("seed complete");
