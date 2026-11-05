@@ -204,7 +204,7 @@ Each user has a guidance document stored on the server, in named sections. `get_
 | Training | Check the back traffic light each morning; if it isn't green, swap loaded hinges for the plan's alternative. | Double progression on dumbbell work; 2.5kg is the smallest jump. |
 | Tone | Direct, numbers-first. | Plain and encouraging; lead with what to do. |
 
-The implementing agent seeds these from the source docs, not from this table, and Bear reviews them before launch.
+Seeded from this table by `scripts/seed.mjs`, since the source docs live in a claude.ai project rather than the repo, with the targets merged in live. Bear reviews them before launch; either of us, or Claude, can change any section through `update_guidelines`.
 
 ---
 
@@ -242,8 +242,8 @@ The MCP moves up so the library can be seeded from Claude straight away. Steps m
 1. Service layer in `lib/health/` for foods: the label-as-printed derivation, the plausibility check, the reference cross-check, and duplicate matching (*built*, apart from accepting a chat submission as printed)
 2. **MCP server with `search_foods`, `add_food`, `confirm_food`, `update_food`**, with chat confirmation. This is enough to seed the library from Claude and ChatGPT. (`search_foods` and a draft-only `add_food` are *built*.)
 3. PWA photo path: upload → Claude or Gemini vision → same structure → confirm, with the two-model comparison (*built* for Claude; Gemini is added)
-4. `get_context`, `get_guidelines`, `update_guidelines`, and the seeded guidance
-5. `log_food`, `log_food_items`, `resolve_choice`, edits, `undo_last`, and duplicate protection (`log_food` and `undo_last` are *built*, returning `no_match` / `needs_amount` rather than `needs_choice`)
+4. `get_context`, `get_guidelines`, `update_guidelines`, and the seeded guidance (*built*)
+5. `log_food`, `log_food_items`, `resolve_choice`, edits, `undo_last`, and duplicate protection (*built*; a second identical call within a minute replays the first result, so two deliberate `undo_last` calls in a minute remove one log)
 6. Weight and targets tools
 7. Training and run tools
 
