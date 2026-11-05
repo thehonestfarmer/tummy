@@ -80,8 +80,8 @@ The VPS is in Singapore because a server in Toronto or Silicon Valley adds rough
 | Deploy | The Action SSHes in to pull and restart. About 30 lines. |
 | HTTPS | Caddy with Let's Encrypt. It must stream responses unbuffered (MCP) and accept request bodies large enough for audio and photo batches. |
 | Restarts | `restart: unless-stopped` |
-| Background work | `after()` is supported under `next start`, and finishes on `SIGTERM` if given time. Set the container's stop grace period to about 90 s, since label reads can be slow. A sweep re-queues any draft stuck in `reading` for more than a few minutes, in case a deploy cut one off. |
-| Scheduled jobs | Host cron: a Neon keep-alive every few minutes (§14), the weekly backup, and pruning of unreviewed photos older than 30 days (§5.3). Target proposals are computed when Today or Trends opens (§6.4), so they need no job. |
+| Background work | `after()` is supported under `next start`, and finishes on `SIGTERM` if given time. The container's stop grace period is 90 s, since label reads can be slow. At boot, the server re-reads any draft from the last day that never got a reading, in case a deploy cut one off. |
+| Scheduled jobs | Host cron (`deploy/crontab`): the weekly backup, and pruning of unreviewed photos older than 30 days (§5.3). A Neon keep-alive is there but off (§14). Target proposals are computed when Today or Trends opens (§6.4), so they need no job. |
 | Backup | Weekly `pg_dump` of the database to the VPS, keeping the last 8. There are no blobs. Months of intake and lift history are hard to recreate. |
 | Logs | Docker's `json-file` driver with `max-size` and `max-file` set. Unrotated logs are what fills a small disk. |
 | Memory | 1–2 GB of swap as a safety margin |
@@ -519,7 +519,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 
 1. **The name, icon, and domain.** Settle the name and icon before either of us installs the app (see the note at the top).
 2. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
-3. **Neon cold starts.** On the free tier, Neon suspends after about 5 minutes idle and wakes in roughly half a second to a second. The cron keep-alive covers it; if that isn't enough, a paid plan can turn auto-suspend off.
+3. **Neon cold starts.** Neon suspends after about 5 minutes idle and wakes in roughly half a second to a second. Opening the app renders Today, which wakes the database before anyone speaks, so the keep-alive in `deploy/crontab` ships switched off: an always-on compute uses far more of Neon's monthly allowance. Switch it on only if quick logs are measurably slow after idle.
 4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
 5. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
 6. **Charts.** Hand-rolled SVG or a small library.

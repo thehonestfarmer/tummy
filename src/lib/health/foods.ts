@@ -219,6 +219,25 @@ export async function readDraft(foodId: number): Promise<void> {
   }
 }
 
+/**
+ * Reads again any recent draft that never got a reading: one a deploy or a
+ * restart cut off mid-read (healthspec.md §3). Called once at boot, one draft
+ * at a time so a restart after a big batch doesn't fire every read at once.
+ * Older drafts are left for the review screen's retry.
+ */
+export async function resumeUnreadDrafts(): Promise<number> {
+  const rows = await sql<{ id: number }[]>`
+    select f.id from foods f
+    where f.status = 'draft' and f.created_at > now() - interval '1 day'
+      and not exists (select 1 from food_readings r where r.food_id = f.id)
+    order by f.id`;
+  for (const { id } of rows) {
+    await resetDraft(id);
+    await readDraft(id);
+  }
+  return rows.length;
+}
+
 /** Clears what the models said, so the draft reads again from scratch. */
 export async function resetDraft(foodId: number) {
   const rows = await sql<{ id: number }[]>`

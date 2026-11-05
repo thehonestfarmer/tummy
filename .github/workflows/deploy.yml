@@ -1,0 +1,88 @@
+# Builds the image on every push to main, and deploys it to the VPS once one
+# is configured (healthspec.md §3). The 1 GB box never builds anything.
+#
+# Deploying needs, in the repo's Settings → Secrets and variables → Actions:
+#   variable DEPLOY_HOST          the VPS's address
+#   secret   DEPLOY_SSH_KEY       a private key whose public half is in deploy's authorized_keys
+#   secret   DEPLOY_KNOWN_HOSTS   output of `ssh-keyscan <DEPLOY_HOST>`
+# Until DEPLOY_HOST is set, pushes only build.
+name: build and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Match the VPS. Change to linux/arm64 for an ARM box.
+          platforms: linux/amd64
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    if: vars.DEPLOY_HOST != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH key
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Copy compose, Caddy, backup and cron files
+        run: |
+          scp -i ~/.ssh/id_deploy deploy/compose.yaml deploy/Caddyfile deploy/backup.sh deploy/crontab \
+            deploy@${{ vars.DEPLOY_HOST }}:/srv/tummy/
+      - name: Migrate, then start the new image
+        run: |
+          ssh -i ~/.ssh/id_deploy deploy@${{ vars.DEPLOY_HOST }} \
+            TAG=${{ github.sha }} GHCR_USER=${{ github.actor }} GHCR_TOKEN=${{ secrets.GITHUB_TOKEN }} 'bash -s' <<'SH'
+          set -euo pipefail
+          cd /srv/tummy
+          # This run's token is enough to pull, and expires with it.
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          export TAG
+          docker compose pull app
+          # Migrations are additive (healthspec.md §11), so the old server
+          # keeps working against the new schema until it is replaced.
+          docker compose run --rm --no-deps app node scripts/migrate.mjs
+          docker compose up -d --remove-orphans
+          docker logout ghcr.io
+          crontab crontab
+          chmod +x backup.sh
+          docker image prune -f
+          # Pin `latest` locally to what is now running, so a plain `up -d` keeps it.
+          docker tag "ghcr.io/thehonestfarmer/tummy:$TAG" ghcr.io/thehonestfarmer/tummy:latest
+          SH

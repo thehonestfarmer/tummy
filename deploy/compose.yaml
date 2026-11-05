@@ -1,0 +1,50 @@
+# Tummy on the VPS (healthspec.md §3). Lives at /srv/tummy beside its .env,
+# Caddyfile, backup.sh and crontab; the deploy workflow copies these in.
+#
+#   docker compose up -d               # start, or pick up a new image
+#   TAG=<git sha> docker compose up -d # roll back to an earlier build
+#   docker compose logs -f app
+
+x-logging: &logging
+  driver: json-file
+  # Unrotated container logs are what fills a 32 GB disk.
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  app:
+    image: ghcr.io/thehonestfarmer/tummy:${TAG:-latest}
+    env_file: .env
+    volumes:
+      # Food photos waiting for review (§5.3). On the host so cron can prune it.
+      - ./photos:/data/photos
+    # Only Caddy and the host itself (cron) talk to the app.
+    ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
+    # Forwards SIGTERM to Node, which then finishes in-flight requests and any
+    # after() work, such as a label still being read, before exiting.
+    init: true
+    stop_grace_period: 90s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/warm').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+    logging: *logging
+
+  caddy:
+    image: caddy:2
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  # Caddy's certificates. Losing them means re-issuing, which Let's Encrypt rate-limits.
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,14 @@
+# The deploy user's crontab on the VPS (healthspec.md §3). The deploy
+# workflow installs it with `crontab /srv/tummy/crontab`, replacing what was there.
+SHELL=/bin/bash
+
+# Weekly database backup, Sunday 03:30 UTC.
+30 3 * * 0 /srv/tummy/backup.sh >> /srv/tummy/backups/backup.log 2>&1
+
+# Food photos nobody reviewed in 30 days. Their drafts keep the reading.
+15 4 * * * find /srv/tummy/photos -type f -name '*.jpg' -mtime +30 -delete
+
+# Keep Neon awake, so a quick log never waits for it to wake. Off by default:
+# an always-on compute uses far more of Neon's monthly allowance, and opening
+# the app already wakes it before anyone speaks (healthspec.md §14).
+# */4 * * * * curl -fsS -o /dev/null http://127.0.0.1:3000/api/warm

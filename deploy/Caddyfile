@@ -1,0 +1,11 @@
+# HTTPS for Tummy, with certificates from Let's Encrypt (healthspec.md §3).
+{$DOMAIN} {
+	# A bulk label upload and a voice clip both arrive as request bodies.
+	request_body {
+		max_size 25MB
+	}
+	reverse_proxy app:3000 {
+		# Pass streamed responses straight through: the MCP connector streams.
+		flush_interval -1
+	}
+}
