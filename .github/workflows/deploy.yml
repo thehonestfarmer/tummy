@@ -26,6 +26,15 @@ jobs:
     permissions:
       contents: read
       packages: write
+    # A throwaway database for the smoke test.
+    services:
+      db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: tummy
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 2s --health-retries 30
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -34,17 +43,43 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          # Match the VPS. Change both platforms to linux/arm64 for an ARM box.
+          platforms: linux/amd64
+          tags: tummy:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # The image does what a deploy asks of it, before it can reach the VPS:
+      # migrate from inside the image, start, answer, and touch the database.
+      - name: Smoke test
+        run: |
+          url=postgres://postgres:ci@localhost:5432/tummy
+          docker run --rm --network host -e DATABASE_URL=$url tummy:ci node scripts/migrate.mjs
+          docker run -d --name app --network host -e DATABASE_URL=$url -e SESSION_SECRET=ci tummy:ci
+          for i in $(seq 1 30); do curl -fs -o /dev/null http://127.0.0.1:3000/api/warm && break; sleep 1; done
+          check() { got=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$1"); echo "$1 $got"; [ "$got" = "$2" ]; }
+          check /api/warm 204
+          check / 200
+          check /offline.html 200
+          check /manifest.webmanifest 200
+          check /api/day 401
+          docker logs app
+          ! docker logs app 2>&1 | grep -iE "error|unhandled"
+      - name: Push
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          # Match the VPS. Change to linux/arm64 for an ARM box.
           platforms: linux/amd64
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
+          # Every layer is already cached by the build above.
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   deploy:
     needs: build
