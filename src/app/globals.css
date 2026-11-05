@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+  One dark ground, committed. Photos supply all the colour; the interface is a
+  single desaturated cool graphite chosen so arbitrary phone photos sit on it
+  without clashing. The only fixed hues are the two identity marks.
+*/
+:root {
+  --ground: #17191c;
+  --ground-raised: #1e2126;
+  --ground-sunk: #121417;
+  --hairline: #2a2e34;
+  --hairline-strong: #3a3f47;
+  --ink: #e4e6e9;
+  --ink-dim: #8b919a;
+  --ink-faint: #5c636c;
+  --bunny: #c58f95;
+  --bear: #8d9e85;
+  --tab-h: 3.75rem;
+  /* Named so every edge reads from one place — and so a test can fake a notch. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-ground-raised: var(--ground-raised);
+  --color-ground-sunk: var(--ground-sunk);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-faint: var(--ink-faint);
+  --color-bunny: var(--bunny);
+  --color-bear: var(--bear);
+  --font-sans: var(--font-nunito), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  background: var(--ground);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-nunito), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/*
+  Every control acknowledges a touch. Suppressing the native highlight without
+  replacing it leaves buttons feeling dead on a phone, so tune it rather than
+  remove it. touch-action kills the double-tap zoom delay.
+*/
+button {
+  -webkit-tap-highlight-color: rgba(228, 230, 233, 0.09);
+  touch-action: manipulation;
+}
+
+img {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/*
+  An upload with no measurable progress still has to look alive. The SDK only
+  reports intermediate percentages when the body is large enough to be sent in
+  several chunks; a small photo on a fast connection reports nothing at all.
+*/
+@keyframes tb-sweep {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(340%); }
+}
+
+.sweep {
+  width: 30%;
+  animation: tb-sweep 1.15s ease-in-out infinite;
+}
+
+/* The only other motion in the app: proof that a tap was heard. */
+@keyframes tb-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.verifying > * {
+  animation: tb-breathe 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verifying > *,
+  .sweep {
+    animation: none;
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
