@@ -23,9 +23,11 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 # Migrations run from this image on every deploy, before the new server
-# starts; `postgres` is already in the standalone node_modules.
+# starts. The server has `postgres` bundled into its own chunks, so the
+# script needs the package itself; it has no dependencies of its own.
 COPY --from=build /app/db/migrations ./db/migrations
 COPY --from=build /app/scripts/migrate.mjs /app/scripts/sql.mjs /app/scripts/env.mjs ./scripts/
+COPY --from=build /app/node_modules/postgres ./node_modules/postgres
 RUN mkdir -p /data/photos && chown -R node:node /data
 USER node
 EXPOSE 3000
