@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { CLIENT_NAMES } from "@/lib/health/client";
 import { usePoll } from "@/lib/usePoll";
 import type { DraftView, ReviewView } from "@/lib/health/foods";
 import {
@@ -99,7 +100,13 @@ export function ReviewClient({ initial }: { initial: ReviewView }) {
           </button>
         ) : null}
       </header>
-      {current.addedBy ? <p className="pt-1.5 text-[0.85rem] text-ink-faint">Added by {current.addedBy}</p> : null}
+      {current.addedBy ? (
+        <p className="pt-1.5 text-[0.85rem] text-ink-faint">
+          Added by {current.addedBy}
+          {/* Read in a chat: there's no photo here, so check it against the packet itself. */}
+          {current.client !== "pwa" ? ` in ${CLIENT_NAMES[current.client]}, no photo` : ""}
+        </p>
+      ) : null}
 
       <PhotoViewer images={current.images} />
 

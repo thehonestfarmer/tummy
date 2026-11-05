@@ -35,11 +35,13 @@ export function ConnectSettings({ origin, initialToken, name }: { origin: string
   const [token, setToken] = useState(initialToken);
   const [busy, setBusy] = useState(false);
   const mcp = `${origin}/api/mcp/${token}`;
+  // The same tools; the suffix only records that a write came from ChatGPT.
+  const chatgpt = `${mcp}/chatgpt`;
 
   return (
     <div className="px-3 pt-3 pb-8 text-[0.95rem] leading-relaxed">
       <h1 className="text-[1.15rem] leading-none">Claude and ChatGPT</h1>
-      <p className="pt-2 text-ink-dim">This link logs as {name}. Keep it to yourself.</p>
+      <p className="pt-2 text-ink-dim">These links log as {name}. Keep them to yourself.</p>
 
       <section className="pt-6">
         <h2 className="text-[1.05rem]">Claude</h2>
@@ -54,16 +56,17 @@ export function ConnectSettings({ origin, initialToken, name }: { origin: string
       <section className="pt-6">
         <h2 className="text-[1.05rem]">ChatGPT</h2>
         <p className="pt-2 text-ink-dim">
-          In ChatGPT, turn on developer mode, then add a connector with this same link and no authentication. Logging
+          In ChatGPT, turn on developer mode, then add a connector with this link and no authentication. Logging
           from ChatGPT&rsquo;s phone app may not work yet; looking things up does.
         </p>
+        <Copyable label="Connector link" value={chatgpt} />
       </section>
 
       <section className="pt-8">
         <button
           disabled={busy}
           onClick={async () => {
-            if (!window.confirm("Make a new link? The old one stops working in Claude and ChatGPT straight away.")) return;
+            if (!window.confirm("Make new links? The old ones stop working in Claude and ChatGPT straight away.")) return;
             setBusy(true);
             const res = await fetch("/api/token", { method: "POST" });
             if (res.ok) setToken((await res.json()).token);
@@ -71,7 +74,7 @@ export function ConnectSettings({ origin, initialToken, name }: { origin: string
           }}
           className="text-[0.9rem] text-ink-faint underline decoration-hairline-strong underline-offset-4"
         >
-          Make a new link
+          Make new links
         </button>
       </section>
     </div>

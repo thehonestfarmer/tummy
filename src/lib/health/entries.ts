@@ -3,6 +3,7 @@ import type { TransactionSql } from "postgres";
 import { sql } from "../db";
 import { bothUsers, type User } from "../auth";
 import { PAIR_ORDER, type Slug } from "../config";
+import type { Client } from "./client";
 import type { Macros } from "./reading";
 import { clockIn, dateIn } from "./zone";
 
@@ -174,6 +175,8 @@ export type LogInput = {
   foodId: number;
   grams: number;
   source: EntrySource;
+  /** Required from MCP; anything else came from the app. */
+  client?: Client;
   tz: string;
   loggedAt?: Date;
   inputText?: string | null;
@@ -181,6 +184,13 @@ export type LogInput = {
 };
 
 type Db = TransactionSql | typeof sql;
+
+/** An entry from MCP has to say which assistant sent it; everything else is the app. */
+function clientOf(source: EntrySource, client: Client | undefined): Client {
+  if (client) return client;
+  if (source === "mcp") throw new Error("A log over MCP needs its client.");
+  return "pwa";
+}
 
 /**
  * Writes one entry, snapshotting the food as it is now. Only a confirmed
@@ -197,11 +207,11 @@ export async function logEntry(user: User | { id: number }, createdBy: number, i
   const [row] = await db<{ id: number }[]>`
     insert into food_entries
       (user_id, food_id, grams, name, kcal_100g, protein_100g, fat_100g, carbs_100g,
-       logged_at, tz, local_date, source, input_text, created_by, shared_meal_id)
+       logged_at, tz, local_date, source, client, input_text, created_by, shared_meal_id)
     values
       (${user.id}, ${food.id}, ${input.grams}, ${food.name}, ${food.kcal}, ${food.protein_g}, ${food.fat_g},
-       ${food.carbs_g}, ${at}, ${input.tz}, ${dateIn(input.tz, at)}, ${input.source}, ${input.inputText ?? null},
-       ${createdBy}, ${input.sharedMealId ?? null})
+       ${food.carbs_g}, ${at}, ${input.tz}, ${dateIn(input.tz, at)}, ${input.source},
+       ${clientOf(input.source, input.client)}, ${input.inputText ?? null}, ${createdBy}, ${input.sharedMealId ?? null})
     returning id`;
   return { id: row.id, name: food.name, grams: input.grams, macros: macrosFor(input.grams, food) };
 }
@@ -240,6 +250,7 @@ export async function flushPendingLogs(foodId: number, db: Db) {
       logged_at: Date;
       tz: string;
       source: EntrySource;
+      client: Client;
       input_text: string | null;
       created_by: number | null;
     }[]
@@ -254,6 +265,7 @@ export async function flushPendingLogs(foodId: number, db: Db) {
         foodId,
         grams: p.grams ?? food?.default_grams ?? 100,
         source: p.source,
+        client: p.client,
         tz: p.tz,
         loggedAt: p.logged_at,
         inputText: p.input_text,
@@ -268,13 +280,20 @@ export async function addPendingLog(
   userId: number,
   createdBy: number,
   foodId: number,
-  input: { grams: number | null; tz: string; source: EntrySource; inputText?: string | null; loggedAt?: Date },
+  input: {
+    grams: number | null;
+    tz: string;
+    source: EntrySource;
+    client?: Client;
+    inputText?: string | null;
+    loggedAt?: Date;
+  },
 ) {
   const at = input.loggedAt ?? new Date();
   await sql`
-    insert into pending_logs (food_id, user_id, grams, logged_at, tz, local_date, source, input_text, created_by)
+    insert into pending_logs (food_id, user_id, grams, logged_at, tz, local_date, source, client, input_text, created_by)
     values (${foodId}, ${userId}, ${input.grams}, ${at}, ${input.tz}, ${dateIn(input.tz, at)}, ${input.source},
-            ${input.inputText ?? null}, ${createdBy})`;
+            ${clientOf(input.source, input.client)}, ${input.inputText ?? null}, ${createdBy})`;
 }
 
 /* ─── Shared meals (§5.7) ────────────────────────────────────────────────── */

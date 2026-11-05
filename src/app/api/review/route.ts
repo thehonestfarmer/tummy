@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     if (typeof id !== "number") throw new Error("Which draft?");
     switch (action) {
       case "confirm":
-        await confirmDraft(user, id, reading, typeof reference === "number" ? reference : null);
+        await confirmDraft(user, id, reading, typeof reference === "number" ? reference : null, "pwa");
         break;
       case "discard":
         await discardDraft(id);

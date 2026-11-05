@@ -1,28 +1,27 @@
 import "server-only";
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { claudeConfigured, claudeJson } from "./claude";
+import { claudeJson } from "./claude";
+import { geminiJson } from "./gemini";
 import { readFoodPhoto } from "./photos";
 import type { Reading } from "./reading";
 
 /**
- * Reads food photos into a `Reading`. Claude, not Groq: label reading is the
- * step where accuracy matters most, and Groq is kept for transcription and
- * quick parsing, where speed matters (healthspec.md §9, as amended).
+ * Reads food photos into a `Reading`, with Claude or Gemini: label reading
+ * is the step where accuracy matters most, and Groq is kept for
+ * transcription and quick parsing, where speed matters (healthspec.md §9).
  *
  * Which model is not settled by assumption. Until the first seeding batch has
- * been reviewed, every draft is read by both `visionModels()` side by side,
- * and `scripts/vision-compare.mjs` scores each against what the reviewer
+ * been reviewed, every draft is read by each of `visionModels()` side by
+ * side, and `bun run vision:compare` scores each against what the reviewer
  * confirmed. Set HEALTH_VISION_COMPARE to empty to stop paying for the
  * second reading once a winner is picked.
  */
 export function visionModels(): string[] {
   const primary = process.env.HEALTH_VISION_MODEL || "claude-opus-5";
-  const compare = process.env.HEALTH_VISION_COMPARE ?? "claude-sonnet-5";
+  const compare = process.env.HEALTH_VISION_COMPARE ?? "gemini-flash-latest";
   return [...new Set([primary, ...compare.split(",").map((m) => m.trim()).filter(Boolean)])];
 }
-
-export const visionConfigured = claudeConfigured;
 
 const n = () => z.number().nullable();
 
@@ -123,7 +122,7 @@ per-100g RAW values for that cut.
 - One or two photos of the same product may be given (usually the back, sometimes the front). Combine them.
 - Salt, sodium, vitamins and other figures have no field and are not needed; leave them out of notes too.`;
 
-type ImageSource = Anthropic.Beta.BetaImageBlockParam["source"];
+type ImageSource = Extract<Anthropic.Beta.BetaImageBlockParam["source"], { type: "base64" }>;
 
 /** The photos are private and on this server's disk, so they go as bytes. */
 async function imageSource(url: string): Promise<ImageSource> {
@@ -134,8 +133,24 @@ async function imageSource(url: string): Promise<ImageSource> {
 
 export type ReadResult = { reading: Reading; servedBy: string; latencyMs: number };
 
+const TASK = "read that label. Try a closer photo";
+
+/** Goes to Gemini or Claude by the model's name; the schema and prompt are the same for both. */
 export async function readFoodPhotos(model: string, imageUrls: string[]): Promise<ReadResult> {
   const images = await Promise.all(imageUrls.map(imageSource));
+  if (model.startsWith("gemini-")) {
+    const { output, servedBy, latencyMs } = await geminiJson({
+      model,
+      system: SYSTEM,
+      parts: [
+        ...images.map((i) => ({ inline_data: { mime_type: i.media_type, data: i.data } })),
+        { text: "Read this product." },
+      ],
+      schema: ReadingSchema,
+      task: TASK,
+    });
+    return { reading: output, servedBy, latencyMs };
+  }
   const { output, servedBy, latencyMs } = await claudeJson({
     model,
     system: SYSTEM,
@@ -144,7 +159,7 @@ export async function readFoodPhotos(model: string, imageUrls: string[]): Promis
       { type: "text", text: "Read this product." },
     ],
     schema: ReadingSchema,
-    task: "read that label. Try a closer photo",
+    task: TASK,
   });
   return { reading: output, servedBy, latencyMs };
 }

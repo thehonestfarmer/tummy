@@ -58,6 +58,8 @@ create table if not exists food_entries (
   tz           text not null,
   local_date   date not null,
   source       text not null check (source in ('touch', 'voice', 'mcp')),
+  -- The app, or which assistant (mcpspec.md §2).
+  client       text not null default 'pwa' check (client in ('pwa', 'claude', 'chatgpt')),
   -- What was said or typed, for entries that came from words.
   input_text   text,
   -- Who logged it, which differs from user_id for the partner's half of a shared meal.
@@ -85,6 +87,7 @@ create table if not exists pending_logs (
   tz         text not null,
   local_date date not null,
   source     text not null check (source in ('touch', 'voice', 'mcp')),
+  client     text not null default 'pwa' check (client in ('pwa', 'claude', 'chatgpt')),
   input_text text,
   created_by integer references users(id) on delete set null,
   created_at timestamptz not null default now()

@@ -50,7 +50,15 @@ create table if not exists foods (
   default_grams double precision check (default_grams is null or default_grams > 0),
   -- Null only while a photo draft has not been read, since until then nobody
   -- knows whether it is a nutrition label or a meat pack.
-  source        text check (source in ('label_ocr', 'pack_read', 'reference_table', 'llm_estimate', 'manual', 'mcp')),
+  source        text check (source in ('label_ocr', 'pack_read', 'reference_table', 'llm_estimate', 'manual')),
+  /*
+   * Where it was submitted from, and where a person said yes to it
+   * (mcpspec.md §8). Either of us can confirm in the app or in a chat; the
+   * server can't see that a person looked in a chat, so this is what lets a
+   * bad batch be traced back.
+   */
+  client        text not null default 'pwa' check (client in ('pwa', 'claude', 'chatgpt')),
+  confirmed_via text check (confirmed_via in ('pwa', 'claude', 'chatgpt')),
   status        text not null default 'draft' check (status in ('draft', 'confirmed')),
   /*
    * The packet's photos, only while the draft waits for review. Cleared, and

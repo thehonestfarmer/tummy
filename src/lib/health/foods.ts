@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db";
 import { bothUsers, type User } from "../auth";
 import { deleteFoodPhoto } from "./photos";
+import type { Client } from "./client";
 import { PAIR_ORDER } from "../config";
 import {
   normalize,
@@ -35,6 +36,8 @@ export type DraftView = {
   id: number;
   images: string[];
   addedBy: string | null;
+  /** Where it was submitted from: the app, or read in a chat. */
+  client: Client;
   state: DraftState;
   error: string | null;
   /** What the review screen pre-fills from. */
@@ -99,6 +102,7 @@ type FoodRow = {
   created_by: number | null;
   created_at: Date;
   requested_name: string | null;
+  client: Client;
   reference_food_id: number | null;
   reference_candidates: number[];
 };
@@ -116,12 +120,12 @@ const images = (r: Pick<FoodRow, "image_url" | "image2_url">) =>
 /* ─── Drafts ─────────────────────────────────────────────────────────────── */
 
 /** A food asked for in words, with no photo: "squid, raw" (§5.2, item 3). */
-export async function createNamedDraft(user: User, text: string): Promise<number> {
+export async function createNamedDraft(user: User, text: string, client: Client = "pwa"): Promise<number> {
   const name = text.trim();
   if (!name) throw new Error("Say which food.");
   if (name.length > 120) throw new Error("That's longer than a food name.");
   const [{ id }] = await sql<{ id: number }[]>`
-    insert into foods (requested_name, created_by) values (${name}, ${user.id}) returning id`;
+    insert into foods (requested_name, client, created_by) values (${name}, ${client}, ${user.id}) returning id`;
   return id;
 }
 
@@ -134,7 +138,7 @@ export async function createDraft(user: User, imageUrls: string[]): Promise<numb
   return id;
 }
 
-const describe = (r: Reading) =>
+export const describe = (r: Reading) =>
   [
     r.name,
     r.name_ja ? `(${r.name_ja})` : "",
@@ -228,14 +232,14 @@ export async function resetDraft(foodId: number) {
 const keyOf = (s: string | null | undefined) =>
   (s ?? "").normalize("NFKC").toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, "");
 
-type Candidate = { id: number; name: string; nameJa: string | null; keys: string[] };
+export type Candidate = { id: number; name: string; nameJa: string | null; keys: string[] };
 
 /**
  * Likely duplicates, so the kitchen doesn't end up with five chicken breasts
  * (§5.2). Deliberately loose: a false match costs the reviewer a glance, a
  * missed one costs a duplicate food that splits the history.
  */
-function likelyMatches(reading: Reading | null, library: Candidate[]) {
+export function likelyMatches(reading: Reading | null, library: Candidate[]) {
   if (!reading) return [];
   const mine = [reading.name, reading.name_ja, ...reading.aliases].map(keyOf).filter((k) => k.length >= 2);
   if (!mine.length) return [];
@@ -243,6 +247,18 @@ function likelyMatches(reading: Reading | null, library: Candidate[]) {
     .filter((food) => food.keys.some((k) => mine.some((m) => k === m || k.includes(m) || m.includes(k))))
     .slice(0, 3)
     .map(({ id, name, nameJa }) => ({ id, name, nameJa }));
+}
+
+/** The confirmed library, keyed for duplicate matching. */
+export async function duplicateCandidates(): Promise<Candidate[]> {
+  const library = await sql<{ id: number; name: string; name_ja: string | null; aliases: string[] }[]>`
+    select id, name, name_ja, aliases from foods where status = 'confirmed'`;
+  return library.map((f) => ({
+    id: f.id,
+    name: f.name,
+    nameJa: f.name_ja,
+    keys: [f.name, f.name_ja, ...f.aliases].map(keyOf).filter((k) => k.length >= 2),
+  }));
 }
 
 export async function getReviewQueue(now: Date = new Date()): Promise<ReviewView> {
@@ -298,6 +314,7 @@ export async function getReviewQueue(now: Date = new Date()): Promise<ReviewView
       id: food.id,
       images: images(food),
       addedBy: food.created_by === null ? null : (nameOf.get(food.created_by) ?? null),
+      client: food.client,
       state,
       error,
       reading,
@@ -341,6 +358,7 @@ export async function confirmDraft(
   foodId: number,
   raw: unknown,
   referenceId: number | null,
+  via: Client,
 ): Promise<void> {
   const parsed = ReviewedReadingSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Some of those values aren't valid numbers.");
@@ -363,9 +381,6 @@ export async function confirmDraft(
     refId = fromRow ? row.id : null;
     if (reading.kind === "named_food") source = fromRow ? "reference_table" : "llm_estimate";
   }
-  const [was] = await sql<{ source: string | null }[]>`select source from foods where id = ${foodId}`;
-  // Values an assistant supplied stay marked as its, unless a table row replaced them.
-  if (was?.source === "mcp" && source !== "reference_table") source = "mcp";
 
   let photos: string[] = [];
   await sql.begin(async (tx) => {
@@ -388,7 +403,7 @@ export async function confirmDraft(
         source = ${source}, reference_food_id = ${refId},
         status = 'confirmed', reading = ${tx.json(reading as never)},
         image_url = null, image2_url = null,
-        confirmed_by = ${me.id}, confirmed_at = now(), updated_at = now()
+        confirmed_by = ${me.id}, confirmed_via = ${via}, confirmed_at = now(), updated_at = now()
       where id = ${foodId}`;
     for (const s of n.servings) {
       await tx`insert into food_servings (food_id, label, grams) values (${foodId}, ${s.label}, ${s.grams})`;
@@ -558,58 +573,18 @@ export const ManualFoodSchema = z.object({
  * Typed-in numbers (§5.2, item 4). The person typing them is the check, so
  * the food is confirmed straight away rather than queued for review.
  */
-export async function createManualFood(me: User, raw: unknown, source: "manual" | "mcp" = "manual"): Promise<number> {
+export async function createManualFood(me: User, raw: unknown, client: Client = "pwa"): Promise<number> {
   const parsed = ManualFoodSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Needs a name and per-100g calories, protein, fat and carbs.");
   const p = parsed.data;
   const [{ id }] = await sql<{ id: number }[]>`
     insert into foods (name, name_ja, kcal, protein_g, fat_g, carbs_g, weight_basis, default_grams,
-                       source, status, created_by, confirmed_by, confirmed_at)
+                       source, client, status, created_by, confirmed_by, confirmed_via, confirmed_at)
     values (${p.name}, ${p.name_ja || null}, ${p.kcal}, ${p.protein_g}, ${p.fat_g}, ${p.carbs_g},
-            ${p.weight_basis}, ${p.default_grams ?? 100}, ${source}, 'confirmed', ${me.id}, ${me.id}, now())
+            ${p.weight_basis}, ${p.default_grams ?? 100}, 'manual', ${client}, 'confirmed', ${me.id}, ${me.id},
+            ${client}, now())
     returning id`;
   return id;
-}
-
-/**
- * A food described by an assistant over MCP (§10.1, rule 2): the values it
- * read, say, off a label photo in a chat. They only ever become a draft in
- * the review queue; someone confirms them in the app before anything counts.
- */
-export async function createAssistantDraft(
-  me: User,
-  input: { name: string; nameJa?: string | null; per100: Macros; notes?: string },
-): Promise<number> {
-  const reading: Reading = {
-    kind: "named_food",
-    name: input.name.trim(),
-    name_ja: input.nameJa?.trim() || null,
-    brand: null,
-    aliases: [],
-    net_weight_g: null,
-    piece_count: null,
-    piece_unit: null,
-    basis: null,
-    basis_grams: null,
-    kcal: null,
-    protein_g: null,
-    fat_g: null,
-    carbs_g: null,
-    sugar_g: null,
-    fiber_g: null,
-    estimate_per_100g: input.per100,
-    weight_basis: "raw",
-    reference_terms: [],
-    notes: input.notes?.trim() || "Values given by an assistant over MCP. Check them against the label.",
-  };
-  return sql.begin(async (tx) => {
-    const [{ id }] = await tx<{ id: number }[]>`
-      insert into foods (requested_name, source, created_by) values (${reading.name}, 'mcp', ${me.id}) returning id`;
-    await tx`
-      insert into food_readings (food_id, model, served_by, is_primary, output)
-      values (${id}, 'mcp', 'mcp', true, ${tx.json(reading as never)})`;
-    return id;
-  });
 }
 
 /** Confirmed foods whose name, Japanese name or any alias contains the query. */

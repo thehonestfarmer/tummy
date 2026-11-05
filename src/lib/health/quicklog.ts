@@ -5,6 +5,7 @@ import type { User } from "../auth";
 import { fold } from "./fold";
 import { groqJson } from "./groq";
 import { parseSentence, type Parsed } from "./parse";
+import type { Client } from "./client";
 import { getHealthDay, logEntry, logShared, macrosFor, type EntrySource, type HealthDayView } from "./entries";
 import { listMeals } from "./meals";
 import { dateIn } from "./zone";
@@ -83,7 +84,7 @@ export type QuickResult = {
   day: HealthDayView;
 };
 
-export type QuickContext = { tz: string; source: EntrySource; now?: Date };
+export type QuickContext = { tz: string; source: EntrySource; client?: Client; now?: Date };
 
 /* ─── The library, as matching sees it ───────────────────────────────────── */
 
@@ -324,7 +325,7 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
   // "undo that" removes them together.
   await sql.begin(async (tx) => {
     for (const l of toLog) {
-      const base = { foodId: l.foodId, source: ctx.source, tz: ctx.tz, loggedAt: l.at, inputText: sentence };
+      const base = { foodId: l.foodId, source: ctx.source, client: ctx.client, tz: ctx.tz, loggedAt: l.at, inputText: sentence };
       if (l.split === "none") {
         const entry = await logEntry(me, me.id, { ...base, grams: l.grams }, tx);
         logged.push({ entryId: entry.id, name: entry.name, grams: entry.grams, kcal: entry.macros.kcal, shared: false });
@@ -446,7 +447,7 @@ export async function resolvePending(me: User, r: Resolution, ctx: QuickContext)
   if ("needsGrams" in amount) throw new Error("How much was it?");
   if (r.phrase.trim()) await learnAlias(r.foodId, r.phrase);
   const at = r.minutesAgo ? new Date(now.getTime() - r.minutesAgo * 60_000) : now;
-  const base = { foodId: r.foodId, source: ctx.source, tz: ctx.tz, loggedAt: at, inputText: r.phrase };
+  const base = { foodId: r.foodId, source: ctx.source, client: ctx.client, tz: ctx.tz, loggedAt: at, inputText: r.phrase };
   const entry = r.shared
     ? (await logShared(me, { ...base, myGrams: amount.grams / 2, partnerGrams: amount.grams / 2 })).mine!
     : await logEntry(me, me.id, { ...base, grams: amount.grams });

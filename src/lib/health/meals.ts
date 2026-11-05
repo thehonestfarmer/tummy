@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { sql } from "../db";
 import type { User } from "../auth";
+import type { Client } from "./client";
 import { logEntry, logShared, type EntrySource } from "./entries";
 
 /**
@@ -62,13 +63,13 @@ export async function deleteMeal(id: number) {
 }
 
 /** Logs every food in a meal, in one transaction so an undo takes them together. */
-export async function logMeal(me: User, mealId: number, ctx: { tz: string; source: EntrySource; inputText?: string; loggedAt?: Date }) {
+export async function logMeal(me: User, mealId: number, ctx: { tz: string; source: EntrySource; client?: Client; inputText?: string; loggedAt?: Date }) {
   const meal = (await listMeals()).find((m) => m.id === mealId);
   if (!meal) throw new Error("That meal is gone.");
   const ids: number[] = [];
   await sql.begin(async (tx) => {
     for (const item of meal.items) {
-      const base = { foodId: item.foodId, source: ctx.source, tz: ctx.tz, loggedAt: ctx.loggedAt, inputText: ctx.inputText ?? meal.name };
+      const base = { foodId: item.foodId, source: ctx.source, client: ctx.client, tz: ctx.tz, loggedAt: ctx.loggedAt, inputText: ctx.inputText ?? meal.name };
       if (meal.shared) {
         const { mine } = await logShared(me, { ...base, myGrams: item.grams, partnerGrams: item.grams }, tx);
         if (mine) ids.push(mine.id);

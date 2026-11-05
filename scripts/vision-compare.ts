@@ -28,6 +28,8 @@ const rows = (await sql`
   select r.food_id, r.model, r.served_by, r.output, r.error, r.latency_ms, f.reading as truth
   from food_readings r join foods f on f.id = r.food_id
   where f.status = 'confirmed' and f.reading is not null
+    -- A chat's own submission is the original, not a vision model's guess at it.
+    and r.model not like 'chat:%'
   order by r.food_id, r.model`) as unknown as Row[];
 await sql.end();
 
