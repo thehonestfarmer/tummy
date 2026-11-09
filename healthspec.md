@@ -1,6 +1,6 @@
 # Tummy — build spec
 
-*(Tummy is the working name, and the name of the repo. The final name and icon must be settled before either of us installs the app: iOS fixes both at "Add to Home Screen", and changing them later means deleting and re-adding the app.)*
+*(Name, icon and address are settled: **Tummy**, a dumbbell resting on a rice bowl, at **https://tummy.habitnpc.com**. iOS fixes all three at "Add to Home Screen", so changing any of them later means deleting and re-adding the app.)*
 
 A nutrition and training tracker for Bunny and Bear. It is a **separate PWA** from Bunnybear, the photo app: its own repo, its own database, its own domain, and its own home-screen icon. It belongs to the same family: same two people, same PINs, same Bunny and Bear marks and colors.
 
@@ -61,7 +61,7 @@ Siri Shortcuts, Strava, Apple Health / step sync, meal-photo calorie estimation 
 | Specs | This file (as `healthspec.md`) and `mcpspec.md` move out of the Bunnybear repo into this one. Keep a copy of `ARCHITECTURE.md` as the reference for ported patterns. |
 | Stack | Same as the photo app (`ARCHITECTURE.md` §2): Next.js App Router, React, TypeScript, Bun, Tailwind v4, `postgres` driver with tagged-template SQL |
 | Database | Postgres 18, on the same box, in the same `compose.yaml`. Backed up daily to Cloudflare R2. |
-| Domain | Its own, pointed straight at the VPS. To be decided. |
+| Domain | `tummy.habitnpc.com`, an A record at Porkbun straight to the VPS. The apex and `www` stay on HabitNPC's landing page. |
 | Photo storage | Only while a draft waits for review, then deleted (§5.3). Never kept. |
 | Link to the photo app | None, either direction. They're separate icons on the home screen. |
 
@@ -517,11 +517,10 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 
 ## 14. Open questions
 
-1. **The name, icon, and domain.** Settle the name and icon before either of us installs the app (see the note at the top).
-2. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
-3. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
-4. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
-5. **Charts.** Hand-rolled SVG or a small library.
+1. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
+2. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
+3. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
+4. **Charts.** Hand-rolled SVG or a small library.
 
 ---
 
@@ -536,7 +535,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Database | Postgres 18 on the box; daily backups to Cloudflare R2, restore-checked weekly. Not Neon, Supabase, or PocketBase. |
 | Bunnybear afterward | Mode toggle and Health routes removed; tables left in place |
 | Identity | Same PINs, marks, and colors as the photo app |
-| Name | Tummy, as a working name; final before install |
+| Name, icon, address | Tummy; a dumbbell resting on a rice bowl; `tummy.habitnpc.com` |
 | Health day | Phone's local calendar date, sent in a cookie |
 | Library | Shared between both users |
 | Library seeding | Bulk photo upload + review queue in the PWA, and from chat |
