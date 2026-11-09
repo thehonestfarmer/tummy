@@ -22,4 +22,5 @@ exec docker run --rm -v "$PWD/backups:/work/backups" -w /work \
   -e RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$(env_of R2_SECRET_ACCESS_KEY)" \
   -e RCLONE_CONFIG_R2_ENDPOINT="https://$(env_of R2_ACCOUNT_ID).r2.cloudflarestorage.com" \
   -e RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true \
-  rclone/rclone:1 "${args[@]}"
+  -e RCLONE_CONFIG=/dev/null \
+  rclone/rclone:1 --quiet "${args[@]}"
