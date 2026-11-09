@@ -98,7 +98,8 @@ jobs:
           echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
       - name: Copy compose, Caddy, backup and cron files
         run: |
-          scp -i ~/.ssh/id_deploy deploy/compose.yaml deploy/Caddyfile deploy/backup.sh deploy/crontab \
+          scp -i ~/.ssh/id_deploy deploy/compose.yaml deploy/Caddyfile deploy/crontab \
+            deploy/backup.sh deploy/r2.sh deploy/restore-check.sh \
             deploy@${{ vars.DEPLOY_HOST }}:/srv/tummy/
       - name: Migrate, then start the new image
         run: |
@@ -110,13 +111,14 @@ jobs:
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           export TAG
           docker compose pull app
+          docker compose up -d --wait db
           # Migrations are additive (healthspec.md §11), so the old server
           # keeps working against the new schema until it is replaced.
           docker compose run --rm --no-deps app node scripts/migrate.mjs
           docker compose up -d --remove-orphans
           docker logout ghcr.io
           crontab crontab
-          chmod +x backup.sh
+          chmod +x backup.sh r2.sh restore-check.sh
           docker image prune -f
           # Pin `latest` locally to what is now running, so a plain `up -d` keeps it.
           docker tag "ghcr.io/thehonestfarmer/tummy:$TAG" ghcr.io/thehonestfarmer/tummy:latest

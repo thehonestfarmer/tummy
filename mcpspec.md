@@ -254,7 +254,7 @@ The MCP moves up so the library can be seeded from Claude straight away. Steps m
 **Decided**
 
 1. **Auth: one secret connector URL per person**, as built in Bunnybear: `/api/mcp/<secret>` for Claude, and `/api/mcp/<secret>/chatgpt` for ChatGPT. The secret is the whole credential and also says who is calling, so no tool takes a user argument. The suffix only says which client to record on each write: the connection is stateless, so nothing else could. A wrong secret is a 404. Claude's custom connectors can't send a header, so the credential has to be in the URL. If a client refuses this, the fallback is OAuth with the PIN pad as the sign-in page, in front of the same tools.
-2. **Hosting:** inside Tummy, on the Singapore VPS at the app's own domain (`healthspec.md` §3). Not part of Bunnybear, and no subdomain. Caddy must pass streamed responses through unbuffered.
+2. **Hosting:** inside Tummy, on the Tokyo VPS at the app's own domain (`healthspec.md` §3). Not part of Bunnybear, and no subdomain. Caddy must pass streamed responses through unbuffered.
 3. **Transport:** Streamable HTTP through `mcp-handler`, as built. Claude's connectors accept it.
 4. **Moving domains:** each of us re-adds our connector at the new URL after the move.
 5. **Claude is the dependable assistant.** Claude's Free plan allows one custom connector, which is all Tummy needs. Connectors work in Claude's mobile apps (add the connector on the web first). "Allow always" on `log_food` removes the per-log prompt.

@@ -1,5 +1,6 @@
-# Tummy on the VPS (healthspec.md §3). Lives at /srv/tummy beside its .env,
-# Caddyfile, backup.sh and crontab; the deploy workflow copies these in.
+# Tummy on the VPS in Tokyo (healthspec.md §3): the database, the app, and
+# Caddy in front. Lives at /srv/tummy beside its .env, Caddyfile, backup.sh,
+# restore-check.sh and crontab; the deploy workflow copies these in.
 #
 #   docker compose up -d               # start, or pick up a new image
 #   TAG=<git sha> docker compose up -d # roll back to an earlier build
@@ -11,9 +12,40 @@ x-logging: &logging
   options: { max-size: "10m", max-file: "3" }
 
 services:
+  # The database lives on the box (healthspec.md §3): no network hop to the
+  # data, and nothing else to sign up for. Backups leave the box daily (backup.sh).
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: tummy
+      POSTGRES_USER: tummy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    # Modest settings for a 1 GB box shared with the app. The data is small:
+    # two people's food log and a 2,500-row reference table.
+    command: >
+      postgres -c shared_buffers=64MB -c effective_cache_size=256MB
+      -c work_mem=4MB -c maintenance_work_mem=32MB -c max_connections=20
+    volumes:
+      # Postgres 18's image keeps its data under /var/lib/postgresql/18.
+      - pgdata:/var/lib/postgresql
+    # The host only, so an SSH tunnel can reach it (seeding, debugging).
+    ports: ["127.0.0.1:5432:5432"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tummy", "-d", "tummy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
   app:
     image: ghcr.io/thehonestfarmer/tummy:${TAG:-latest}
     env_file: .env
+    environment:
+      # Built here so the password lives in one place. Same box, private network: no TLS.
+      DATABASE_URL: postgres://tummy:${POSTGRES_PASSWORD}@db:5432/tummy?sslmode=disable
+    depends_on:
+      db: { condition: service_healthy }
     volumes:
       # Food photos waiting for review (§5.3). On the host so cron can prune it.
       - ./photos:/data/photos
@@ -45,6 +77,7 @@ services:
     logging: *logging
 
 volumes:
+  pgdata:
   # Caddy's certificates. Losing them means re-issuing, which Let's Encrypt rate-limits.
   caddy_data:
   caddy_config:

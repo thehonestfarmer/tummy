@@ -4,9 +4,9 @@ import { sql } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 /**
- * Wakes the function and opens a Postgres connection. The PIN pad calls this on
- * mount, so by the time the fourth digit lands the sign-in request meets a warm
- * function and a Neon compute that isn't scaling up from zero.
+ * Opens a Postgres connection. The PIN pad calls this on mount, so by the
+ * time the fourth digit lands the sign-in request has a connection waiting.
+ * Also what the container's health check calls.
  */
 export async function GET() {
   try {

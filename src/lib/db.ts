@@ -14,7 +14,7 @@ function connect(): Sql {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   return postgres(url, {
-    // Neon needs TLS; a local database, or one on a private network that says
+    // Hosted Postgres needs TLS; a local database, or one on a private network that says
     // sslmode=disable, must not ask for it.
     ssl: noTls(url) ? false : "require",
     max: 5,

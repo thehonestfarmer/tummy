@@ -30,7 +30,7 @@ Five ideas carry the design:
 
 ### In v1
 
-- A standalone PWA with its own repo, database, and domain, self-hosted on a VPS in Singapore (§3)
+- A standalone PWA with its own repo, database, and domain, self-hosted on a VPS in Tokyo (§3)
 - Shared food library: label reading, meat/fish pack reading, the MEXT reference table, by-name adds, manual entry
 - Food confirmation **in the PWA and in Claude or ChatGPT**, under one rule: a person sees the values and says yes
 - Food logging: search, recents, saved meals, voice, and **shared meals** split between both of us
@@ -57,10 +57,10 @@ Siri Shortcuts, Strava, Apple Health / step sync, meal-photo calorie estimation 
 | | |
 |---|---|
 | Repo | `git@github.com:thehonestfarmer/tummy.git`. Its old code is thrown away; the repo starts again from one fresh commit. |
-| Hosting | A VPS in Singapore (1 vCPU, 1 GB RAM, 32 GB NVMe), running the app as one Docker container behind Caddy. **Not Vercel.** |
+| Hosting | A VPS in Tokyo (1 vCPU, 1 GB RAM, 32 GB NVMe), running Postgres and the app in Docker behind Caddy. **Not Vercel.** |
 | Specs | This file (as `healthspec.md`) and `mcpspec.md` move out of the Bunnybear repo into this one. Keep a copy of `ARCHITECTURE.md` as the reference for ported patterns. |
 | Stack | Same as the photo app (`ARCHITECTURE.md` §2): Next.js App Router, React, TypeScript, Bun, Tailwind v4, `postgres` driver with tagged-template SQL |
-| Database | A **new Neon project** in `ap-southeast-1` (Singapore) |
+| Database | Postgres 18, on the same box, in the same `compose.yaml`. Backed up daily to Cloudflare R2. |
 | Domain | Its own, pointed straight at the VPS. To be decided. |
 | Photo storage | Only while a draft waits for review, then deleted (§5.3). Never kept. |
 | Link to the photo app | None, either direction. They're separate icons on the home screen. |
@@ -70,7 +70,7 @@ Siri Shortcuts, Strava, Apple Health / step sync, meal-photo calorie estimation 
 - **Vercel proxying to the VPS.** It adds a hop and Vercel's own timeout and body-size limits (which matter for audio, photo batches, and MCP streaming) in exchange for HTTPS and a domain, which Caddy already gives.
 - **Supabase.** Realtime could replace polling, but the LLM waits would need Edge Functions on Deno with a second copy of `lib/health`, breaking the one-service-layer rule (§11).
 
-The VPS is in Singapore because a server in Toronto or Silicon Valley adds roughly 150–200 ms to every database round trip, against the quick-log target (§14).
+The VPS is in Tokyo because the two of us are in Japan, Korea and Taiwan: about 5–35 ms away, against 70 ms or more for Singapore and 150–200 ms for Toronto or Silicon Valley. The database is on the same box because a page or a quick log makes several round trips to it in a row, and each one would otherwise pay the network distance again (the quick-log target, §14). A managed database was weighed (Neon, whose nearest region is Singapore; Supabase, which has Tokyo) and rejected for this size: Postgres on the box costs no extra service, no latency, and about 150 MB of memory, as long as backups leave the box. PocketBase was weighed too, and rejected because the code is already written for Postgres (transactions, row and advisory locks, arrays, JSON, interval maths).
 
 ### Running on the VPS
 
@@ -81,8 +81,8 @@ The VPS is in Singapore because a server in Toronto or Silicon Valley adds rough
 | HTTPS | Caddy with Let's Encrypt. It must stream responses unbuffered (MCP) and accept request bodies large enough for audio and photo batches. |
 | Restarts | `restart: unless-stopped` |
 | Background work | `after()` is supported under `next start`, and finishes on `SIGTERM` if given time. The container's stop grace period is 90 s, since label reads can be slow. At boot, the server re-reads any draft from the last day that never got a reading, in case a deploy cut one off. |
-| Scheduled jobs | Host cron (`deploy/crontab`): the weekly backup, and pruning of unreviewed photos older than 30 days (§5.3). A Neon keep-alive is there but off (§14). Target proposals are computed when Today or Trends opens (§6.4), so they need no job. |
-| Backup | Weekly `pg_dump` of the database to the VPS, keeping the last 8. There are no blobs. Months of intake and lift history are hard to recreate. |
+| Scheduled jobs | Host cron (`deploy/crontab`): the daily backup, a weekly restore check, and pruning of unreviewed photos older than 30 days (§5.3). Target proposals are computed when Today or Trends opens (§6.4), so they need no job. |
+| Backup | Daily `pg_dump`, kept 7 days on the box and 90 days in Cloudflare R2 (`deploy/backup.sh`). A backup on the box alone would go down with it. Weekly, `deploy/restore-check.sh` restores the newest R2 copy into a throwaway Postgres and checks the data came with it. There are no blobs. Months of intake and lift history are hard to recreate. |
 | Logs | Docker's `json-file` driver with `max-size` and `max-file` set. Unrotated logs are what fills a small disk. |
 | Memory | 1–2 GB of swap as a safety margin |
 | Secrets | An `.env` file on the box, never baked into the image |
@@ -481,7 +481,7 @@ Writes record the client that made them (`pwa`, `claude`, `chatgpt`).
    - the Gemini path in `vision.ts`, ready for the comparison (§9)
    - `client` and `confirmed_via` on foods, entries, and sets
    - the label-as-printed contract and the MCP food tools from `mcpspec.md` §11 step 2, including chat confirmation
-2. **Deploy.** The Singapore VPS, Docker, Caddy, the GitHub Action, the Neon project, migrations and `seed:reference`, cron (keep-alive, backup, photo prune), the domain. Smoke-test the routes, then reconnect each person's Claude connector to the new URL.
+2. **Deploy.** The Tokyo VPS, Docker, Postgres, Caddy, the GitHub Action, R2, migrations and seeding through an SSH tunnel, cron (backup, restore check, photo prune), the domain. Smoke-test the routes and a backup restore, then reconnect each person's Claude connector to the new URL. (`deploy/README.md` is the runbook.)
 3. **Seed the library and run the vision comparison.** Bulk-upload the kitchen; review in the PWA; also try seeding from Claude to test chat confirmation. Pick the vision model from the results. **This is the first real test.**
 4. **Remove Health mode from Bunnybear** (§3).
 5. Remaining MCP tools through `mcpspec.md` §11 step 5 (context, guidance, `needs_choice`, edits, duplicate protection)
@@ -519,10 +519,9 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 
 1. **The name, icon, and domain.** Settle the name and icon before either of us installs the app (see the note at the top).
 2. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
-3. **Neon cold starts.** Neon suspends after about 5 minutes idle and wakes in roughly half a second to a second. Opening the app renders Today, which wakes the database before anyone speaks, so the keep-alive in `deploy/crontab` ships switched off: an always-on compute uses far more of Neon's monthly allowance. Switch it on only if quick logs are measurably slow after idle.
-4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
-5. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
-6. **Charts.** Hand-rolled SVG or a small library.
+3. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
+4. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
+5. **Charts.** Hand-rolled SVG or a small library.
 
 ---
 
@@ -533,8 +532,8 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Placement | Separate PWA: own repo, own database, own domain; no links to or from the photo app |
 | Starting point | The Health mode built in Bunnybear, moved in; not rebuilt |
 | Repo | `thehonestfarmer/tummy`, old code discarded |
-| Hosting | Singapore VPS, Docker + Caddy, images built off the box. Not Vercel, not proxied through Vercel, not Supabase. |
-| Database | New Neon project, Singapore |
+| Hosting | Tokyo VPS, Docker + Caddy, images built and smoke-tested off the box. Not Vercel, not proxied through Vercel. |
+| Database | Postgres 18 on the box; daily backups to Cloudflare R2, restore-checked weekly. Not Neon, Supabase, or PocketBase. |
 | Bunnybear afterward | Mode toggle and Health routes removed; tables left in place |
 | Identity | Same PINs, marks, and colors as the photo app |
 | Name | Tummy, as a working name; final before install |
