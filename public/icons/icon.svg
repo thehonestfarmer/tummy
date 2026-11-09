@@ -1,9 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" fill="#17191c"/><svg x="66.56" y="180.22" width="378.88" height="151.55" viewBox="0 2 50 20"><g>
-  <path d="M9 10.5C8 8 7.6 5 8.6 3.4c.9-1.4 2.2-.6 2.6 1.2.3 1.5.3 3.6 0 5.4" fill="none" stroke="#c58f95" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M15 10.5c1-2.5 1.4-5.5.4-7.1-.9-1.4-2.2-.6-2.6 1.2-.3 1.5-.3 3.6 0 5.4" fill="none" stroke="#c58f95" stroke-width="1.6" stroke-linecap="round"/>
-  <circle cx="12" cy="16" r="5.2" fill="none" stroke="#c58f95" stroke-width="1.6"/>
-</g><g transform="translate(26 0)">
-  <circle cx="6.4" cy="7.4" r="3" fill="none" stroke="#8d9e85" stroke-width="1.6"/>
-  <circle cx="17.6" cy="7.4" r="3" fill="none" stroke="#8d9e85" stroke-width="1.6"/>
-  <circle cx="12" cy="15" r="6.6" fill="none" stroke="#8d9e85" stroke-width="1.6"/>
-</g></svg></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#17191c"/>
+  <!--
+    Tummy: a dumbbell resting on a rice bowl like a pair of chopsticks, Bear's
+    sage on Bunny's rose. Drawn inside the middle 80% so iOS's rounding and an
+    Android maskable crop never reach it.
+  -->
+  <g transform="translate(0 -46)">
+    <g fill="none" stroke="#c58f95" stroke-linecap="round" stroke-linejoin="round" stroke-width="22">
+      <path d="M128 282 H384"/>
+      <path d="M146 282 A110 110 0 0 0 366 282"/>
+      <path d="M222 420 H290"/>
+    </g>
+    <g fill="#8d9e85">
+      <rect x="148" y="190" width="38" height="74" rx="13"/>
+      <rect x="326" y="190" width="38" height="74" rx="13"/>
+    </g>
+    <path d="M186 227 H326" fill="none" stroke="#8d9e85" stroke-width="22" stroke-linecap="round"/>
+  </g>
+</svg>
