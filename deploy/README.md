@@ -32,7 +32,8 @@ Ubuntu 24.04, amd64, in Tokyo. (For an ARM box, change both `platforms` in
    `/srv/tummy`.
 
 2. As `deploy@<vps>`, create `/srv/tummy/.env` (no quotes needed). Make the
-   two secrets long and random, e.g. `openssl rand -base64 32`:
+   two secrets long and random, in hex so they are safe inside a URL:
+   `openssl rand -hex 32`:
 
    ```sh
    DOMAIN=tummy.example.com

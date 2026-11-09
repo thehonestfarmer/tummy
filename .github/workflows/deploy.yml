@@ -114,12 +114,19 @@ jobs:
           docker compose up -d --wait db
           # Migrations are additive (healthspec.md §11), so the old server
           # keeps working against the new schema until it is replaced.
-          docker compose run --rm --no-deps app node scripts/migrate.mjs
+          # -T and </dev/null: this script arrives on stdin, and `run` would
+          # otherwise read the rest of it, silently ending the deploy here.
+          docker compose run --rm -T --no-deps app node scripts/migrate.mjs </dev/null
           docker compose up -d --remove-orphans
           docker logout ghcr.io
           crontab crontab
           chmod +x backup.sh r2.sh restore-check.sh
           docker image prune -f
+          # A deploy that ends without the app answering is a failed deploy.
+          for i in $(seq 1 30); do curl -fs -o /dev/null http://127.0.0.1:3000/api/warm && break; sleep 2; done
+          curl -fsS -o /dev/null http://127.0.0.1:3000/api/warm
+          docker compose ps
+          echo "deployed $TAG"
           # Pin `latest` locally to what is now running, so a plain `up -d` keeps it.
           docker tag "ghcr.io/thehonestfarmer/tummy:$TAG" ghcr.io/thehonestfarmer/tummy:latest
           SH
