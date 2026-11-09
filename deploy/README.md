@@ -62,7 +62,7 @@ In the repo's Settings → Secrets and variables → Actions:
 | Kind | Name | Value |
 |---|---|---|
 | Variable | `DEPLOY_HOST` | The VPS's address |
-| Secret | `DEPLOY_SSH_KEY` | A private key made for this, whose public half is in `/home/deploy/.ssh/authorized_keys` |
+| Secret | `DEPLOY_SSH_KEY` | A private key made for this, whose public half (`deploy/github-deploy.pub`) is in `/home/deploy/.ssh/authorized_keys` |
 | Secret | `DEPLOY_KNOWN_HOSTS` | Output of `ssh-keyscan <vps>` |
 
 Then re-run the latest workflow, or push. Each deploy copies the files in

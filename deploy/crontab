@@ -9,5 +9,6 @@ PATH=/usr/local/bin:/usr/bin:/bin
 # Weekly proof that the newest R2 backup restores, Sunday 04:30 JST.
 30 19 * * 6 /srv/tummy/restore-check.sh >> /srv/tummy/backups/backup.log 2>&1
 
-# Food photos nobody reviewed in 30 days. Their drafts keep the reading.
-15 19 * * * find /srv/tummy/photos -type f -name '*.jpg' -mtime +30 -delete
+# Food photos nobody reviewed in 30 days. Their drafts keep the reading. Run in
+# the app's container, as the user that wrote them.
+15 19 * * * cd /srv/tummy && docker compose exec -T app find /data/photos -type f -name '*.jpg' -mtime +30 -delete

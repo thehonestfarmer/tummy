@@ -33,9 +33,15 @@ usermod -aG docker deploy
 install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
 install -m 600 -o deploy -g deploy /root/.ssh/authorized_keys /home/deploy/.ssh/authorized_keys
 
-# Keys only.
-sed -i -E 's/^#?PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sed -i -E 's/^#?PermitRootLogin .*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+# Keys only. A drop-in rather than an edit to sshd_config: Ubuntu's cloud
+# images ship 50-cloud-init.conf turning passwords back on, and sshd takes the
+# first value it reads, so this sorts ahead of it.
+cat > /etc/ssh/sshd_config.d/00-tummy.conf <<'SSHD'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+SSHD
+sshd -t
 systemctl reload ssh
 
 # Only SSH and the web in. The app's own port is bound to 127.0.0.1 by
@@ -55,7 +61,8 @@ if ! swapon --show | grep -q /swapfile; then
   echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
 
-# Where the app lives. Photos belong to uid 1000, the image's `node` user.
+# Where the app lives. Photos belong to uid 1000, the image's `node` user,
+# whatever that uid is called on the host (Vultr's images call it linuxuser).
 install -d -o deploy -g deploy /srv/tummy /srv/tummy/backups
 install -d -o 1000 -g 1000 /srv/tummy/photos
 
