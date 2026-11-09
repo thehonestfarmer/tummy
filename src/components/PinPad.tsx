@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mark } from "./Mark";
+import { TummyMark } from "./TummyMark";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 
@@ -36,7 +36,7 @@ export function PinPad() {
         body: JSON.stringify({ pin: value }),
       });
       if (res.ok) {
-        // Through the front door, which knows which mode you were last in.
+        // Through the front door, which sends you on to Today.
         router.replace("/");
         router.refresh();
         return;
@@ -61,11 +61,10 @@ export function PinPad() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-8">
-      {/* The pair, in the same fixed order as everywhere else. No wordmark —
-          the two of you are the only thing this screen needs to say. */}
-      <div role="img" aria-label="Tummy" className="flex items-center gap-4 pb-12">
-        <Mark slug="bunny" className="h-8 w-8" />
-        <Mark slug="bear" className="h-8 w-8" />
+      {/* Tummy's mark rather than the pair: this is the first thing that says
+          which of the two apps you've opened. No wordmark needed under it. */}
+      <div role="img" aria-label="Tummy" className="pb-12">
+        <TummyMark className="h-16 w-[4.5rem]" />
       </div>
 
       <div className={`flex gap-3.5 pb-14 ${busy ? "verifying" : ""}`}>
