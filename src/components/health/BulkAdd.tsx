@@ -134,7 +134,7 @@ export function BulkAdd({ waiting }: { waiting: number }) {
   const busy = sending !== null;
 
   return (
-    <div className="px-3 pt-3 pb-6">
+    <div className="px-5 pt-3 pb-6">
       <h1 className="text-[1.15rem] leading-none">Add foods</h1>
       <p className="pt-2 text-[0.95rem] leading-relaxed text-ink-dim">
         One photo per packet, of the back where the nutrition table is. If the front tells similar
@@ -148,14 +148,14 @@ export function BulkAdd({ waiting }: { waiting: number }) {
         <button
           onClick={() => camera.current?.click()}
           disabled={busy}
-          className="flex-1 rounded-[3px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
+          className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
         >
           Take a photo
         </button>
         <button
           onClick={() => library.current?.click()}
           disabled={busy}
-          className="flex-1 rounded-[3px] border border-hairline bg-ground-raised py-3.5 text-[1rem] text-ink-dim disabled:text-ink-faint"
+          className="flex-1 rounded-[10px] border border-hairline bg-ground-raised py-3.5 text-[1rem] text-ink-dim disabled:text-ink-faint"
         >
           From library
         </button>
@@ -183,7 +183,7 @@ export function BulkAdd({ waiting }: { waiting: number }) {
                 <button
                   onClick={() => toggleJoin(i)}
                   disabled={busy}
-                  className="rounded-[3px] border border-hairline px-2.5 py-1.5 text-[0.8rem] text-ink-dim"
+                  className="rounded-[10px] border border-hairline px-2.5 py-1.5 text-[0.8rem] text-ink-dim"
                 >
                   {item.joined ? "Separate" : "Join above"}
                 </button>
@@ -205,7 +205,7 @@ export function BulkAdd({ waiting }: { waiting: number }) {
         <button
           onClick={send}
           disabled={busy || preparing > 0}
-          className="mt-5 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
+          className="mt-5 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
         >
           {busy ? `Sending ${sent} of ${sent + count}…` : `Send ${count} packet${count === 1 ? "" : "s"} to be read`}
         </button>

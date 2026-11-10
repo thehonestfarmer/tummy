@@ -26,7 +26,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-ground-sunk/90 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="mx-auto flex max-h-[88dvh] w-full max-w-2xl flex-col border-t border-hairline bg-ground px-4 pt-4"
+        className="mx-auto flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-t-[18px] border-t border-hairline-strong bg-ground px-4 pt-4"
         style={{ paddingBottom: "calc(var(--safe-bottom) + 1rem)" }}
         onClick={(e) => e.stopPropagation()}
       >

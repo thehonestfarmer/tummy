@@ -11,18 +11,25 @@ export const POLL_NOW = "tb:poll-now";
  */
 export function usePoll<T>(url: string, intervalMs: number, initial: T) {
   const [data, setData] = useState<T>(initial);
-  const inflight = useRef(false);
+  // The url can change under a request (stepping to another day). Only the
+  // answer to the url now on show is kept, and a request for one url never
+  // holds up a request for the next.
+  const inflight = useRef<string | null>(null);
+  const shown = useRef(url);
+  useEffect(() => {
+    shown.current = url;
+  }, [url]);
 
   const refresh = useCallback(async () => {
-    if (inflight.current || document.visibilityState === "hidden") return;
-    inflight.current = true;
+    if (inflight.current === url || document.visibilityState === "hidden") return;
+    inflight.current = url;
     try {
       const res = await fetch(url, { cache: "no-store" });
-      if (res.ok) setData((await res.json()) as T);
+      if (res.ok && shown.current === url) setData((await res.json()) as T);
     } catch {
       // Offline or asleep; the next tick will catch up.
     } finally {
-      inflight.current = false;
+      if (inflight.current === url) inflight.current = null;
     }
   }, [url]);
 

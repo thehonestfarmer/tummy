@@ -64,7 +64,7 @@ export function SaveMealSheet({
       <button
         onClick={save}
         disabled={busy || !name.trim() || !items.length}
-        className="mt-4 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
+        className="mt-4 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
       >
         {busy ? "…" : "Save meal"}
       </button>

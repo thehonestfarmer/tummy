@@ -16,7 +16,11 @@ import { ZoneCookie } from "@/components/health/ZoneCookie";
 
 export const dynamic = "force-dynamic";
 
-/** Every screen sits under the macro bar, fed by one shared day (healthspec.md §8). */
+/**
+ * Every screen sits under the macro display, fed by one shared day
+ * (healthspec.md §8). There are no tabs: Home is the app, and the header
+ * leads everywhere else.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
   if (!user) redirect("/");
@@ -41,15 +45,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // this rule), but until then everything pinned above the chrome needs a number
   // that is too big rather than too small — too small puts it *behind* the chrome.
   const chromeEstimate =
-    `calc(var(--tab-h) + var(--safe-bottom)${devBar ? " + 2.75rem" : ""})`;
+    `calc(var(--dock-h) + var(--safe-bottom)${devBar ? " + 2.75rem" : ""})`;
 
   return (
     <div className="mx-auto min-h-dvh max-w-2xl" style={{ paddingTop: "var(--safe-top)" }}>
       <style>{`:root{--bottom-chrome:${chromeEstimate}}`}</style>
       <ServiceWorker />
       <InstallHint />
-      <AppHeader slug={user.slug} displayName={user.displayName} devTools={!!devBar} />
       <HealthDayProvider initial={day}>
+        <AppHeader />
         <ZoneCookie serverZone={tz} />
         <HealthTop />
         {/* BottomChrome measures itself into --bottom-chrome; the rule above covers
@@ -57,8 +61,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <main style={{ paddingBottom: "var(--bottom-chrome)" }}>
           {children}
         </main>
+        {/* Inside the provider: the dock logs food, and reads the day on show. */}
+        <BottomChrome>{devBar}</BottomChrome>
       </HealthDayProvider>
-      <BottomChrome>{devBar}</BottomChrome>
     </div>
   );
 }

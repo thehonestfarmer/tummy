@@ -8,7 +8,7 @@ function Copyable({ label, value }: { label: string; value: string }) {
     <div className="pt-3">
       <p className="pb-1 text-[0.8rem] text-ink-faint">{label}</p>
       <div className="flex items-center gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-[3px] border border-hairline bg-ground-sunk px-2.5 py-2 text-[0.8rem] text-ink-dim">
+        <code className="min-w-0 flex-1 truncate rounded-[10px] border border-hairline bg-ground-sunk px-2.5 py-2 text-[0.8rem] text-ink-dim">
           {value}
         </code>
         <button
@@ -17,7 +17,7 @@ function Copyable({ label, value }: { label: string; value: string }) {
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
           }}
-          className="shrink-0 rounded-[3px] border border-hairline px-3 py-2 text-[0.85rem] text-ink-dim"
+          className="shrink-0 rounded-[10px] border border-hairline px-3 py-2 text-[0.85rem] text-ink-dim"
         >
           {copied ? "Copied" : "Copy"}
         </button>
@@ -39,12 +39,12 @@ export function ConnectSettings({ origin, initialToken, name }: { origin: string
   const chatgpt = `${mcp}/chatgpt`;
 
   return (
-    <div className="px-3 pt-3 pb-8 text-[0.95rem] leading-relaxed">
-      <h1 className="text-[1.15rem] leading-none">Claude and ChatGPT</h1>
+    <div className="mt-6 border-t border-hairline pt-6">
+      <h2 className="text-[1.1rem] leading-none">Claude and ChatGPT</h2>
       <p className="pt-2 text-ink-dim">These links log as {name}. Keep them to yourself.</p>
 
       <section className="pt-6">
-        <h2 className="text-[1.05rem]">Claude</h2>
+        <h3 className="text-[1.05rem]">Claude</h3>
         <p className="pt-2 text-ink-dim">
           On claude.ai, open Settings → Connectors → Add custom connector, name it Tummy, and paste this link. Then it
           works from the Claude app on your phone too. Allow “log food” always, so each snack isn&rsquo;t a
@@ -54,7 +54,7 @@ export function ConnectSettings({ origin, initialToken, name }: { origin: string
       </section>
 
       <section className="pt-6">
-        <h2 className="text-[1.05rem]">ChatGPT</h2>
+        <h3 className="text-[1.05rem]">ChatGPT</h3>
         <p className="pt-2 text-ink-dim">
           In ChatGPT, turn on developer mode, then add a connector with this link and no authentication. Logging
           from ChatGPT&rsquo;s phone app may not work yet; looking things up does.

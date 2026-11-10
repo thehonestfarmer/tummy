@@ -23,9 +23,9 @@ async function post<T>(url: string, body: BodyInit, json = true): Promise<T> {
 }
 
 /**
- * Quick log's front end (healthspec.md §5.5), at the end of the macro bar on
- * every Health screen. Hold to talk, release to send; a short tap opens a
- * box to type the same sentence instead. Typing is also the way in wherever
+ * Quick log's front end (healthspec.md §5.5), beside Add food in the dock on
+ * Home. Hold to talk, release to send; a short tap opens a box to type the
+ * same sentence instead. Typing is also the way in wherever
  * the mic isn't available, such as plain HTTP on the home network.
  *
  * A clear result is logged straight away with an undo. Anything the server
@@ -91,24 +91,26 @@ export function QuickLog() {
         onPointerUp={() => (canRecord() ? recorder.stop() : setTyping(true))}
         onPointerLeave={() => listening && recorder.stop()}
         onContextMenu={(e) => e.preventDefault()}
-        className="ml-1 flex w-12 shrink-0 touch-none select-none items-center justify-center rounded-[3px] border"
+        className="flex h-16 w-[5.25rem] shrink-0 touch-none select-none flex-col items-center justify-center gap-0.5 rounded-xl border"
         style={{
           borderColor: listening ? "var(--ink-dim)" : "var(--hairline-strong)",
-          background: listening ? "var(--ground-raised)" : "transparent",
+          background: listening ? "var(--hairline)" : "var(--ground-raised)",
           color: busy ? "var(--ink-faint)" : "var(--ink)",
           WebkitUserSelect: "none",
           WebkitTouchCallout: "none",
         }}
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
           <rect x="9" y="3" width="6" height="11" rx="3" />
           <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" strokeLinecap="round" />
         </svg>
+        {/* Says how it works, since nothing else about a mic does. */}
+        <span className="text-[0.7rem] leading-none text-ink-dim">Hold to talk</span>
       </button>
 
       {listening || busy || notice || recorder.error ? createPortal(
         <div className="fixed inset-x-0 top-0 z-50 mx-auto max-w-2xl px-3" style={{ paddingTop: "calc(var(--safe-top) + 0.5rem)" }}>
-          <div className="rounded-[3px] border border-hairline-strong bg-ground-raised px-4 py-3 text-[0.95rem]">
+          <div className="rounded-[10px] border border-hairline-strong bg-ground-raised px-4 py-3 text-[0.95rem]">
             {listening ? "Listening… release to send" : busy ? "Working it out…" : (recorder.error ?? notice)}
             {!listening && !busy ? (
               <button onClick={() => setNotice(null)} className="float-right text-ink-dim">
@@ -159,7 +161,7 @@ function TypeSheet({ onClose, onResult }: { onClose: () => void; onResult: (r: Q
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="just had 2 senbei and a coffee"
-          className="w-full rounded-[3px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+          className="w-full rounded-[10px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
         />
         <p className="pt-2 text-[0.85rem] text-ink-faint">
           Hold the mic to say it instead. &ldquo;Undo that&rdquo; and &ldquo;actually that was 2&rdquo; work too.
@@ -167,7 +169,7 @@ function TypeSheet({ onClose, onResult }: { onClose: () => void; onResult: (r: Q
         <button
           type="submit"
           disabled={busy || !text.trim()}
-          className="mt-3 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
+          className="mt-3 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
         >
           {busy ? "…" : "Log"}
         </button>
@@ -266,7 +268,7 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
                 key={s.label}
                 disabled={busy}
                 onClick={() => resolve(food.id, s.grams)}
-                className="rounded-[3px] border border-hairline px-3 py-1.5 text-[0.9rem] text-ink-dim"
+                className="rounded-[10px] border border-hairline px-3 py-1.5 text-[0.9rem] text-ink-dim"
               >
                 One is 1 {s.label} · {fmt(s.grams)}g
               </button>
@@ -280,7 +282,7 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
           <button
             disabled={busy || !perPiece}
             onClick={() => perPiece && resolve(food.id, perPiece)}
-            className="flex-1 rounded-[3px] border border-hairline-strong bg-ground-raised py-2.5 text-[0.95rem] text-ink disabled:text-ink-faint"
+            className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-2.5 text-[0.95rem] text-ink disabled:text-ink-faint"
           >
             Log it
           </button>
@@ -297,10 +299,10 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
       <div className="pt-2">
         <p className="text-[1.05rem] leading-snug">{item.candidates[0]?.name ?? item.phrase} is still waiting in Review.</p>
         <div className="flex gap-2 pt-4">
-          <Link href="/review" onClick={onDone} className="flex-1 rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-center text-ink">
+          <Link href="/review" onClick={onDone} className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-center text-ink">
             Go to Review
           </Link>
-          <button onClick={onDone} className="flex-1 rounded-[3px] border border-hairline py-3 text-ink-dim">
+          <button onClick={onDone} className="flex-1 rounded-[10px] border border-hairline py-3 text-ink-dim">
             Skip
           </button>
         </div>
@@ -318,7 +320,7 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
               key={c.id}
               disabled={busy}
               onClick={() => resolve(c.id)}
-              className="rounded-[3px] border border-hairline px-3 py-2.5 text-left text-[0.95rem] text-ink"
+              className="rounded-[10px] border border-hairline px-3 py-2.5 text-left text-[0.95rem] text-ink"
             >
               {c.name}
               {c.nameJa ? <span className="text-ink-faint"> · {c.nameJa}</span> : null}
@@ -343,7 +345,7 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
           <p className="pt-2 text-[0.95rem] leading-relaxed text-ink-dim">
             Confirm it in Review and {grams ? `the ${fmt(grams, 0)}g` : "it"} will be logged then.
           </p>
-          <button onClick={onDone} className="mt-4 w-full rounded-[3px] border border-hairline py-3 text-ink-dim">
+          <button onClick={onDone} className="mt-4 w-full rounded-[10px] border border-hairline py-3 text-ink-dim">
             OK
           </button>
         </>
@@ -364,11 +366,11 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
                   setBusy(false);
                 }
               }}
-              className="flex-1 rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-ink"
+              className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-ink"
             >
               Add it by name
             </button>
-            <button onClick={onDone} className="flex-1 rounded-[3px] border border-hairline py-3 text-ink-dim">
+            <button onClick={onDone} className="flex-1 rounded-[10px] border border-hairline py-3 text-ink-dim">
               Skip
             </button>
           </div>

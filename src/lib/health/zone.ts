@@ -26,6 +26,20 @@ export function clockIn(tz: string, at: Date): string {
   return new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(at);
 }
 
+/** `date` moved by whole days, as YYYY-MM-DD. */
+export function shiftDate(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** "Tue 10 Nov" for a YYYY-MM-DD date, whatever zone the reader is in. */
+export function formatDay(date: string): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" }).format(
+    new Date(`${date}T00:00:00Z`),
+  );
+}
+
 export function isDate(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { POLL_NOW } from "@/lib/usePoll";
-import { DEV_BAR_TOGGLE, devBarHidden } from "@/lib/devBar";
+import { DEV_BAR_TOGGLE, devBarHidden, toggleDevBar } from "@/lib/devBar";
 
 const CHROME = { border: "#4a3f31", ink: "#d8bd98" };
 
@@ -20,7 +20,7 @@ export function DevSessionBar({
   // Shown until hydration reads the saved choice, so server and client agree.
   const [hidden, setHidden] = useState(false);
 
-  // Tapping the marks in the header toggles this; see HeaderMarks.
+  // Settings has the switch that puts this away; see DevBarToggle.
   useEffect(() => {
     const t = setTimeout(() => setHidden(devBarHidden()), 0);
     const onToggle = (e: Event) => setHidden((e as CustomEvent<boolean>).detail);
@@ -61,12 +61,21 @@ export function DevSessionBar({
         <button
           onClick={become}
           disabled={busy}
-          className="shrink-0 rounded-[3px] border px-2.5 py-1 disabled:opacity-50"
+          className="shrink-0 rounded-[10px] border px-2.5 py-1 disabled:opacity-50"
           style={{ borderColor: CHROME.border, color: CHROME.ink }}
         >
           {busy ? "…" : `Become ${partnerName}`}
         </button>
       </div>
     </div>
+  );
+}
+
+/** On Settings, where the strip exists: puts it away when it isn't needed, and brings it back. */
+export function DevBarToggle() {
+  return (
+    <button onClick={toggleDevBar} className="mt-8 text-[0.9rem] underline underline-offset-4" style={{ color: CHROME.ink }}>
+      Show or hide the dev strip
+    </button>
   );
 }

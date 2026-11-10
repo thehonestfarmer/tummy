@@ -57,7 +57,7 @@ export function EntrySheet({ entry, onClose }: { entry: EntryView; onClose: () =
       <button
         onClick={() => send("PATCH", { grams })}
         disabled={busy || !grams || grams === entry.grams}
-        className="mt-4 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
+        className="mt-4 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint"
       >
         Save
       </button>
@@ -65,14 +65,14 @@ export function EntrySheet({ entry, onClose }: { entry: EntryView; onClose: () =
         <button
           onClick={() => send("PATCH", { localDate: shift(entry.localDate, -1) })}
           disabled={busy}
-          className="flex-1 rounded-[3px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
+          className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
         >
           Move to the day before
         </button>
         <button
           onClick={() => send("DELETE")}
           disabled={busy}
-          className="flex-1 rounded-[3px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
+          className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
         >
           Remove
         </button>

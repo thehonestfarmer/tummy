@@ -68,7 +68,7 @@ export function ReviewClient({ initial }: { initial: ReviewView }) {
 
   if (!current) {
     return (
-      <div className="px-3 pt-3">
+      <div className="px-5 pt-3">
         <h1 className="text-[1.15rem] leading-none">Review</h1>
         <p className="pt-3 text-[1.05rem] leading-relaxed text-ink-dim">
           Nothing waiting.{" "}
@@ -87,7 +87,7 @@ export function ReviewClient({ initial }: { initial: ReviewView }) {
   const position = order.indexOf(current) + 1;
 
   return (
-    <div className="px-3 pt-3 pb-6">
+    <div className="px-5 pt-3 pb-6">
       <header className="flex items-baseline gap-2">
         <h1 className="text-[1.15rem] leading-none">Review</h1>
         <span className="text-[0.9rem] text-ink-faint">
@@ -141,13 +141,13 @@ function FailedDraft({
         <button
           onClick={() => act("retry", draft)}
           disabled={busy}
-          className="flex-1 rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-[0.95rem] text-ink"
+          className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[0.95rem] text-ink"
         >
           Read it again
         </button>
         <button
           onClick={() => setManual(true)}
-          className="flex-1 rounded-[3px] border border-hairline bg-ground-raised py-3 text-[0.95rem] text-ink-dim"
+          className="flex-1 rounded-[10px] border border-hairline bg-ground-raised py-3 text-[0.95rem] text-ink-dim"
         >
           Type it in
         </button>
@@ -202,7 +202,7 @@ function Chips<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className="rounded-[3px] border px-3 py-1.5 text-[0.9rem]"
+          className="rounded-[10px] border px-3 py-1.5 text-[0.9rem]"
           style={{
             borderColor: value === o.value ? "var(--hairline-strong)" : "var(--hairline)",
             color: value === o.value ? "var(--ink)" : "var(--ink-faint)",
@@ -321,7 +321,7 @@ function DraftForm({
                   key={c.id}
                   type="button"
                   onClick={() => chooseRow(c.id)}
-                  className="rounded-[3px] border px-2.5 py-2 text-left text-[0.85rem] leading-snug"
+                  className="rounded-[10px] border px-2.5 py-2 text-left text-[0.85rem] leading-snug"
                   style={{
                     borderColor: c.id === rowId && fromRow ? "var(--hairline-strong)" : "var(--hairline)",
                     color: c.id === rowId && fromRow ? "var(--ink)" : "var(--ink-dim)",
@@ -434,7 +434,7 @@ function DraftForm({
           })
         }
         disabled={busy || n.problems.length > 0}
-        className="mt-5 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
+        className="mt-5 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
       >
         {busy ? "…" : "Confirm"}
       </button>
@@ -447,7 +447,7 @@ function DraftForm({
               key={m.id}
               onClick={() => act("merge", draft, { into: m.id })}
               disabled={busy}
-              className="mt-1.5 w-full rounded-[3px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
+              className="mt-1.5 w-full rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
             >
               Same as {m.name}
               {m.nameJa ? ` (${m.nameJa})` : ""}

@@ -21,7 +21,7 @@ export function SignOutButton() {
         }
       }}
       disabled={busy}
-      className="-mr-1 px-1 text-[0.8rem] leading-none text-ink-faint disabled:opacity-50"
+      className="h-11 shrink-0 rounded-[10px] border border-hairline-strong px-4 text-[0.95rem] text-ink disabled:opacity-50"
     >
       {busy ? "…" : "Sign out"}
     </button>

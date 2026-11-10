@@ -1,16 +1,15 @@
 "use client";
 
-import { MacroBar } from "./MacroBar";
-import { QuickLog } from "./QuickLog";
+import { usePathname } from "next/navigation";
+import { MacroDisplay, MacroStrip } from "./MacroBar";
 
 /**
- * What sits above every Health screen. The quick-log mic joins the bar here
- * (§5.5), so it is one reach away wherever you are in Health.
+ * What stays in view above every screen (§8): the macro display in full on
+ * Home, and as one line everywhere else.
  */
 export function HealthTop() {
+  const home = usePathname() === "/today";
   return (
-    <div className="sticky top-0 z-30 bg-ground/95 backdrop-blur-sm" style={{ top: 0 }}>
-      <MacroBar trailing={<QuickLog />} />
-    </div>
+    <div className="sticky top-0 z-30 bg-ground/95 backdrop-blur-sm">{home ? <MacroDisplay /> : <MacroStrip />}</div>
   );
 }

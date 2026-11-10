@@ -19,7 +19,7 @@ export function LibraryClient({ initial }: { initial: LibraryView }) {
     : initial.foods;
 
   return (
-    <div className="px-3 pt-3 pb-6">
+    <div className="px-5 pt-3 pb-6">
       <header className="flex items-baseline">
         <h1 className="text-[1.15rem] leading-none">Library</h1>
         <Link href="/add" className="ml-auto text-[0.9rem] text-ink-dim">
@@ -40,7 +40,7 @@ export function LibraryClient({ initial }: { initial: LibraryView }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search"
-            className="mt-4 w-full rounded-[3px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="mt-4 w-full rounded-[10px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
           />
           <ul className="pt-2">
             {foods.map((f) => (

@@ -14,7 +14,7 @@ const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLow
 type Step = { kind: "search" } | { kind: "amount"; food: FoodView } | { kind: "manual" } | { kind: "asked"; name: string };
 
 const button =
-  "w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint";
+  "w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint";
 
 /**
  * The + Food sheet (§5.6): find a food in the library and say how much.
@@ -22,7 +22,7 @@ const button =
  * and the review queue, or type its numbers.
  */
 export function FoodSheet({ onClose }: { onClose: () => void }) {
-  const { day, setDay, toast } = useHealthDay();
+  const { day, setDay, toast, date } = useHealthDay();
   const [library, setLibrary] = useState<FoodView[] | null>(null);
   const [recents, setRecents] = useState<RecentFood[]>([]);
   const [meals, setMeals] = useState<MealView[]>([]);
@@ -71,7 +71,8 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
     const res = await fetch("/api/entries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ foodId: food.id, grams, partnerGrams }),
+      // `date` is set only on a past day: something forgotten goes where it belongs.
+      body: JSON.stringify({ foodId: food.id, grams, partnerGrams, date: date ?? undefined }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -89,7 +90,11 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
 
   async function logMeal(meal: MealView) {
     setError(null);
-    const res = await fetch(`/api/meals/${meal.id}/log`, { method: "POST" });
+    const res = await fetch(`/api/meals/${meal.id}/log`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: date ?? undefined }),
+    });
     const json = await res.json();
     if (!res.ok) {
       setError(json.error ?? "Couldn't log that");
@@ -112,7 +117,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What did you eat?"
-            className="w-full rounded-[3px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            className="w-full rounded-[10px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
           />
           <ul className="min-h-0 flex-1 overflow-y-auto pt-1">
             {!query.trim() && meals.length ? (
@@ -173,7 +178,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                   if (!res.ok) setError(json.error ?? "Couldn't add that");
                   else setStep({ kind: "asked", name: query.trim() });
                 }}
-                className="rounded-[3px] border border-hairline py-2.5 text-[0.95rem] text-ink-dim"
+                className="rounded-[10px] border border-hairline py-2.5 text-[0.95rem] text-ink-dim"
               >
                 Add &ldquo;{query.trim()}&rdquo; by name
               </button>
@@ -181,14 +186,14 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setStep({ kind: "manual" })}
-                className="flex-1 rounded-[3px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
+                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
               >
                 Type the numbers
               </button>
               <Link
                 href="/add"
                 onClick={onClose}
-                className="flex-1 rounded-[3px] border border-hairline py-2.5 text-center text-[0.9rem] text-ink-dim"
+                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-center text-[0.9rem] text-ink-dim"
               >
                 Photograph a packet
               </Link>
@@ -222,7 +227,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             <Link href="/review" onClick={onClose} className={`${button} text-center`}>
               Go to Review
             </Link>
-            <button onClick={onClose} className="w-full rounded-[3px] border border-hairline py-3 text-[1rem] text-ink-dim">
+            <button onClick={onClose} className="w-full rounded-[10px] border border-hairline py-3 text-[1rem] text-ink-dim">
               Done
             </button>
           </div>
@@ -282,7 +287,7 @@ function AmountStep({
               <button
                 key={`${s.label}-${n}`}
                 onClick={() => pick(s.grams * n)}
-                className="rounded-[3px] border border-hairline px-3 py-1.5 text-[0.9rem] text-ink-dim"
+                className="rounded-[10px] border border-hairline px-3 py-1.5 text-[0.9rem] text-ink-dim"
               >
                 {n} {s.label}
                 {n > 1 && !s.label.endsWith("s") ? "s" : ""}

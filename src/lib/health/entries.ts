@@ -130,7 +130,10 @@ function toEntry(r: EntryRow, names: Map<number, string>): EntryView {
   };
 }
 
-/** Both of your days, side by side: yours in full, your partner's as totals (§8). */
+/**
+ * Both of your days, side by side: yours in full, your partner's as totals (§8).
+ * Called with the partner as `me`, it is their day in full, for looking at.
+ */
 export async function getHealthDay(me: User, date: string): Promise<HealthDayView> {
   const users = await bothUsers();
   const partner = PAIR_ORDER.map((s) => users[s]).find((u) => u.id !== me.id)!;
@@ -179,6 +182,8 @@ export type LogInput = {
   client?: Client;
   tz: string;
   loggedAt?: Date;
+  /** For something forgotten on a past day: the day it belongs to, whatever the clock says now. */
+  localDate?: string;
   inputText?: string | null;
   sharedMealId?: number | null;
 };
@@ -210,7 +215,7 @@ export async function logEntry(user: User | { id: number }, createdBy: number, i
        logged_at, tz, local_date, source, client, input_text, created_by, shared_meal_id)
     values
       (${user.id}, ${food.id}, ${input.grams}, ${food.name}, ${food.kcal}, ${food.protein_g}, ${food.fat_g},
-       ${food.carbs_g}, ${at}, ${input.tz}, ${dateIn(input.tz, at)}, ${input.source},
+       ${food.carbs_g}, ${at}, ${input.tz}, ${input.localDate ?? dateIn(input.tz, at)}, ${input.source},
        ${clientOf(input.source, input.client)}, ${input.inputText ?? null}, ${createdBy}, ${input.sharedMealId ?? null})
     returning id`;
   return { id: row.id, name: food.name, grams: input.grams, macros: macrosFor(input.grams, food) };

@@ -16,7 +16,8 @@
   --ink-faint: #5c636c;
   --bunny: #c58f95;
   --bear: #8d9e85;
-  --tab-h: 3.75rem;
+  /* The dock on Home: the Add food row and its padding, before the safe area. */
+  --dock-h: 5.75rem;
   /* Named so every edge reads from one place — and so a test can fake a notch. */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);

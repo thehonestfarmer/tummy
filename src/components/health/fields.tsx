@@ -9,7 +9,7 @@ export function fmt(n: number, places = 1): string {
 }
 
 const inputClass =
-  "w-full min-w-0 rounded-[3px] border border-hairline bg-ground-sunk px-2.5 py-2 text-[0.95rem] text-ink " +
+  "w-full min-w-0 rounded-[10px] border border-hairline bg-ground-sunk px-2.5 py-2 text-[0.95rem] text-ink " +
   "placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none";
 
 function Label({ text, hint }: { text: string; hint?: string }) {

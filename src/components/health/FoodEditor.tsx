@@ -91,7 +91,7 @@ export function FoodEditor({ food }: { food: FoodView }) {
       key={value}
       type="button"
       onClick={() => setBasis(value)}
-      className="rounded-[3px] border px-3 py-1.5 text-[0.9rem]"
+      className="rounded-[10px] border px-3 py-1.5 text-[0.9rem]"
       style={{
         borderColor: basis === value ? "var(--hairline-strong)" : "var(--hairline)",
         color: basis === value ? "var(--ink)" : "var(--ink-faint)",
@@ -103,7 +103,7 @@ export function FoodEditor({ food }: { food: FoodView }) {
   );
 
   return (
-    <div className="px-3 pt-3 pb-6">
+    <div className="px-5 pt-3 pb-6">
       <Link href="/library" className="text-[0.9rem] text-ink-dim">
         ← Library
       </Link>
@@ -179,7 +179,7 @@ export function FoodEditor({ food }: { food: FoodView }) {
       <button
         onClick={save}
         disabled={busy}
-        className="mt-6 w-full rounded-[3px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
+        className="mt-6 w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3.5 text-[1rem] text-ink disabled:text-ink-faint"
       >
         {busy ? "…" : "Save"}
       </button>
