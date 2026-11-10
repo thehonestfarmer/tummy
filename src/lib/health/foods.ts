@@ -39,6 +39,8 @@ export type DraftView = {
   /** Where it was submitted from: the app, or read in a chat. */
   client: Client;
   state: DraftState;
+  /** Read and showable, but its food-table cross-check hasn't come back yet. */
+  checking: boolean;
   error: string | null;
   /** What the review screen pre-fills from. */
   reading: Reading | null;
@@ -105,6 +107,8 @@ type FoodRow = {
   client: Client;
   reference_food_id: number | null;
   reference_candidates: number[];
+  /** False while a reading is still waiting on its food-table row. */
+  reference_done: boolean;
 };
 
 type ReadingRow = {
@@ -125,15 +129,16 @@ export async function createNamedDraft(user: User, text: string, client: Client 
   if (!name) throw new Error("Say which food.");
   if (name.length > 120) throw new Error("That's longer than a food name.");
   const [{ id }] = await sql<{ id: number }[]>`
-    insert into foods (requested_name, client, created_by) values (${name}, ${client}, ${user.id}) returning id`;
+    insert into foods (requested_name, client, created_by, reference_done)
+    values (${name}, ${client}, ${user.id}, false) returning id`;
   return id;
 }
 
 export async function createDraft(user: User, imageUrls: string[]): Promise<number> {
   const [front, back] = imageUrls;
   const [{ id }] = await sql<{ id: number }[]>`
-    insert into foods (image_url, image2_url, created_by)
-    values (${front}, ${back ?? null}, ${user.id})
+    insert into foods (image_url, image2_url, created_by, reference_done)
+    values (${front}, ${back ?? null}, ${user.id}, false)
     returning id`;
   return id;
 }
@@ -175,12 +180,34 @@ export async function readDraft(foodId: number): Promise<void> {
     const primary = models.length > 1 ? foodId % models.length : 0;
     const urls = images(food);
 
-    const results = await Promise.allSettled(
-      models.map((m) => (named ? interpretName(named) : readFoodPhotos(m, urls))),
-    );
+    // A retry may have started while an earlier read was in flight; this one starts clean.
+    await sql`delete from food_readings where food_id = ${foodId}`;
 
-    const fulfilled = results.map((r) => (r.status === "fulfilled" ? r.value.reading : null));
-    const lead = fulfilled[primary] ?? fulfilled.find(Boolean) ?? null;
+    /*
+     * Each reading is written the moment it lands, so someone scanning a
+     * label sees its values after one model's time, not after both models
+     * and the food-table match. The match starts as soon as the lead reading
+     * is in, without waiting for the comparison reading, and
+     * `reference_done` says when it has come back.
+     */
+    const reads = models.map(async (model, i) => {
+      try {
+        const { reading, servedBy, latencyMs } = await (named ? interpretName(named) : readFoodPhotos(model, urls));
+        await sql`
+          insert into food_readings (food_id, model, served_by, is_primary, output, latency_ms)
+          values (${foodId}, ${model}, ${servedBy}, ${i === primary}, ${sql.json(reading as never)}, ${latencyMs})`;
+        return reading;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Reading failed";
+        await sql`
+          insert into food_readings (food_id, model, is_primary, error)
+          values (${foodId}, ${model}, ${i === primary}, ${message.slice(0, 500)})`;
+        return null;
+      }
+    });
+
+    // The lead is the primary's reading; only if that failed is it worth waiting for another.
+    const lead = (await reads[primary]) ?? (await Promise.all(reads)).find(Boolean) ?? null;
     let candidates: ReferenceRow[] = [];
     let reference: ReferenceRow | null = null;
     if (lead && lead.kind !== "not_food") {
@@ -191,31 +218,18 @@ export async function readDraft(foodId: number): Promise<void> {
         lead.kind === "nutrition_label" ? "cross_check" : "values",
       );
     }
-
-    await sql.begin(async (tx) => {
-      // A retry may have started while this was in flight; the later one wins.
-      await tx`delete from food_readings where food_id = ${foodId}`;
-      for (const [i, result] of results.entries()) {
-        if (result.status === "fulfilled") {
-          const { reading, servedBy, latencyMs } = result.value;
-          await tx`
-            insert into food_readings (food_id, model, served_by, is_primary, output, latency_ms)
-            values (${foodId}, ${models[i]}, ${servedBy}, ${i === primary},
-                    ${tx.json(reading as never)}, ${latencyMs})`;
-        } else {
-          const message = result.reason instanceof Error ? result.reason.message : "Reading failed";
-          await tx`
-            insert into food_readings (food_id, model, is_primary, error)
-            values (${foodId}, ${models[i]}, ${i === primary}, ${message.slice(0, 500)})`;
-        }
-      }
-      await tx`
-        update foods set reference_food_id = ${reference?.id ?? null},
-                         reference_candidates = ${candidates.map((c) => c.id)}
-        where id = ${foodId}`;
-    });
+    await sql`
+      update foods set reference_food_id = ${reference?.id ?? null},
+                       reference_candidates = ${candidates.map((c) => c.id)},
+                       reference_done = true
+      where id = ${foodId}`;
+    // The comparison reading only has to be recorded; nobody is waiting on it.
+    await Promise.all(reads);
   } catch (err) {
     console.error(`[tummy] reading food ${foodId} failed`, err);
+  } finally {
+    // Whatever happened, nobody is left waiting on a match that isn't coming.
+    await sql`update foods set reference_done = true where id = ${foodId}`.catch(() => {});
   }
 }
 
@@ -245,7 +259,7 @@ export async function resetDraft(foodId: number) {
   if (!rows.length) throw new Error("That draft is no longer waiting.");
   await sql`delete from food_readings where food_id = ${foodId}`;
   // Restart the clock, so the fresh attempt isn't immediately reported as timed out.
-  await sql`update foods set created_at = now(), updated_at = now() where id = ${foodId}`;
+  await sql`update foods set created_at = now(), updated_at = now(), reference_done = false where id = ${foodId}`;
 }
 
 const keyOf = (s: string | null | undefined) =>
@@ -320,10 +334,16 @@ export async function getReviewQueue(now: Date = new Date()): Promise<ReviewView
 
     let state: DraftState = "ready";
     let error: string | null = null;
+    const stale = now.getTime() - food.created_at.getTime() > READING_TIMEOUT_MS;
+    // A read still in flight: more readings, or the food-table row, are on their way.
+    const waiting = !food.reference_done && !stale;
     if (!mine.length) {
-      const stale = now.getTime() - food.created_at.getTime() > READING_TIMEOUT_MS;
       state = stale ? "failed" : "reading";
       error = stale ? "Reading timed out." : null;
+    } else if (waiting && (!primary || !reading || reading.kind !== "nutrition_label")) {
+      // Not showable yet: the lead reading hasn't landed, or this is a pack or
+      // a named food, whose values are the row's and would change under the reader.
+      state = "reading";
     } else if (!reading) {
       state = "failed";
       error = primary?.error ?? mine[0].error;
@@ -335,6 +355,7 @@ export async function getReviewQueue(now: Date = new Date()): Promise<ReviewView
       addedBy: food.created_by === null ? null : (nameOf.get(food.created_by) ?? null),
       client: food.client,
       state,
+      checking: waiting && state === "ready",
       error,
       reading,
       otherReadings,

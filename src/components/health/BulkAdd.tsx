@@ -137,8 +137,7 @@ export function BulkAdd({ waiting }: { waiting: number }) {
     <div className="px-5 pt-3 pb-6">
       <h1 className="text-[1.15rem] leading-none">Add foods</h1>
       <p className="pt-2 text-[0.95rem] leading-relaxed text-ink-dim">
-        One photo per packet, of the back where the nutrition table is. If the front tells similar
-        packets apart, add it too and join it to the back.
+        One photo per packet, of the nutrition table. That&rsquo;s all a packet needs.
       </p>
 
       <input ref={camera} type="file" accept="image/*" capture="environment" onChange={onPick} className="hidden" />

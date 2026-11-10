@@ -293,7 +293,7 @@ No Siri Shortcut.
 
 1. **From the fridge** (what the sheet opens on). What's in the house, most recently eaten first, each with what's left ("Greek yogurt · 3 left · 300g"). Tap one, set the amount, log. Saved meals sit above the list; search below it looks through the whole catalogue, for food that isn't in the fridge.
 2. **Say it.** The quick-log mic (§5.5), as a large button in the sheet as well as beside the macro display.
-3. **Scan it.** For something with a label that isn't in the catalogue yet, such as a convenience-store snack. Photograph the back (and the front if it helps), see what was read, confirm, say how much, and it's logged. One flow, no trip to a queue. The food is in the catalogue from then on. It does not go in the fridge unless you say there is more of it at home.
+3. **Scan it.** For something with a label that isn't in the catalogue yet, such as a convenience-store snack. The button opens the camera. One photo, of the nutrition table; see what was read, confirm, say how much, and log it or add it to the fridge. Amounts are counted in the food's own servings ("2 packs") where it has them, and in grams otherwise. One flow, no trip to a queue. The food is in the catalogue from then on. It does not go in the fridge unless you say there is more of it at home.
 4. **Chat** (§10). Say what you ate in a sentence, or ask what you could eat: "what can I make from the fridge that fits what I have left today?"
 
 A fifth path, **Eating out**, is for food with no label and no weight (§5.11).
@@ -351,7 +351,7 @@ A digital copy of the food in the house: the fridge, the freezer and the cupboar
 
 **What it holds.** For each catalogue food we have, the grams left, and the count where the food has a piece serving ("6 eggs · 330g"). A food with nothing left is not in the fridge. It stays in the catalogue.
 
-**Stocking (after shopping).** *Stock up*, opened from the fridge, is a separate action from eating.
+**Stocking (after shopping).** A separate action from eating. The amount step under Add food ends in two buttons, **Log it** and **Add to fridge**, so anything picked or just photographed can go either way. *Stock up*, opened from the fridge, is the same thing for a whole shop at once.
 - Photograph everything, as in §5.3. A food already in the catalogue is recognised and only needs its amount; a new one is read and confirmed first.
 - The amount is the printed net weight times how many were bought. Meat and fish packs use the weight printed on the pack. Loose food is said or typed by weight or count ("6 eggs", "apples, 700 grams").
 - By voice or chat: "we bought two packs of chicken thighs and a dozen eggs."
@@ -365,8 +365,8 @@ A digital copy of the food in the house: the fridge, the freezer and the cupboar
 **Keeping it honest.** It will drift: a forgotten log, food thrown out, something eaten by a guest. Every item has three corrections: **Finished** (set to zero), **Threw it out** (set to zero, recorded as waste, not eaten), and **Set amount**. Eating more than the fridge thinks is there empties the item and logs the full amount; the log is never blocked by the fridge.
 
 **Storage.**
-- `fridge_changes`: food, signed grams, kind (`stocked`, `set`, `finished`, `discarded`), who, when, client. A ledger, never edited.
-- What's left for a food = the sum of its changes, minus the grams of every log entry for that food made since it was first stocked, floored at zero. It is **derived on read** (§11), so editing or deleting an entry corrects the fridge with no extra write. `set` and `finished` are written as the difference from what was left at that moment.
+- `fridge_changes`: food, grams, kind (`stocked`, `set`, `finished`, `discarded`), who, when, client. A ledger, never edited.
+- What's left for a food is **derived on read** (§11): its changes and the log entries for that food are walked together in time order. `stocked` adds, `set` makes it exactly that amount, `finished` and `discarded` make it zero, and an entry takes its grams away, stopping at zero. So editing or deleting an entry corrects the fridge with no extra write, and eating more than was there never leaves a debt for the next shop to pay off.
 - Stocking and logging the same food at the same moment from two phones goes through `sql.begin` with a row lock on the food.
 
 **What it's for, beyond the list.** Chat can plan from it: "what could I eat for the rest of today?" gets an answer made only of food that is actually there, sized to the macros each of us has left (§10).
@@ -595,8 +595,8 @@ The same conversation can happen in two places: in Claude or ChatGPT through the
 **From here, in order:**
 
 1. **Home, the macro display, past days.** Remove the tab bar; Home with Add food and the entry list; the redesigned macro display; date navigation and correcting past days; the partner's day; settings behind the header. Interface only, no new tables. Start workout appears with step 6.
-2. **The fridge.** `fridge_changes`, what's-left derivation, Stock up (reusing bulk add and review), eating reduces stock, the fridge screen and its corrections, the fridge as the Add food list. Fridge tools in the MCP.
-3. **Scan and eat in one flow; shared by default.** Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
+2. **The fridge.** *(Core built: the ledger, Add to fridge, eating draws it down, the fridge list under Add food and on the fridge screen with its corrections. Still to do: Stock up for a whole shop, and the MCP tools.)* `fridge_changes`, what's-left derivation, Stock up (reusing bulk add and review), eating reduces stock, the fridge screen and its corrections, the fridge as the Add food list. Fridge tools in the MCP.
+3. **Scan and eat in one flow; shared by default.** *(Scan built: camera straight from Add food, confirm in place, amounts in servings.)* Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
 4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
 5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
 6. **Training.** Web push; plans and exercises pushed from Claude; the shared session with start and join; set logging by touch, then voice and chat; workout mode.
@@ -650,7 +650,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Health day | Phone's local calendar date, sent in a cookie |
 | Library | Shared between both users |
 | Library seeding | Bulk photo upload + review queue in the PWA, and from chat |
-| Photos per pack | One (the back) by default; optional second for brand |
+| Photos per pack | One, of the nutrition table. No front photo. |
 | Photos | Held on the server only until review, then deleted. Never kept. The reading as printed is the audit trail. |
 | Piece servings | Created automatically from net weight ÷ piece count when both are printed |
 | Unlabeled food | Voice with weight, via a reference-table row; model estimate only as a flagged fallback |

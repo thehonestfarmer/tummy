@@ -3,16 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { LibraryView } from "@/lib/health/foods";
-import { fmt } from "./fields";
+import type { FridgeItem, FridgeKind, FridgeView } from "@/lib/health/fridge";
+import { Sheet } from "./Sheet";
+import { NumberField, fmt } from "./fields";
 
 const keyOf = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
 
 /**
- * Every confirmed food, searchable in either language. Small enough to send
+ * The fridge, then every confirmed food (§8). The fridge is what's in the
+ * house, with what's left of each; a tap corrects it when it has drifted.
+ * The foods are searchable in either language, and small enough to send
  * whole and filter on the phone, so search costs no round trip.
  */
-export function LibraryClient({ initial }: { initial: LibraryView }) {
+export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridge: FridgeItem[] }) {
   const [query, setQuery] = useState("");
+  const [items, setItems] = useState(fridge);
+  const [open, setOpen] = useState<FridgeItem | null>(null);
   const q = keyOf(query.trim());
   const foods = q
     ? initial.foods.filter((f) => [f.name, f.nameJa, f.brand, ...f.aliases].some((s) => keyOf(s).includes(q)))
@@ -21,11 +27,32 @@ export function LibraryClient({ initial }: { initial: LibraryView }) {
   return (
     <div className="px-5 pt-3 pb-6">
       <header className="flex items-baseline">
-        <h1 className="text-[1.15rem] leading-none">Library</h1>
+        <h1 className="text-[1.15rem] leading-none">Fridge</h1>
         <Link href="/add" className="ml-auto text-[0.9rem] text-ink-dim">
-          Add foods
+          Add many foods
         </Link>
       </header>
+      {items.length ? (
+        <ul className="pt-2">
+          {items.map((item) => (
+            <li key={item.food.id} className="border-b border-hairline">
+              <button onClick={() => setOpen(item)} className="flex w-full items-baseline gap-2 py-3 text-left">
+                <span className="min-w-0 flex-1 truncate text-[1rem]">{item.food.name}</span>
+                <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">
+                  {item.count ? `${fmt(item.count.n)} left · ` : ""}
+                  {fmt(item.left, 0)}g
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="pt-3 text-[0.95rem] leading-relaxed text-ink-dim">
+          Nothing in the fridge yet. From Add food, pick or photograph something and choose Add to fridge.
+        </p>
+      )}
+
+      <h2 className="pt-8 text-[1.05rem] leading-none">Every food</h2>
       {initial.drafts ? (
         <p className="pt-2 text-[0.95rem] text-ink-dim">
           <Link href="/review" className="text-ink underline decoration-hairline-strong underline-offset-4">
@@ -69,6 +96,85 @@ export function LibraryClient({ initial }: { initial: LibraryView }) {
           to start the library.
         </p>
       )}
+
+      {open ? (
+        <FridgeItemSheet
+          item={open}
+          onClose={() => setOpen(null)}
+          onChanged={(next) => {
+            setItems(next);
+            setOpen(null);
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+/** Keeping the fridge honest (§5.10): it drifts, and these are the three ways to say what's really there. */
+function FridgeItemSheet({
+  item,
+  onClose,
+  onChanged,
+}: {
+  item: FridgeItem;
+  onClose: () => void;
+  onChanged: (items: FridgeItem[]) => void;
+}) {
+  const [grams, setGrams] = useState<number | null>(Math.round(item.left));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function send(kind: FridgeKind, amount?: number) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/fridge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ foodId: item.food.id, kind, grams: amount }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "That didn't work");
+      onChanged((json as FridgeView).items);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't work");
+      setBusy(false);
+    }
+  }
+
+  const quiet = "flex-1 rounded-[10px] border border-hairline py-3 text-[0.95rem] text-ink-dim";
+  return (
+    <Sheet onClose={onClose}>
+      <p className="text-[1.1rem]">{item.food.name}</p>
+      <p className="text-[0.85rem] text-ink-dim">
+        {item.count ? `${fmt(item.count.n)} left · ` : ""}
+        {fmt(item.left, 0)}g in the fridge
+      </p>
+      <div className="flex items-end gap-2 pt-4">
+        <div className="w-32">
+          <NumberField label="Really there, in grams" value={grams} onChange={setGrams} />
+        </div>
+        <button
+          disabled={busy || grams === null || grams === Math.round(item.left)}
+          onClick={() => grams !== null && send("set", grams)}
+          className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-2.5 text-[0.95rem] text-ink disabled:text-ink-faint"
+        >
+          Set amount
+        </button>
+      </div>
+      <div className="flex gap-2 pt-3">
+        <button disabled={busy} onClick={() => send("finished")} className={quiet}>
+          Finished
+        </button>
+        <button disabled={busy} onClick={() => send("discarded")} className={quiet}>
+          Threw it out
+        </button>
+      </div>
+      <Link href={`/library/${item.food.id}`} className="block pt-4 text-center text-[0.9rem] text-ink-dim">
+        Fix this food&rsquo;s numbers
+      </Link>
+      {error ? <p className="pt-3 text-center text-[0.9rem] text-ink-dim">{error}</p> : null}
+    </Sheet>
   );
 }

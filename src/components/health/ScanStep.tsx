@@ -42,7 +42,8 @@ export function ScanStep({
   const [draft, setDraft] = useState<DraftView | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const settled = draft !== null && draft.state !== "reading";
+  // Showable is not the same as finished: a label can be on screen while its cross-check is still out.
+  const settled = draft !== null && draft.state !== "reading" && !draft.checking;
 
   useEffect(() => {
     if (draftId === null || settled) return;
@@ -170,11 +171,11 @@ export function ScanStep({
       ))}
 
       <button
-        disabled={busy || n.problems.length > 0}
+        disabled={busy || draft.checking || n.problems.length > 0}
         onClick={() => finish({ action: "confirm", id: draft.id, reading, reference: draft.reference?.id ?? null }, draft.id)}
         className={`${primary} mt-4`}
       >
-        {busy ? "…" : "Looks right"}
+        {busy ? "…" : draft.checking ? "Checking against typical values…" : "Looks right"}
       </button>
       {draft.matches.map((m) => (
         <button

@@ -63,7 +63,7 @@ export function AppHeader() {
         </Link>
       )}
       <div className="flex items-center">
-        <Link href="/library" aria-label="Foods" className={iconButton}>
+        <Link href="/library" aria-label="Fridge" className={iconButton}>
           <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <rect x="6" y="3" width="12" height="18" rx="2" />
             <path d="M6 10h12M9.5 6v1.5M9.5 13v3" />

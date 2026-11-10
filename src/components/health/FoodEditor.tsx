@@ -105,7 +105,7 @@ export function FoodEditor({ food }: { food: FoodView }) {
   return (
     <div className="px-5 pt-3 pb-6">
       <Link href="/library" className="text-[0.9rem] text-ink-dim">
-        ← Library
+        ← Fridge
       </Link>
       {food.images.length ? <PhotoViewer images={food.images} /> : null}
 

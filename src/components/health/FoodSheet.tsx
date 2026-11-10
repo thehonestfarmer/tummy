@@ -5,8 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FoodView, LibraryView } from "@/lib/health/foods";
 import type { HealthDayView, RecentFood } from "@/lib/health/entries";
 import type { MealView } from "@/lib/health/meals";
+import type { FridgeItem, FridgeView } from "@/lib/health/fridge";
 import { prepare } from "@/lib/resize";
 import { uploadFoodImage } from "@/lib/health/upload";
+import { AmountStep } from "./AmountStep";
 import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
@@ -36,6 +38,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   const [library, setLibrary] = useState<FoodView[] | null>(null);
   const [recents, setRecents] = useState<RecentFood[]>([]);
   const [meals, setMeals] = useState<MealView[]>([]);
+  const [fridge, setFridge] = useState<FridgeItem[]>([]);
   const [query, setQuery] = useState("");
   const [step, setStep] = useState<Step>({ kind: "search" });
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,10 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
         setRecents(json.recents ?? []);
         setMeals(json.meals ?? []);
       })
+      .catch(() => {});
+    fetch("/api/fridge", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json: FridgeView) => live && setFridge(json.items ?? []))
       .catch(() => {});
     return () => {
       live = false;
@@ -97,6 +104,22 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       text: `Added ${food.name}${partnerGrams ? " for both of you" : ""} · ${entry.macros.kcal} kcal`,
       undo: undo(ids),
     });
+  }
+
+  /** Into the fridge for later, not into anyone's day (§5.10). */
+  async function stock(food: FoodView, grams: number) {
+    setError(null);
+    const res = await fetch("/api/fridge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ foodId: food.id, kind: "stocked", grams }),
+    });
+    if (!res.ok) {
+      setError((await res.json().catch(() => ({}))).error ?? "Couldn't add that");
+      return;
+    }
+    onClose();
+    toast({ text: `${fmt(grams, 0)}g of ${food.name} is in the fridge.` });
   }
 
   /** The photo goes up and becomes a draft, read in the background; ScanStep waits for it. */
@@ -183,6 +206,22 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 ))}
               </>
             ) : null}
+            {!query.trim() && fridge.length ? (
+              <>
+                <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">In the fridge</li>
+                {fridge.map(({ food, left, count }) => (
+                  <li key={`f${food.id}`} className="border-b border-hairline">
+                    <button onClick={() => setStep({ kind: "amount", food })} className="flex w-full items-baseline gap-2 py-2.5 text-left">
+                      <span className="min-w-0 flex-1 truncate text-[1rem]">{food.name}</span>
+                      <span className="shrink-0 text-[0.85rem] tabular-nums text-ink-faint">
+                        {count ? `${fmt(count.n)} left · ` : ""}
+                        {fmt(left, 0)}g
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </>
+            ) : null}
             {!query.trim() && recents.length ? (
               <>
                 <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">Recent · tap to log the same again</li>
@@ -249,9 +288,11 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       ) : step.kind === "amount" ? (
         <AmountStep
           food={step.food}
+          left={fridge.find((i) => i.food.id === step.food.id)?.left ?? null}
           partnerName={day.partner.displayName}
           onBack={() => setStep({ kind: "search" })}
           onLog={log}
+          onStock={stock}
         />
       ) : step.kind === "scan" ? (
         <ScanStep
@@ -292,112 +333,6 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       )}
       {error ? <p className="pt-3 text-center text-[0.9rem] text-ink-dim">{error}</p> : null}
     </Sheet>
-  );
-}
-
-/**
- * How much: a serving and a count, or grams. With "Both of us" on, the
- * amount is the total, split between you, 50/50 unless you change it (§5.7).
- * The kcal shown is a preview; the server does the real sum.
- */
-function AmountStep({
-  food,
-  partnerName,
-  onBack,
-  onLog,
-}: {
-  food: FoodView;
-  partnerName: string;
-  onBack: () => void;
-  onLog: (food: FoodView, grams: number, partnerGrams?: number) => Promise<void>;
-}) {
-  const start = food.defaultGrams ?? food.servings[0]?.grams ?? 100;
-  const [grams, setGrams] = useState<number | null>(start);
-  const [both, setBoth] = useState(false);
-  const [mine, setMine] = useState<number | null>(null);
-  const [version, setVersion] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const round = (g: number) => Math.round(g * 10) / 10;
-  const pick = (g: number) => {
-    setGrams(round(g));
-    setMine(null);
-    setVersion((v) => v + 1);
-  };
-  const myShare = both ? (mine ?? (grams ? round(grams / 2) : null)) : grams;
-  const theirShare = both && grams && myShare !== null ? round(Math.max(0, grams - myShare)) : null;
-  const kcal = (g: number) => fmt((food.per100.kcal * g) / 100, 0);
-
-  return (
-    <div>
-      <button onClick={onBack} className="text-[0.9rem] text-ink-dim">
-        ← Back
-      </button>
-      <p className="pt-2 text-[1.05rem]">{food.name}</p>
-      <p className="text-[0.85rem] text-ink-faint">
-        {fmt(food.per100.kcal, 0)} kcal per 100g{food.nameJa ? ` · ${food.nameJa}` : ""}
-      </p>
-
-      {food.servings.length ? (
-        <div className="flex flex-wrap gap-1.5 pt-4">
-          {food.servings.flatMap((s) =>
-            [1, 2, 3].map((n) => (
-              <button
-                key={`${s.label}-${n}`}
-                onClick={() => pick(s.grams * n)}
-                className="rounded-[10px] border border-hairline px-3 py-1.5 text-[0.9rem] text-ink-dim"
-              >
-                {n} {s.label}
-                {n > 1 && !s.label.endsWith("s") ? "s" : ""}
-              </button>
-            )),
-          )}
-        </div>
-      ) : null}
-
-      <div className="flex items-end gap-3 pt-4">
-        <div key={version} className="w-32">
-          <NumberField
-            label={both ? "Grams, both of you" : "Grams"}
-            value={grams}
-            onChange={(g) => {
-              setGrams(g);
-              setMine(null);
-            }}
-          />
-        </div>
-        <p className="pb-2 text-[0.95rem] tabular-nums text-ink-dim">
-          {!both && grams ? `${kcal(grams)} kcal · ${fmt((food.per100.protein_g * grams) / 100)}g protein` : ""}
-        </p>
-      </div>
-
-      <label className="flex items-center gap-2.5 pt-4 text-[0.95rem]">
-        <input type="checkbox" checked={both} onChange={(e) => setBoth(e.target.checked)} className="h-4 w-4 accent-current" />
-        Both of us
-      </label>
-      {both && grams ? (
-        <div className="flex items-end gap-3 pt-3">
-          <div key={`mine-${version}-${grams}`} className="w-32">
-            <NumberField label="You" value={myShare} onChange={setMine} />
-          </div>
-          <p className="pb-2 text-[0.9rem] tabular-nums text-ink-dim">
-            {myShare !== null ? `${kcal(myShare)} kcal` : ""} · {partnerName} {theirShare !== null ? `${fmt(theirShare)}g` : ""}
-          </p>
-        </div>
-      ) : null}
-
-      <button
-        onClick={async () => {
-          if (!grams || myShare === null) return;
-          setBusy(true);
-          await onLog(food, myShare, both ? (theirShare ?? 0) : undefined);
-          setBusy(false);
-        }}
-        disabled={busy || !grams || myShare === null}
-        className={`${button} mt-4`}
-      >
-        {busy ? "…" : both ? "Log for both of us" : "Log it"}
-      </button>
-    </div>
   );
 }
 
