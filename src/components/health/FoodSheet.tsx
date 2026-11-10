@@ -1,25 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FoodView, LibraryView } from "@/lib/health/foods";
 import type { HealthDayView, RecentFood } from "@/lib/health/entries";
 import type { MealView } from "@/lib/health/meals";
+import { prepare } from "@/lib/resize";
+import { uploadFoodImage } from "@/lib/health/upload";
 import { useHealthDay } from "./HealthDay";
+import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
 import { NumberField, TextField, fmt } from "./fields";
 
 const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
 
-type Step = { kind: "search" } | { kind: "amount"; food: FoodView } | { kind: "manual" } | { kind: "asked"; name: string };
+type Step =
+  | { kind: "search" }
+  | { kind: "amount"; food: FoodView }
+  | { kind: "manual" }
+  | { kind: "asked"; name: string }
+  /** A label has been photographed; `draftId` is null until the photo has landed. */
+  | { kind: "scan"; draftId: number | null };
 
 const button =
   "w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint";
 
 /**
  * The + Food sheet (§5.6): find a food in the library and say how much.
- * When it isn't there, ask for it by name, which goes through the food table
- * and the review queue, or type its numbers.
+ * When it isn't there: photograph its label, which opens the camera straight
+ * away and comes back here to be confirmed and logged; ask for it by name,
+ * which goes through the food table and the review queue; or type its numbers.
  */
 export function FoodSheet({ onClose }: { onClose: () => void }) {
   const { day, setDay, toast, date } = useHealthDay();
@@ -29,6 +39,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [step, setStep] = useState<Step>({ kind: "search" });
   const [error, setError] = useState<string | null>(null);
+  const camera = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let live = true;
@@ -88,6 +99,41 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
     });
   }
 
+  /** The photo goes up and becomes a draft, read in the background; ScanStep waits for it. */
+  async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    e.target.value = "";
+    if (!raw) return;
+    setError(null);
+    setStep({ kind: "scan", draftId: null });
+    try {
+      const url = await uploadFoodImage(await prepare(raw));
+      const res = await fetch("/api/foods", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: [url] }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Couldn't send that photo");
+      setStep({ kind: "scan", draftId: json.id as number });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't send that photo");
+      setStep({ kind: "search" });
+    }
+  }
+
+  /** A retake replaces the photo: the draft it made would otherwise sit in Review for nobody. */
+  function retake(draftId: number | null) {
+    // First, and synchronously: a phone only opens the camera from inside the tap itself.
+    camera.current?.click();
+    if (draftId === null) return;
+    void fetch("/api/review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "discard", id: draftId }),
+    }).catch(() => {});
+  }
+
   async function logMeal(meal: MealView) {
     setError(null);
     const res = await fetch(`/api/meals/${meal.id}/log`, {
@@ -110,6 +156,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet onClose={onClose}>
+      <input ref={camera} type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
       {step.kind === "search" ? (
         <>
           <input
@@ -190,13 +237,12 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
               >
                 Type the numbers
               </button>
-              <Link
-                href="/add"
-                onClick={onClose}
-                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-center text-[0.9rem] text-ink-dim"
+              <button
+                onClick={() => camera.current?.click()}
+                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
               >
-                Photograph a packet
-              </Link>
+                Photograph a label
+              </button>
             </div>
           </div>
         </>
@@ -206,6 +252,17 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
           partnerName={day.partner.displayName}
           onBack={() => setStep({ kind: "search" })}
           onLog={log}
+        />
+      ) : step.kind === "scan" ? (
+        <ScanStep
+          key={step.draftId ?? "sending"}
+          draftId={step.draftId}
+          onRetake={() => retake(step.draftId)}
+          onClose={onClose}
+          onFood={(food) => {
+            setLibrary((l) => (l ? [food, ...l.filter((f) => f.id !== food.id)] : [food]));
+            setStep({ kind: "amount", food });
+          }}
         />
       ) : step.kind === "manual" ? (
         <ManualStep
