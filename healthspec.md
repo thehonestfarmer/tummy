@@ -10,19 +10,28 @@ A nutrition and training tracker for Bunny and Bear. It is a **separate PWA** fr
 
 **Read `ARCHITECTURE.md` first.** It describes the photo app, and this app copies its patterns (§11). Where this spec and that file differ, this spec wins for this app. **Read `mcpspec.md` too.** The MCP server is part of this app.
 
+**Revised 2026-11-10.** After food logging went live, the workflow was redrawn around how we actually use it: a home screen with two buttons, a **fridge** that knows what is in the house, records for eating out, chat inside the app, and workouts done together. §1, §2, §3 (Navigation), §5.6, §5.7, §5.10, §5.11, §7.4, §8, §12 and §15 carry the revision. Where older text elsewhere in this file disagrees with them, they win.
+
 ---
 
 ## 1. Purpose
 
-Track what each of us eats against a calorie and macro target, log training sets at the rack by voice or touch, and let the targets adjust from real data instead of formulas.
+Two partners reaching their fitness goals together. Each of us tracks what we eat against a calorie and macro target, we know what food is in the house, and we log the lifting session we do together, by voice, chat or touch.
 
-Five ideas carry the design:
+The app does two things, and the home screen has one button for each: **Add food** and **Start workout** (§8). Most days it is a food logger. The workout button is there once a day, until we've trained.
+
+Eight ideas carry the design:
 
 1. **Logging is frequent and has to be nearly free.** We eat many small snacks through the day, so expect 10–20 logs per person per day, not 2–3 meals. A log is one spoken sentence ("just had 1 shoyu senbei"). If the match is clear, it's added immediately with an undo, and there's no confirm screen.
-2. **The library is the source of truth for food.** A model drafts food entries (from a label photo, a meat pack, or a name), a person confirms them once, and from then on the saved entry is the only source. The model never re-estimates a confirmed food.
-3. **The model picks; the server counts.** Models turn messy input (photos, voice, screenshots) into structured drafts, and pick reference-table rows rather than recalling numbers. All totals, trends, and expenditure math happen in SQL or server code.
-4. **The app owns the facts; the assistant owns the conversation.** Claude and ChatGPT are clients of this app, the same as the phone. No nutrition fact lives in a chat thread (`mcpspec.md` §2).
-5. **Calorie targets come from the weight trend, not from workouts.** Logged training never raises the day's calorie target. Every two weeks the app back-calculates real expenditure from intake and the weight trend, and proposes a new target for approval.
+2. **The catalogue is the source of truth for nutrition.** A model drafts food entries (from a label photo, a meat pack, or a name), a person confirms them once, and from then on the saved entry is the only source. The model never re-estimates a confirmed food. (Older sections call the catalogue "the library". They are the same thing.)
+3. **The fridge is what's in the house.** After shopping we take stock; eating takes it away again. Buy 400g of chicken, eat 200g, and the fridge shows 200g (§5.10). It is one fridge for both of us.
+4. **The model picks; the server counts.** Models turn messy input (photos, voice, chat) into structured drafts, and pick reference-table rows rather than recalling numbers. All totals and fridge arithmetic happen in SQL or server code.
+5. **The app owns the facts; the assistant owns the conversation.** Claude, ChatGPT and the app's own chat are clients of the same server functions. No nutrition fact lives in a chat thread (`mcpspec.md` §2).
+6. **A guess is allowed only when there is nothing better, and it looks like a guess.** A restaurant dish has no label and no weight, so it is logged as a calorie *range* and stays marked as an estimate everywhere it is counted (§5.11). Nothing with a label or a reference row is ever estimated.
+7. **Most of our food is the same food.** Eating from the fridge is shared by default, split evenly, with each person's amount adjustable (§5.7).
+8. **Together means visible.** Each of us can see the other's day: what they ate, where they stand against their targets, whether they've trained. Nothing more: no streaks, no scores, no nudges.
+
+Targets are fixed for now (§13). Adjusting them from the weight trend is designed in §6 and deferred.
 
 ---
 
@@ -31,22 +40,27 @@ Five ideas carry the design:
 ### In v1
 
 - A standalone PWA with its own repo, database, and domain, self-hosted on a VPS in Tokyo (§3)
-- Shared food library: label reading, meat/fish pack reading, the MEXT reference table, by-name adds, manual entry
+- A home screen with two buttons, Add food and Start workout, under an always-visible macro display (§8)
+- Shared food catalogue: label reading, meat/fish pack reading, the MEXT reference table, by-name adds, manual entry
+- **The fridge:** a shared inventory in grams, stocked after shopping and reduced by eating (§5.10)
 - Food confirmation **in the PWA and in Claude or ChatGPT**, under one rule: a person sees the values and says yes
-- Food logging: search, recents, saved meals, voice, and **shared meals** split between both of us
-- Persistent macro bar on every screen
-- Calorie and macro targets with effective dates, seeded in §13
-- Manual weigh-ins with a 7-day trend
-- Adaptive expenditure and **propose-and-approve** target changes
-- Training: session plans pushed from Claude via MCP; set logging by touch and push-to-talk voice
-- Run logging by voice or by screenshot upload
-- Trends: weight, intake vs target, expenditure, per-exercise progression
+- Food logging four ways: pick from the fridge, say it, scan a label, or chat. Shared between both of us by default (§5.7)
+- **Eating out:** a record of the place and the dish, with a photo estimate as a calorie range when there is nothing better (§5.11)
+- **Chat inside the app**, with the same tools Claude and ChatGPT get through MCP (§10)
+- Past days: look back, and correct them
+- Calorie and macro targets with effective dates, seeded in §13 and static for now
+- Training: lifting sessions done together. One of us starts, the other joins, and both log sets by voice, chat or touch against a plan that already exists (§7)
+- Web push, for one thing only: telling your partner a workout has started
 - MCP server for Claude and ChatGPT (read and write; see `mcpspec.md`)
-- Weekly backup job (§3)
+- Daily backup job (§3)
+
+### Deferred, designed in this file
+
+Weigh-ins and the 7-day trend (§6.2), adaptive expenditure (§6.3), propose-and-approve target changes (§6.4), and the Trends screen. Until they are built, targets change only by editing the database.
 
 ### Out of scope for v1
 
-Siri Shortcuts, Strava, Apple Health / step sync, meal-photo calorie estimation for plated food, micronutrients, barcode scanning, fasting-window tracking, push reminders to log, streaks or adherence scores, third users, a native app wrapper (§3, kept as the fallback for mic prompts).
+Runs (they will come from Strava later, §7.5), Siri Shortcuts, Apple Health / step sync, micronutrients, barcode scanning, fasting-window tracking, push reminders to log, streaks or adherence scores, third users, building a workout plan inside the app, a native app wrapper (§3, kept as the fallback for mic prompts).
 
 ---
 
@@ -98,14 +112,18 @@ Previews per branch go away. Local `dev` plus a tunnel (needed for the mic anywa
 
 ### Navigation
 
-- **Tab bar:** Today, Train, Trends.
-- **The macro bar** sits directly below the header on every screen (§8), with the quick-log mic at its end.
-- Opening the app lands on Today, ready to log. There is no mode toggle and no `tb_mode` cookie.
+- **There is no tab bar.** The app is one screen, Home (§8), and everything else is reached from it.
+- **The macro display** sits directly below the header on every screen (§8).
+- **Add food** and **Start workout** are the two buttons on Home. The fridge, the chat and the scanner open from Add food. Workout mode takes over the screen while a session is open.
+- **The header** carries the date (with a way back to past days), the fridge, and a small settings link: the Claude and ChatGPT connector, notifications, sign out.
+- The catalogue and the review queue are not destinations. The catalogue is what search looks through; review is a step inside scanning (§5.3).
+- Opening the app lands on Home, ready to log. There is no mode toggle and no `tb_mode` cookie.
 
 ### PWA
 
 - Its own manifest: the final name, `start_url` on Today, `display: standalone`, the theme color, maskable icons, and an Apple touch icon.
 - A service worker that caches only `/_next/static/*` plus an offline page, as in the photo app. It's on its own domain, so it can't collide with Bunnybear's.
+- **Web push, for the workout invitation only** (§7.4). `web-push` with VAPID keys and one subscription row per device, as the photo app does it (`ARCHITECTURE.md` §10). iOS allows push only for an installed PWA. It is best-effort: the Join button on Home never depends on it.
 - **Mic permission on iOS.** WebKit doesn't keep a home-screen app's mic grant across launches, and the recorder as built asks for the mic on every press, so iOS re-prompts often (hypernpc, whose recorder this one came from, shows the same thing). **Accepted for now.** In order, if it grates:
   1. Ask once per session: keep the stream, start a new `MediaRecorder` on it per press, stop the tracks only when the app is hidden. The cost is the mic indicator staying on while the app is open, and possibly lower-quality music while the mic is held, which matters on Train.
   2. Keyboard dictation into the typed quick-log field always works and never prompts.
@@ -157,6 +175,16 @@ This app uses the **phone's local calendar date**, not the photo app's Tokyo day
 ---
 
 ## 5. Food
+
+Three things, kept apart:
+
+| | What it is | Changes when |
+|---|---|---|
+| **Catalogue** (the "library" below) | Every food we've confirmed, with its nutrition per 100g | A food is scanned, named or typed in for the first time |
+| **Fridge** (§5.10) | What is in the house now, in grams | We shop, eat, or throw something out |
+| **Log** (§5.4) | What each of us ate, per day | Someone eats |
+
+A convenience-store snack with a label goes in the catalogue and the log, and never the fridge. A restaurant dish goes in the log only (§5.11). All weights are grams.
 
 ### 5.1 Library
 
@@ -210,6 +238,8 @@ Before creating a draft, check the library for a likely existing match (by name,
 
 ### 5.3 Bulk seeding and the review queue
 
+*(Revised: there is no Review tab. This flow is **Stock up**, opened from the fridge (§5.10): photograph the shopping, confirm each read, and say how many of each. The queue still exists for a batch, and for drafts started in a chat. Scanning one thing you are about to eat confirms in place, §5.6.)*
+
 The library is seeded up front by photographing everything in the kitchen in one sitting.
 
 - **Bulk upload:** select many photos at once. Each photo is one item by default; the uploader can group a second photo with the one before it (front + back). Each item becomes a draft, read in the background.
@@ -224,6 +254,9 @@ Each entry: user, food (nullable for one-off items), grams, **snapshot** of name
 
 - **Editable and deletable.** This breaks the photo app's write-once convention on purpose; logs need corrections (§11).
 - Edits change grams or `local_date`; macros recompute from the snapshot's per-100g values.
+- `source` gains `chat`, for the app's own chat (§10).
+- An entry for a food that is in the fridge takes its grams out of the fridge (§5.10). Editing or deleting the entry puts back the difference, because what is left is derived, not stored.
+- An entry for a dish eaten out has no food, a `place_dish_id`, and a low and a high value for each of kcal, protein, fat and carbs in place of a single snapshot (§5.11).
 
 ### 5.5 Quick log (voice first)
 
@@ -238,7 +271,7 @@ No Siri Shortcut.
 
 **Resolution pipeline**
 
-1. **Parse.** The model turns the sentence into items: food phrase, quantity, unit word ("1", "piece", "a handful", "200g"), and time phrase. It also flags "we" or "both of us" as a shared log.
+1. **Parse.** The model turns the sentence into items: food phrase, quantity, unit word ("1", "piece", "a handful", "200g"), and time phrase. It also works out who ate it: one of us, or both, and each person's amount when the sentence gives them ("I had two yogurts and Bunny had one", "125 of rice for me, 50 for her"). See §5.7.
 2. **Match deterministically first.** Look up each food phrase against names and aliases in both languages, ranked by how recently and often this person has logged it. Snacks repeat, so most lookups end here.
 3. **Model tie-break only when needed.** If several foods match, or none match exactly, send the phrase plus the top candidates (not the whole library) to the model to choose or say "no match".
 4. **Resolve the amount.** A count ("1", "3") uses the food's piece serving. Grams are used as stated. A vague amount ("a handful", "some") uses the food's default grams.
@@ -248,30 +281,35 @@ No Siri Shortcut.
 
 - **Auto-commit** when every item matches one confirmed food with a known amount. The entry is added immediately and an undo toast shows for about 8 seconds: "Added 1 shoyu senbei · 41 kcal. Undo."
 - **Confirm sheet** only when something is uncertain: no match, several close matches, a count with no piece serving, or a food still in draft. The sheet asks only about the uncertain item. "1 senbei" with no piece serving asks for the grams once, then saves them as a piece serving so it never asks again. Over MCP, the same cases come back as `needs_choice`.
-- **No match at all** creates a draft through §5.2 (a reference row or estimate by name, or a prompt for a label photo) and logs against it once confirmed. It never falls back to a guessed number.
+- **No match at all** creates a draft through §5.2 (a reference row or estimate by name, or a prompt for a label photo) and logs against it once confirmed. It never falls back to a guessed number. The one exception is a dish eaten out, which is asked for as such and logged as a range (§5.11).
 
 **The library learns.** Whenever a phrase is resolved through the model or the confirm sheet, that phrase is added to the food's aliases. The second time anyone says "the rice crackers," it's a deterministic match.
 
 **Voice corrections.** "Actually that was 2," "undo that," and "remove the last one" act on the most recent entry from that person in the last 10 minutes.
 
-### 5.6 Other ways to log
+### 5.6 Add food
 
-From the **+ Food** sheet, for when voice isn't convenient:
+**Add food** on Home opens one sheet with four ways in. All four end in the same log entries.
 
-1. **Recents** for this person (last 14 days), one tap to log with last grams.
-2. **Saved meals**: a named list of foods with grams ("usual lunch"). One tap logs all items.
-3. **Search** the confirmed library.
-4. **Add new food** (§5.2).
+1. **From the fridge** (what the sheet opens on). What's in the house, most recently eaten first, each with what's left ("Greek yogurt · 3 left · 300g"). Tap one, set the amount, log. Saved meals sit above the list; search below it looks through the whole catalogue, for food that isn't in the fridge.
+2. **Say it.** The quick-log mic (§5.5), as a large button in the sheet as well as beside the macro display.
+3. **Scan it.** For something with a label that isn't in the catalogue yet, such as a convenience-store snack. Photograph the back (and the front if it helps), see what was read, confirm, say how much, and it's logged. One flow, no trip to a queue. The food is in the catalogue from then on. It does not go in the fridge unless you say there is more of it at home.
+4. **Chat** (§10). Say what you ate in a sentence, or ask what you could eat: "what can I make from the fridge that fits what I have left today?"
+
+A fifth path, **Eating out**, is for food with no label and no weight (§5.11).
+
+Stocking the fridge after shopping is a different job from eating, and has its own entrance (§5.10).
 
 ### 5.7 Shared meals
 
-Most of our food is the same food.
+Most of our food is the same food, so **shared is the default** when eating from the fridge.
 
-- By voice, "we" or "both of us" makes a shared log ("we split a bag of senbei"), defaulting to 50/50 and auto-committing under the same rules as §5.5.
-- A **"Both of us"** toggle on the log sheet. When on, enter the total grams once; the sheet shows both people with their own grams, **defaulting to 50/50**, adjustable per side.
-- Logging creates two entries linked by `shared_meal_id`, one in each person's day, in one transaction.
+- **By touch:** the amount step shows both of us, each with our own amount. Enter the total and it splits evenly: 400g of shrimp is 200g each. Either side can be changed on its own, in grams or in pieces, so "two yogurts for me, one for Bunny" and "125g of rice for me, 50g for Bear" are each one adjustment. A **Just me** switch drops the partner's side.
+- **By voice or chat:** the words decide. "We", "both of us" or two named amounts make a shared log, split evenly unless amounts are given. "I had" or "just had" is the speaker's alone. **A sentence that names no one** ("400g of shrimp") is not guessed: it brings up a prompt with two buttons, **Split** and **Only me**, and is logged on the tap. Over MCP the same case comes back as a question for the assistant to ask.
+- Logging creates one entry in each person's day, linked by `shared_meal_id`, in one transaction. The fridge loses the total.
 - **Either of us can log a shared meal** into both days. The partner's half shows "added by Bear" (or Bunny).
-- Each person can edit or delete their own half. Editing one half doesn't change the other.
+- Each person can edit or delete their own half. Editing one half doesn't change the other; the fridge follows whichever half changed.
+- Scanned one-off snacks and dishes eaten out default to **just me**. Each can be switched to both.
 - Saved meals can be marked shared, so "usual dinner" logs to both in one tap.
 
 ### 5.8 Reference table
@@ -307,9 +345,53 @@ The official **日本食品標準成分表 (八訂)** from MEXT: about 2,500 gen
 - The server can't verify that a person saw the values in a chat. It relies on the tool description, and records `confirmed_via` on every food so a bad batch can be traced and fixed.
 - A draft started in one place can be confirmed in the other. A label read in Claude but not yet confirmed appears in the PWA's review queue (without a photo, since the chat kept it).
 
+### 5.10 The fridge
+
+A digital copy of the food in the house: the fridge, the freezer and the cupboards together. One for both of us.
+
+**What it holds.** For each catalogue food we have, the grams left, and the count where the food has a piece serving ("6 eggs · 330g"). A food with nothing left is not in the fridge. It stays in the catalogue.
+
+**Stocking (after shopping).** *Stock up*, opened from the fridge, is a separate action from eating.
+- Photograph everything, as in §5.3. A food already in the catalogue is recognised and only needs its amount; a new one is read and confirmed first.
+- The amount is the printed net weight times how many were bought. Meat and fish packs use the weight printed on the pack. Loose food is said or typed by weight or count ("6 eggs", "apples, 700 grams").
+- By voice or chat: "we bought two packs of chicken thighs and a dozen eggs."
+
+**Eating.** Logging a food that is in the fridge takes the logged grams out of it, whoever ate it and however it was logged (touch, voice, chat, Claude, ChatGPT). A shared meal takes the total. Eating a food that isn't in the fridge changes nothing there.
+
+**What gets stocked.** Only food whose numbers are solid: it has a nutrition label, or it is found easily in the MEXT table (swordfish sashimi, salmon, eggs, chicken thigh). Condiments, oils and anything that would need an estimate are logged when eaten and never stocked.
+
+**Weights are raw.** We weigh raw (§5.1), so the fridge counts raw grams, and cooking doesn't change them. Leftovers are not tracked as their own item; that can come later.
+
+**Keeping it honest.** It will drift: a forgotten log, food thrown out, something eaten by a guest. Every item has three corrections: **Finished** (set to zero), **Threw it out** (set to zero, recorded as waste, not eaten), and **Set amount**. Eating more than the fridge thinks is there empties the item and logs the full amount; the log is never blocked by the fridge.
+
+**Storage.**
+- `fridge_changes`: food, signed grams, kind (`stocked`, `set`, `finished`, `discarded`), who, when, client. A ledger, never edited.
+- What's left for a food = the sum of its changes, minus the grams of every log entry for that food made since it was first stocked, floored at zero. It is **derived on read** (§11), so editing or deleting an entry corrects the fridge with no extra write. `set` and `finished` are written as the difference from what was left at that moment.
+- Stocking and logging the same food at the same moment from two phones goes through `sql.begin` with a row lock on the food.
+
+**What it's for, beyond the list.** Chat can plan from it: "what could I eat for the rest of today?" gets an answer made only of food that is actually there, sized to the macros each of us has left (§10).
+
+### 5.11 Eating out
+
+For food with no label and no known weight: a restaurant, a café, someone else's cooking.
+
+- A record of the **place** (name, and the area or branch if it matters) and the **dish**. Places and dishes are remembered, so the second bowl of the same ramen is one tap and the same numbers.
+- **Where the numbers come from, in order:**
+  1. Published nutrition, if the place prints it (chains often do). Entered once, exact, no range.
+  2. A photo of the plate, read by the vision model, **as a last resort**. It returns a low and a high for kcal and for each macro, and what it took the dish to be.
+  3. A description in words ("katsu curry, large"), estimated the same way, with a wider range.
+- **An estimate is a range, and stays one.** The entry stores low and high. The log shows "650–900 kcal". The day's totals carry the range through: the macro display shows the midpoint with the spread beside it ("1,480 ±125"), and a day with no estimates shows a plain number. Macro composition is the weakest part of a photo estimate, so protein, fat and carbs from one are always shown as approximate.
+- The estimate is made once and saved on the dish. It is never silently re-estimated; either of us can correct the range by hand, and the correction applies to that dish from then on.
+- Never touches the fridge. Defaults to just me, switchable to both (§5.7).
+- A convenience-store item **with a label** is not eating out. It is scanned into the catalogue (§5.6).
+
+`places` (name, area), `place_dishes` (place, name, low and high per macro, source `published` | `photo` | `described` | `manual`, the model's description). Photos are read and discarded, like every other photo (§5.3).
+
 ---
 
 ## 6. Targets, weight, and expenditure
+
+*(Targets are static for now: the seeded rows in §13, with no flow in the app that changes them. §6.2 to §6.4 are deferred, not dropped; the design stands for when they are built.)*
 
 ### 6.1 Targets
 
@@ -370,60 +452,81 @@ The model decides what kind a set is; the database stores one of a fixed set:
 
 Every set also stores: exercise, session, set order, `source` (`touch`, `voice`, `mcp`), `client`, the **raw transcript** or input text, and `logged_at`. Sets are editable and deletable.
 
-### 7.4 Logger
+### 7.4 The session
 
-- **Train** opens today's planned session for the current user, or a blank session if none exists.
-- Blocks appear in plan order. Each exercise is **pre-filled** from the plan and the last logged result for that exercise.
-- **Touch:** one large button logs the pre-filled set. Steppers: ±2.5kg (the smallest DB jump), ±1 rep, RIR chips 0–4. Large targets, usable with chalk on the hands.
-- **Voice:** hold to talk, release to send. Groq Whisper transcribes; the model parses with the current session as context (so "40 for 8, two left" maps to the active exercise). The parsed set(s) appear for a one-tap confirm. One utterance can log several sets.
-- Show **time since the last logged set** (derived, no timer state).
-- At the end: session rating out of 10 and an optional note.
+We lift together, once a day at most, so a session belongs to both of us.
+
+**Starting and joining.**
+- **Start workout** is on Home for each of us until that person has trained today (a session with at least one set of theirs on today's date; derived, not stored). After that it is replaced by a quiet line, "Trained · Upper B". On a rest day the button simply sits there; nothing counts or nags.
+- When one of us starts, the other gets a push ("Bear started Upper B. Join?") and, for 30 seconds, a prominent prompt in the app if it's open. That window is a prompt, not a cutoff: for as long as the session is open, the partner's button reads **Join Bear's workout**.
+- Joining puts both of us in the same session. Each sees their own plan for the day and logs their own sets. Either can leave; the session closes when both have finished or left.
+- A session nobody joins is a solo session. Nothing else changes.
+
+**Logging sets.** Every set is matched to an exercise in a plan that exists beforehand (§7.1, §7.2), the same way a food phrase is matched to the catalogue.
+- **Voice:** hold to talk, release to send. Groq Whisper transcribes; the model parses with the speaker's plan and the session so far as context, so "40 for 8, two left" lands on the active exercise. One utterance can log several sets.
+- **Chat:** the same sentence typed, in the app or in Claude or ChatGPT, through the same server function.
+- **Touch:** each exercise is pre-filled from the plan and the last logged result. One large button logs the pre-filled set. Steppers: ±2.5kg (the smallest DB jump), ±1 rep, RIR chips 0–4. Large targets, usable with chalk on the hands.
+- A clear match is logged straight away with an undo. An exercise that isn't in today's plan, or a phrase that fits two, is asked about, never guessed.
+- Either of us can log a set for the other ("Bunny did 20 for 10"); it is tagged with who entered it, like a shared meal.
+- Show **time since the last logged set** (derived, no timer state), and what the partner last logged.
+- At the end: session rating out of 10 and an optional note, per person.
+
+**Storage.** `sessions` (date, started_by, started_at, ended_at) and `session_people` (session, user, plan, joined_at, finished_at, rating, note). Sets carry their user and session (§7.3). At most one open session at a time, enforced by a partial unique index.
 
 ### 7.5 Runs
 
-No Strava. A run is logged as an activity: kind `run`, duration, distance (optional), average HR (optional), notes, source, client. Screenshots are read and discarded, not stored.
-
-- **Voice:** "easy run, 25 minutes, about 4k."
-- **Screenshot:** upload a screenshot from any running app; vision extracts duration, distance, pace, and average HR into a draft. In a chat, the assistant reads it and calls `log_run` with the fields.
-- Runs are context only. They never change the calorie target.
+Not in v1. Runs will come from Strava later, as their own feature. Nothing here logs a run by voice or screenshot.
 
 ---
 
 ## 8. Screens
 
-### Macro bar (persistent)
+Minimal on purpose. One home screen, two buttons, and the numbers always in view.
 
-Under the header on every screen: kcal, protein, fat, carbs for the current user, each as consumed vs target with the number remaining. Plain and quiet. Going over a target is shown as a number, not a warning color.
+**Layout, settled from mockups on 2026-11-10 ("Home A"):** the top of the screen is for reading and the bottom edge is for acting. The macro display is one large "kcal left" number over a bar, with three smaller bars for protein, fat and carbs, filled in the person's own color. Docked at the bottom: a large **Add food**, a **Hold to talk** mic beside it, and a smaller **Start workout** above them. Corners are rounder and targets larger than the first build (about 10–12px radius, 48–64px tall buttons).
 
-The **quick-log mic** sits at the end of the bar (§5.5). It updates the bar in place when an entry auto-commits.
+### Macro display (persistent)
 
-### Today
+Under the header on every screen: kcal, protein, fat and carbs for the current user. It should be the best-looking thing in the app, and readable at a glance without reading digits.
 
-1. Proposal card, when one exists (§6.4)
-2. Today's food entries, newest first. With 10–20 small entries a day, runs of snacks collapse into one row per hour ("3 snacks · 140 kcal"), which expands on tap. Each entry is editable.
-3. **+ Food** button (§5.6). The quick-log mic lives in the macro bar, so it's on every screen.
-4. Weigh-in row: today's weight if logged, or a field to log it
-5. Partner's compact row: their macro bar for today, smaller, in their color
+- Each of the four shows **how far along it is** as a shape (a bar or ring that fills), with the amount left as the number that matters. Calories lead; the three macros are smaller beside it.
+- Going over a target is shown as a number and a filled shape, not a warning color. Quiet, as before.
+- When the day includes an estimate (§5.11), the number carries its spread ("1,480 ±125") and the shape shows the uncertain part more faintly.
+- The **quick-log mic** sits at its end (§5.5), so it is on every screen. The display updates in place when an entry is logged.
+- On a past day it shows that day's totals against the target that applied then.
 
-### Train
+### Home
 
-Today's session (§7.4). A link to the partner's session for the day.
+1. **Add food**, the main button (§5.6).
+2. **Start workout**, or **Join Bear's workout**, until you've trained today (§7.4). Then a quiet "Trained" line in its place.
+3. Today's entries, newest first. Runs of snacks in one hour collapse into one row ("3 snacks · 140 kcal") that expands on tap. Each entry is editable. A shared entry says so; an estimate shows its range.
+4. **Your partner's day**, in their color: their macro display, smaller, and whether they've trained. Tapping it opens their day, read-only.
 
-### Trends
+**Past days.** The date in the header steps back and forward, and opens a calendar. A past day shows the same list and can be corrected the same way: edit, delete, move an entry, or add something forgotten. Corrections to past days move the fridge like any other log.
 
-- Weight: 7-day trend line (respects `trend_only`), weekly change
-- Intake vs target, daily bars over the last 4 weeks
-- Expenditure estimates over time
-- Per-exercise progression: pick an exercise, see best set per session (load × reps) and volume
-- Runs list
+### Add food
 
-### Food library and review
+The sheet in §5.6: the fridge list, the mic, scan, chat, and eating out.
 
-Reached from the + Food sheet. Search, edit, the review queue (§5.3), and drafts started in a chat.
+### Fridge
 
-### Connect
+Reached from the header and from Add food. Everything in the house with what's left, searchable, grouped loosely (meat and fish, dairy and eggs, produce, dry goods, snacks). **Stock up** at the top (§5.10). Tapping an item: eat some, set the amount, finished, threw it out, or open the food's catalogue entry to fix its numbers.
 
-Each person's own connector URL for Claude and ChatGPT, with setup steps (as built, minus the Siri half).
+### Chat
+
+Opened from Add food, and in workout mode. A plain conversation with the app (§10): log food or sets, ask what's left today, ask what to cook from the fridge. What it logs appears on Home with the same undo as anything else.
+
+### Workout mode
+
+Takes over the screen while a session is open (§7.4): today's plan in block order, the active exercise large, the mic and chat for logging sets, and the partner's progress alongside. The macro display stays at the top; leaving workout mode returns to Home with the session still open.
+
+### Settings
+
+Small, behind the header: each person's connector links for Claude and ChatGPT with setup steps, notifications on this device, sign out.
+
+### Not screens any more
+
+The catalogue has no tab; it is searched from Add food and edited from a fridge item or a log entry. The review queue has no tab; it appears inside Stock up, and as a "3 waiting to confirm" line on the fridge when drafts exist (including ones started in a chat).
 
 ---
 
@@ -434,7 +537,9 @@ Each person's own connector URL for Claude and ChatGPT, with setup steps (as bui
 | Label, pack, and screenshot reading (PWA path) | **Claude or Gemini Flash, picked by comparison** | Accuracy matters most here |
 | Picking reference rows, tie-breaks | Claude, as built (`HEALTH_TEXT_MODEL`) | Few calls, and a wrong pick is a wrong number |
 | Transcription | Groq Whisper | Speed |
-| Parsing food lines, sets, run descriptions | Groq | Speed |
+| Parsing food lines and sets | Groq | Speed |
+| Estimating a dish eaten out from a photo or description (§5.11) | The vision model picked above | One call per new dish; returns a range, never a single number |
+| Chat inside the app (§10) | Claude, with the MCP tool set | It has to use tools well; cost is per message, so it is the paid path |
 
 - **Pick the vision model from real seeding data.** The first seeding batch is read by one Claude model and the current Gemini Flash side by side. `vision.ts` already reads every draft with each model in `HEALTH_VISION_COMPARE` and stores each reading in `food_readings`; it gains a switch on the model name so `gemini-*` goes to Gemini. `bun run vision:compare` scores each against what the reviewer confirmed (kcal, macros, net weight, piece count, name) and writes `docs/vision-comparison.md`, kept in the repo. Keep the winner; empty `HEALTH_VISION_COMPARE` to stop paying for the second read. Check current model IDs at build time.
 - **Gemini is called the way `habit-battle/hank-api` does it** (`services/gemini-function-calling.ts`): a plain `fetch` to `v1beta/models/<model>:generateContent?key=…` with `functionDeclarations`, reading `functionCall` from the response. For labels, the image goes in as base64 `inline_data`, and one forced function call (`submit_label`) whose parameters are the label-as-printed schema. That gives typed output, like the Claude path's schema.
@@ -452,6 +557,16 @@ Each person's own connector URL for Claude and ChatGPT, with setup steps (as bui
 
 Writes record the client that made them (`pwa`, `claude`, `chatgpt`).
 
+### Chat inside the app
+
+The same conversation can happen in two places: in Claude or ChatGPT through the connector, or in Tummy's own chat. Both go through the same tools and change the same state, so a thing said in either shows up in both.
+
+- The in-app chat is a model run by our server (Claude, through the API) and given **the same tool definitions the MCP server exposes**, built from one list in `lib/health/mcp.ts`. It calls the `lib/health` functions directly, not over HTTP. There is one set of tools and one set of rules (`get_guidelines`), not two.
+- It is identified by the session cookie, as the rest of the PWA is. Its writes are tagged `client: pwa`, `source: chat`.
+- **It costs API credits per message; the same sentence in Claude or ChatGPT is free.** So the in-app chat is the convenient path, and the connector stays the main one for long conversations such as planning a week or reviewing a plan.
+- It holds no facts (§1, idea 5). Each turn reads fresh from the server. The transcript is kept per person for the current day only, so a follow-up ("make that 2") has something to refer to.
+- What it can do in v1: log food and sets, undo, answer "what have I got left today", and plan from the fridge against each person's remaining macros. `mcpspec.md` lists the tools this adds.
+
 ---
 
 ## 11. Conventions
@@ -463,7 +578,8 @@ Writes record the client that made them (`pwa`, `claude`, `chatgpt`).
 - **Data is editable.** Food entries, sets, weigh-ins, and foods can be edited and deleted. Entries carry snapshots so editing a food doesn't change history.
 - **Time is the phone's local date**, not a fixed anchor timezone.
 - **Numbers and charts are core.** Keep the no-dependency habit if practical (hand-rolled SVG charts), but that's the implementing agent's call.
-- **External APIs:** Claude and Gemini for reading and picking, Groq for transcription and parsing. No Blob storage, no push.
+- **External APIs:** Claude and Gemini for reading, picking and the in-app chat, Groq for transcription and parsing. No Blob storage. Web push for one thing, the workout invitation (§3).
+- **Estimates exist, as ranges.** A dish eaten out is the only number in the app that a model produced without a label or a reference row behind it, and it is stored and shown as a range (§5.11).
 - **Self-hosted**, not serverless (§3).
 - **Some derived numbers are stored.** Expenditure estimates and target proposals are rows, because each one is a decision made at a point in time. Daily totals and trends are still derived on read.
 - **Domain logic lives in `lib/health/` service functions** that both the route handlers and the MCP tools call. The MCP is a first-class client, not an add-on.
@@ -472,27 +588,21 @@ Writes record the client that made them (`pwa`, `claude`, `chatgpt`).
 
 ## 12. Build order
 
-**Already built in Bunnybear:** the food library and label reading (old step 1), the reference table (1a), log entries, macro bar and targets (2), quick log (3), recents, saved meals and shared meals (4), and a Claude connector with `get_day`, `log_food`, `undo_last`, `search_foods` and `add_food` (4b). Nothing below rebuilds those.
+**Built and live** at tummy.habitnpc.com: the catalogue and label reading (Claude and Gemini), the reference table, the review queue, log entries, the macro bar and targets, quick log by voice and typing, recents, saved meals, shared meals, and the MCP server with its food tools, context, guidance, choices and edits. The repo, the Tokyo VPS, the deploy pipeline and backups are done.
 
-0. **Set up Tummy.** Wipe `thehonestfarmer/tummy` and start it from one fresh commit (a force-push to `main`, confirmed with Bear right before). Copy in the Health code and the ported patterns (§3). Fold migrations into a fresh `001` sequence. Seed both users. Health routes become the app root; tabs are Today, Train, Trends. New manifest and icons.
-1. **Apply the changes in this spec to the moved code:**
-   - remove the Siri Shortcut and Vercel Blob
-   - photos waiting for review live on a volume, deleted on confirm or discard (§5.3)
-   - the Gemini path in `vision.ts`, ready for the comparison (§9)
-   - `client` and `confirmed_via` on foods, entries, and sets
-   - the label-as-printed contract and the MCP food tools from `mcpspec.md` §11 step 2, including chat confirmation
-2. **Deploy.** The Tokyo VPS, Docker, Postgres, Caddy, the GitHub Action, R2, migrations and seeding through an SSH tunnel, cron (backup, restore check, photo prune), the domain. Smoke-test the routes and a backup restore, then reconnect each person's Claude connector to the new URL. (`deploy/README.md` is the runbook.)
-3. **Seed the library and run the vision comparison.** Bulk-upload the kitchen; review in the PWA; also try seeding from Claude to test chat confirmation. Pick the vision model from the results. **This is the first real test.**
-4. **Remove Health mode from Bunnybear** (§3).
-5. Remaining MCP tools through `mcpspec.md` §11 step 5 (context, guidance, `needs_choice`, edits, duplicate protection)
-6. Weigh-ins and the 7-day trend, `trend_only` setting
-7. Training logger: plans, exercises, touch logging
-8. Voice set logging
-9. Runs: voice and screenshot
-10. Adaptive expenditure and proposals
-11. Trends screen
+**Still open from the first plan:** the kitchen seeding and the vision-model comparison (now done through Stock up, step 2), and removing Health mode from Bunnybear.
 
-**Ship point:** after step 3, food tracking is complete and usable on its own. Steps 5–11 are additive.
+**From here, in order:**
+
+1. **Home, the macro display, past days.** Remove the tab bar; Home with Add food and the entry list; the redesigned macro display; date navigation and correcting past days; the partner's day; settings behind the header. Interface only, no new tables. Start workout appears with step 6.
+2. **The fridge.** `fridge_changes`, what's-left derivation, Stock up (reusing bulk add and review), eating reduces stock, the fridge screen and its corrections, the fridge as the Add food list. Fridge tools in the MCP.
+3. **Scan and eat in one flow; shared by default.** Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
+4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
+5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
+6. **Training.** Web push; plans and exercises pushed from Claude; the shared session with start and join; set logging by touch, then voice and chat; workout mode.
+7. **Later:** weigh-ins and the trend, adaptive expenditure and proposals (§6), Trends, runs from Strava.
+
+**Ship points:** each of steps 1 to 5 is usable on its own. Step 1 changes how the app feels without changing what it stores.
 
 ---
 
@@ -517,10 +627,11 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 
 ## 14. Open questions
 
-1. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
-2. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data. If it's slow, the parse step for simple sentences may need a smaller model.
-3. **Mic prompts on iOS.** Accepted for now. Measure how often it asks in the first week; the options are in §3.
-4. **Charts.** Hand-rolled SVG or a small library.
+1. **How wide a photo estimate's range is in practice**, and whether a day with two estimates is still useful against a target. Measure on real meals.
+2. **In-app chat cost.** Which Claude model, and whether the day-long transcript needs trimming. Measure a normal day's messages.
+3. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
+4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data.
+5. **Mic prompts on iOS.** Accepted for now; the options are in §3.
 
 ---
 
@@ -552,10 +663,10 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | App vs assistant | The app owns every fact and number; assistants hold no data |
 | Weight basis | Raw by default |
 | Carbs | Total carbohydrate |
-| Shared meal default split | 50/50, adjustable |
+| Shared meals | The default when eating from the fridge. Even split, each person's amount adjustable in grams or pieces. One-off snacks and eating out default to just me. |
 | Who logs shared meals | Either person, into both days |
-| Partner visibility | Food, training, runs, targets visible; weight respects `trend_only` |
-| Target changes | Propose and approve, every 14 days; energy balance is signed |
+| Partner visibility | Each sees the other's day: food, targets, whether they've trained. Nothing beyond seeing: no streaks, scores or nudges. |
+| Targets | Static for now (§13). Propose-and-approve from the weight trend is designed (§6) and deferred. |
 | Calories and training | Training never changes the day's target |
 | Logging frequency | 10–20 logs per person per day; snacks included |
 | Quick log | One utterance; auto-commit with undo on a clear match, confirm only the uncertain item |
@@ -563,7 +674,25 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Voice | Push-to-talk, Groq Whisper. iOS mic re-prompts accepted for now. |
 | Transcription and parsing | Groq |
 | DB and KB loads | Stored per hand, flagged |
-| Strava | Cut. Runs via voice or screenshot. |
+| Runs | Not in v1. From Strava later. |
 | Steps / Apple Health | Out of v1 |
-| Weigh-ins | Manual |
+| Weigh-ins | Manual; deferred with the rest of §6 |
 | Security | Lax; two private users |
+| Home | One screen, two buttons: Add food, and Start workout until you've trained today. No tab bar. |
+| Macro display | Always visible; progress as a shape, the amount left as the number |
+| Units | Grams everywhere |
+| Catalogue vs fridge vs log | Three separate things: known foods, what's in the house, what was eaten |
+| Fridge | One, shared. Stocked after shopping, reduced by eating. What's left is derived from a ledger and the log. Never blocks a log. |
+| Scanning vs eating | Different actions. Stock up fills the fridge; scan-and-eat logs one thing and adds it to the catalogue. |
+| Food not in the fridge | With a label (convenience store): scan into the catalogue and log. Without one (restaurant): a place and dish record. |
+| Eating out | Counts toward totals, as a low–high range that stays visible. A photo estimate is the last resort. Saved per dish and reused. |
+| Ways to add food | From the fridge, by voice, by scanning, by chat |
+| Chat | In the app and in Claude or ChatGPT, through one tool list and the same state. In-app costs API credits; the connector is free. |
+| Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. |
+| Set logging | Voice, chat or touch, matched to an exercise in a plan that exists beforehand |
+| Push | Web push, for the workout invitation only |
+| Past days | Viewable and correctable |
+| Voice log that names no one | Asks: Split, or Only me. Never guessed. |
+| What the fridge stocks | Only food with a label or an easy MEXT row. No condiments, no estimates. |
+| Leftovers | Not tracked as items; later |
+| In-app chat transcript | Kept for the current day only |

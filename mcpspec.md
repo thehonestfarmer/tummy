@@ -4,6 +4,13 @@
 
 The MCP server for Tummy, a standalone PWA separate from the Bunnybear photo app. Read this alongside `healthspec.md` (the product) and `ARCHITECTURE.md` (the photo app, whose patterns this app copies). Where this file and `healthspec.md` disagree about the MCP, this file wins.
 
+**Pending, from the 2026-11-10 revision of `healthspec.md`.** The product gained a fridge, eating out, an in-app chat and shared workout sessions. The tools below are not specified in this file yet; until they are, `healthspec.md` is the guide for them.
+
+- **Fridge** (`healthspec.md` §5.10): read what's in the house with what's left; stock it ("we bought two packs of chicken thighs"); correct an item (set amount, finished, threw out). `log_food` takes from the fridge on its own, and accepts each person's amount for a shared log. `get_context` should include the fridge, so "what can I eat for the rest of today?" is answered from food that is really there.
+- **Eating out** (§5.11): a tool that logs a dish at a place. **This is the one exception to principles 6 and 7 below:** it may carry an estimate, only as a low–high range, only for a dish with no label, and the result is marked as an estimate wherever it is read back.
+- **Workouts** (§7.4): start a session, join the open one, log sets as words against the caller's plan, finish.
+- **The in-app chat** (§10) is given this server's tool definitions from the same list, and calls the same functions. A tool added here is added there.
+
 A first version was built inside Bunnybear (`src/lib/health/mcp.ts`, `/api/mcp/[token]`) with `get_day`, `log_food`, `undo_last`, `search_foods`, and `add_food`. It moves into Tummy with the rest of the Health code and is extended to this spec.
 
 ---
