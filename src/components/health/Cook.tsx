@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DishView } from "@/lib/health/cook";
 import type { FoodView, LibraryView } from "@/lib/health/foods";
 import type { FridgeView } from "@/lib/health/fridge";
 import { fold } from "@/lib/health/fold";
+import { uploadFoodImage } from "@/lib/health/upload";
+import { prepare } from "@/lib/resize";
 import { useHealthDay } from "./HealthDay";
+import { ScanStep } from "./ScanStep";
+import { Sheet } from "./Sheet";
 import { fmt } from "./fields";
 
 /** One ingredient: a food, and how much of it in one of its servings or in grams. */
@@ -29,8 +33,10 @@ const field =
  * eaten, and split, like any other food.
  *
  * Two steps, so the list of ingredients has the whole screen: what went in,
- * then what came out. Kept for the life of the tab, since adding a missing
- * ingredient means leaving for Stock up and coming back.
+ * then what came out. An ingredient that isn't one of our foods yet is added
+ * without leaving: photograph its label, or look it up by name, confirm what
+ * was read, and it is in the pot. The pot is kept for the life of the tab,
+ * since taking a photo can reload the page on a phone short of memory.
  */
 export function Cook() {
   const router = useRouter();
@@ -46,6 +52,9 @@ export function Cook() {
   const [cooked, setCooked] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  /** A new ingredient being read: `draftId` is null until the photo has landed; `named` when it was asked for in words. */
+  const [scan, setScan] = useState<{ draftId: number | null; named?: string } | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -111,6 +120,46 @@ export function Cook() {
     setLines((ls) => (ls.some((l) => l.foodId === foodId) ? ls : [...ls, { foodId, unit: null, count: null }]));
     setQuery("");
   };
+  const draft = async (body: { images: string[] } | { name: string }) => {
+    const res = await fetch("/api/foods", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((json as { error?: string }).error ?? "That didn't work");
+    return (json as { id: number }).id;
+  };
+  /** The photo goes up and becomes a draft, read in the background; ScanStep waits for it. */
+  async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    e.target.value = "";
+    if (!raw) return;
+    setError(null);
+    setScan({ draftId: null });
+    try {
+      const draftId = await draft({ images: [await uploadFoodImage(await prepare(raw))] });
+      setScan({ draftId });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't send that photo");
+      setScan(null);
+    }
+  }
+  /** No label to photograph: the food table, or failing that an estimate, read the same way. */
+  async function lookUp(named: string) {
+    setError(null);
+    setScan({ draftId: null, named });
+    try {
+      const draftId = await draft({ name: named });
+      setScan({ draftId, named });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't look that up");
+      setScan(null);
+    }
+  }
+  /** A retake replaces the photo: the draft it made would otherwise sit in Review for nobody. */
+  function retake(draftId: number | null) {
+    // First, and synchronously: a phone only opens the camera from inside the tap itself.
+    camera.current?.click();
+    if (draftId === null) return;
+    void fetch("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "discard", id: draftId }) }).catch(() => {});
+  }
   const again = (dish: DishView) => {
     setLines(dish.items.filter((i) => foods?.has(i.foodId)).map((i) => ({ foodId: i.foodId, unit: foods!.get(i.foodId)!.servings.length, count: String(i.grams) })));
     setName(dish.name);
@@ -356,15 +405,22 @@ export function Cook() {
                 </button>
               </li>
             ))}
-            {!found.length ? (
-              <li className="py-2.5 text-[0.95rem] leading-relaxed text-ink-dim">
-                Nothing called that in your foods.{" "}
-                <Link href="/add" className="text-ink underline decoration-hairline-strong underline-offset-4">
-                  Add it in Stock up
-                </Link>
-                ; this pot will be here when you come back.
-              </li>
-            ) : null}
+            {!found.length ? <li className="pt-2 text-[0.9rem] text-ink-dim">Nothing called that in your foods yet.</li> : null}
+            <li className="flex gap-2 pt-2">
+              <button
+                onClick={() => camera.current?.click()}
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-hairline-strong bg-ground-raised text-[0.95rem] text-ink"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+                  <circle cx="12" cy="13" r="3.5" />
+                </svg>
+                Photograph label
+              </button>
+              <button onClick={() => lookUp(query.trim())} className="h-11 flex-1 rounded-xl border border-hairline-strong text-[0.95rem] text-ink">
+                Look it up by name
+              </button>
+            </li>
           </ul>
         ) : null}
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Oil, sauce, anything else: type its name" className={field} />
@@ -377,6 +433,24 @@ export function Cook() {
         </button>
         {error ? <p className="pt-2 text-[0.85rem] text-ink-dim">{error}</p> : null}
       </div>
+
+      <input ref={camera} type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
+      {scan ? (
+        <Sheet onClose={() => setScan(null)}>
+          <ScanStep
+            key={scan.draftId ?? "sending"}
+            draftId={scan.draftId}
+            named={scan.named}
+            onRetake={() => retake(scan.draftId)}
+            onClose={() => setScan(null)}
+            onFood={(food) => {
+              setFoods((have) => new Map(have).set(food.id, food));
+              add(food.id);
+              setScan(null);
+            }}
+          />
+        </Sheet>
+      ) : null}
     </div>
   );
 }

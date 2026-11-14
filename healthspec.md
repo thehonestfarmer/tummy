@@ -400,7 +400,8 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 - **The fridge.** Each ingredient that was in the fridge leaves it through a `cooked` change, which takes grams away and stops at zero, as eating does, without anyone having eaten it. The dish is `stocked` with its whole weight.
 - **Cooking it again.** A dish cooked before is offered at the top of Cook and fills in its last ingredients. Under the same name it is the same food: it takes the new batch's numbers and the new portions join what was left. Entries already logged keep their own numbers (§5.4).
 - **Storage.** `cooks` (dish food, portions, cooked grams, who, when) and `cook_items` (food, grams) record every batch.
-- **Not yet:** adding a missing ingredient without leaving for Stock up (the pot is kept while you do), cooking by voice or chat, and undoing a cook.
+- **A missing ingredient** is added without leaving: typing a name that isn't found offers *Photograph label* and *Look it up by name*. Either opens the same read-and-confirm step as Add food (§5.6), and a yes puts the new food in the pot.
+- **Not yet:** cooking by voice or chat, and undoing a cook.
 
 ---
 

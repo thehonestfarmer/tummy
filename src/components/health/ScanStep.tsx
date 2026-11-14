@@ -30,11 +30,14 @@ const POLL_MS = 1500;
  */
 export function ScanStep({
   draftId,
+  named,
   onFood,
   onRetake,
   onClose,
 }: {
   draftId: number | null;
+  /** Set when the food was asked for in words, so there is no photo to wait on. */
+  named?: string;
   onFood: (food: FoodView) => void;
   onRetake: () => void;
   onClose: () => void;
@@ -90,7 +93,7 @@ export function ScanStep({
   if (draftId === null || !draft || draft.state === "reading") {
     return (
       <div className="py-2">
-        <p className="text-[1.05rem]">{draftId === null ? "Sending the photo…" : "Reading the label…"}</p>
+        <p className="text-[1.05rem]">{named ? `Looking up ${named}…` : draftId === null ? "Sending the photo…" : "Reading the label…"}</p>
         <p className="pt-1 text-[0.9rem] text-ink-dim">A few seconds. You&rsquo;ll see what was read before it counts.</p>
       </div>
     );
