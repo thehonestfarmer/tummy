@@ -465,14 +465,14 @@ The model decides what kind a set is; the database stores one of a fixed set:
 
 | Kind | Fields |
 |---|---|
-| `load_reps` | load_kg, `per_hand` flag, reps, rir |
+| `load_reps` | load_kg, `per_hand` flag, reps, rir (optional) |
 | `time` | seconds (dead hang, plank, side plank) |
 | `distance` | meters, optional load_kg (carries) |
 | `rounds` | rounds completed, rating out of 10 (EMOMs, bag rounds, myo-rep clusters if needed) |
 
 **Dumbbell and kettlebell loads are stored per hand**, with `per_hand = true`. Barbell and machine loads are total.
 
-Every set also stores: user, exercise, session, set order, `source` (`touch`, `voice`, `mcp`), `client`, the **raw transcript** or input text, and `logged_at`. Sets are editable and deletable.
+Every set also stores: user, exercise, session, set order, a `warmup` flag, `source` (`touch`, `voice`, `mcp`), `client`, the **raw transcript** or input text, and `logged_at`. Sets are editable and deletable.
 
 ### 7.4 The session
 
@@ -490,7 +490,9 @@ One more tap starts it. On a rest day the button simply sits there; nothing coun
 **3. Workout mode.** The session takes over the screen (§8).
 - The day's exercises in block order, each with sets done out of sets planned. The first unfinished one is the **active exercise**; tapping any other makes it active, so the order is a suggestion.
 - The active exercise is large: its prescription as Claude wrote it, **today's suggestion** (§7.5), and what happened last time ("last: 20 × 12, 12, 11").
-- One large button logs the suggested set as it stands. Steppers change it first: load by the exercise's step, ±1 rep, RIR chips 0–4. Large targets, usable with chalk on the hands. After the first set of an exercise, the next is pre-filled from the set just logged.
+- One large button logs the suggested set as it stands. Steppers change it first: load by the exercise's step, and ±1 rep. Large targets, usable with chalk on the hands. After the first set of an exercise, the next is pre-filled from the set just logged.
+- **Reps in reserve** are asked for after the set, not before: once it is logged, chips 0–4 sit under it until the next set starts. Tapping one records it; ignoring them records nothing. RIR is a data point for us and for Claude. It decides nothing in the app.
+- **Warm-up sets are logged.** A **Warm-up** toggle beside the log button marks the set; by voice, "warm-up, 20 for 10". They show in the session and in history, smaller, and count toward neither the planned sets nor progression (§7.5).
 - In a superset the active exercise alternates between the block's exercises after each set.
 - **Time since the last logged set** is shown (derived, no timer state). There is no rest countdown.
 - Only your own workout is on your screen. Nothing shows what your partner is doing, and nobody logs a set for someone else. *(This drops "the partner's progress alongside" and logging for each other from the 2026-11-10 draft.)*
@@ -517,8 +519,12 @@ One more tap starts it. On a rest day the button simply sits there; nothing coun
 The app suggests the load; the person decides. The rule is double progression, per person and per exercise, **derived on read** from the sets (§11). Nothing stores a "current weight".
 
 - **No history:** the plan's start load, at the bottom of the rep range.
-- **Otherwise:** the load of the last session that included this exercise. If every planned set in that session reached the top of the rep range, the suggestion is that load **plus one step**, at the bottom of the range, and the screen says so: "22.5 kg, up from 20".
-- **The step** is per exercise, set by the plan. Default 2.5 kg: per hand for dumbbells and kettlebells, total for a bar or machine.
+- **Otherwise:** the load of the last session that included this exercise. Warm-up sets are left out throughout. If every planned set in that session reached the top of the rep range, whatever was left in reserve, the suggestion is that load **plus one step**, at the bottom of the range, and the screen says so: "22.5 kg, up from 20".
+- **The step** is per exercise, set by the plan, and comes from what the gym can load (settled 2026-11-15):
+  - **Barbell:** plates of 1.25, 2.5, 5, 10, 15, 20 and 25 kg, so the smallest jump is **2.5 kg** total (1.25 a side).
+  - **Weighted calisthenics** (belt or vest, same plates): **1.25 kg**. The load is the weight added; bodyweight is not part of it, and 0 is a valid load.
+  - **Dumbbells** are plate-loaded: 6 × 5 kg, 4 × 2.5 kg and 4 × 1.25 kg in all. As a pair, each side of each handle takes at most one plate of each size, so the step is **2.5 kg per hand** and the most a pair can hold is the handle plus 17.5 kg per hand. A single dumbbell can take all of it.
+  - A suggestion never goes past what can be loaded. At the ceiling it says so and suggests the same load for more reps.
 - It never suggests going down. A bad day is logged as it happened and the same load is suggested again.
 - Whatever is logged is what counts. Overriding the suggestion needs no explanation, and tomorrow's suggestion follows from what was actually lifted.
 - `time`, `distance` and `rounds` sets get no suggestion, only last time's result.
@@ -685,9 +691,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 3. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
 4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data.
 5. **Mic prompts on iOS.** Accepted for now; the options are in §3.
-6. **Warm-up sets.** Whether they are logged at all, and if so marked so progression ignores them. Until decided, only working sets are logged.
-7. **Whether RIR gates progression.** As written, reaching the top of the range on every set is enough, whatever was left in reserve.
-8. **Load steps by equipment.** 2.5 kg everywhere is a default, not a fact about the gym: the smallest dumbbell jump, plate pair and machine pin all differ.
+6. **Handle and bar weights.** What an empty dumbbell handle and the bar weigh, which fixes the dumbbell ceiling and whether logged loads include them.
 
 ---
 
@@ -746,7 +750,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Chat | In the app and in Claude or ChatGPT, through one tool list and the same state. In-app costs API credits; the connector is free. |
 | Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. Each phone shows only its owner's workout. |
 | Plans | Reusable routines in a rotation, pushed from Claude; a dated plan overrides the rotation for one day. A session can also start with no plan, and any session can take extra exercises. |
-| Progression | The app suggests the load by double progression, derived from logged sets; it never suggests going down. Deloads come from Claude. |
+| Progression | The app suggests the load by double progression, derived from logged sets; it never suggests going down. Deloads come from Claude. Warm-up sets are logged but don't count. RIR is optional, recorded after the set, and gates nothing. Steps: 2.5 kg barbell, 1.25 kg weighted calisthenics, 2.5 kg per hand dumbbells. |
 | Set logging | Voice, chat or touch, matched to an exercise in a plan that exists beforehand |
 | Push | Web push, for the workout invitation only |
 | Past days | Viewable and correctable |
