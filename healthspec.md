@@ -487,6 +487,8 @@ Minimal on purpose. One home screen, two buttons, and the numbers always in view
 
 **Layout, settled from mockups on 2026-11-10 ("Home A"):** the top of the screen is for reading and the bottom edge is for acting. The macro display is one large "kcal left" number over a bar, with three smaller bars for protein, fat and carbs, filled in the person's own color. Docked at the bottom: a large **Add food**, a **Hold to talk** mic beside it, and a smaller **Start workout** above them. Corners are rounder and targets larger than the first build (about 10–12px radius, 48–64px tall buttons).
 
+**The week (settled 2026-11-14).** Above the macro display, one row of the calendar week, Monday to Sunday: each day a small bar of calories against that day's target, a pale cap when over, and a dot in your partner's color when they logged anything. Tap a day to see it. Under the row, the week's deficit: target minus eaten, summed over finished days that have something logged. Today is left out until it is over, and a day with nothing logged is a gap in the record rather than a fast. The deficit is against the target, since the app holds no maintenance figure.
+
 ### Macro display (persistent)
 
 Under the header on every screen: kcal, protein, fat and carbs for the current user. It should be the best-looking thing in the app, and readable at a glance without reading digits.
