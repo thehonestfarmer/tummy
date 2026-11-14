@@ -28,8 +28,11 @@ export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridg
     <div className="px-5 pt-3 pb-6">
       <header className="flex items-baseline">
         <h1 className="text-[1.15rem] leading-none">Fridge</h1>
-        <Link href="/add" className="ml-auto text-[0.9rem] text-ink-dim">
-          Add many foods
+        <Link
+          href="/add"
+          className="ml-auto flex h-10 items-center rounded-full border border-hairline-strong bg-ground-raised px-4 text-[0.95rem] text-ink"
+        >
+          Stock up
         </Link>
       </header>
       {items.length ? (
@@ -48,7 +51,7 @@ export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridg
         </ul>
       ) : (
         <p className="pt-3 text-[0.95rem] leading-relaxed text-ink-dim">
-          Nothing in the fridge yet. From Add food, pick or photograph something and choose Add to fridge.
+          Nothing in the fridge yet. Stock up after a shop, or from Add food pick something and choose Add to fridge.
         </p>
       )}
 

@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
-import { getLibrary } from "@/lib/health/foods";
-import { BulkAdd } from "@/components/health/BulkAdd";
+import { StockUp } from "@/components/health/StockUp";
 
 export const dynamic = "force-dynamic";
 
-export default async function AddFoodsPage() {
+/** Stock up (healthspec.md §5.10): a whole shop into the fridge. */
+export default async function StockUpPage() {
   if (!(await getUser())) redirect("/");
-  const { drafts } = await getLibrary();
-  return <BulkAdd waiting={drafts} />;
+  return <StockUp />;
 }
