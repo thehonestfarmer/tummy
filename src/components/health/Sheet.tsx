@@ -19,7 +19,16 @@ const CLOSE_MS = 220;
  * to animate. So on the way out the sheet leaves a lifeless copy of itself
  * behind to slide away, and every close looks the same whoever asked for it.
  */
-export function Sheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+export function Sheet({
+  onClose,
+  tall,
+  children,
+}: {
+  onClose: () => void;
+  /** Full height from the start, for a sheet whose contents load or change: it rises once and never resizes. */
+  tall?: boolean;
+  children: React.ReactNode;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; at: number } | null>(null);
@@ -58,7 +67,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
     <div ref={root} className="sheet-scrim fixed inset-0 z-50 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
         ref={panel}
-        className="sheet-panel mx-auto flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-t-[18px] border-t border-hairline-strong bg-ground px-4"
+        className={`sheet-panel mx-auto flex w-full ${tall ? "h-[88dvh]" : "max-h-[88dvh]"} max-w-2xl flex-col rounded-t-[18px] border-t border-hairline-strong bg-ground px-4`}
         style={{ paddingBottom: "calc(var(--safe-bottom) + 1rem)" }}
         onClick={(e) => e.stopPropagation()}
       >

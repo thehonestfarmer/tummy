@@ -12,14 +12,13 @@ import { AmountStep } from "./AmountStep";
 import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
-import { NumberField, TextField, fmt } from "./fields";
+import { fmt } from "./fields";
 
 const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
 
 type Step =
   | { kind: "search" }
   | { kind: "amount"; food: FoodView }
-  | { kind: "manual" }
   | { kind: "asked"; name: string }
   /** A label has been photographed; `draftId` is null until the photo has landed. */
   | { kind: "scan"; draftId: number | null };
@@ -31,7 +30,8 @@ const button =
  * The + Food sheet (§5.6): find a food in the library and say how much.
  * When it isn't there: photograph its label, which opens the camera straight
  * away and comes back here to be confirmed and logged; ask for it by name,
- * which goes through the food table and the review queue; or type its numbers.
+ * which goes through the food table and the review queue. There is no typing
+ * numbers in here: a label is photographed, and a misread is fixed in Review.
  */
 export function FoodSheet({ onClose }: { onClose: () => void }) {
   const { day, setDay, toast, date } = useHealthDay();
@@ -178,12 +178,11 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Sheet onClose={onClose}>
+    <Sheet onClose={onClose} tall>
       <input ref={camera} type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
       {step.kind === "search" ? (
         <>
           <input
-            autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What did you eat?"
@@ -269,20 +268,16 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 Add &ldquo;{query.trim()}&rdquo; by name
               </button>
             ) : null}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setStep({ kind: "manual" })}
-                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
-              >
-                Type the numbers
-              </button>
-              <button
-                onClick={() => camera.current?.click()}
-                className="flex-1 rounded-[10px] border border-hairline py-2.5 text-[0.9rem] text-ink-dim"
-              >
-                Photograph a label
-              </button>
-            </div>
+            <button
+              onClick={() => camera.current?.click()}
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-hairline-strong bg-ground-raised text-[1rem] text-ink"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              Photograph a label
+            </button>
           </div>
         </>
       ) : step.kind === "amount" ? (
@@ -306,15 +301,6 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             setStep({ kind: "amount", food });
           }}
         />
-      ) : step.kind === "manual" ? (
-        <ManualStep
-          initialName={query.trim()}
-          onBack={() => setStep({ kind: "search" })}
-          onCreated={(food) => {
-            setLibrary((l) => (l ? [food, ...l] : [food]));
-            setStep({ kind: "amount", food });
-          }}
-        />
       ) : (
         <div>
           <p className="text-[1.05rem] leading-snug">Looking up &ldquo;{step.name}&rdquo;.</p>
@@ -334,66 +320,5 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       )}
       {error ? <p className="pt-3 text-center text-[0.9rem] text-ink-dim">{error}</p> : null}
     </Sheet>
-  );
-}
-
-/** Typed-in per-100g numbers (§5.2, item 4). The typist is the check, so it's confirmed straight away. */
-function ManualStep({
-  initialName,
-  onBack,
-  onCreated,
-}: {
-  initialName: string;
-  onBack: () => void;
-  onCreated: (food: FoodView) => void;
-}) {
-  const [name, setName] = useState(initialName);
-  const [kcal, setKcal] = useState<number | null>(null);
-  const [protein, setProtein] = useState<number | null>(null);
-  const [fat, setFat] = useState<number | null>(null);
-  const [carbs, setCarbs] = useState<number | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const ready = name.trim() && kcal !== null && protein !== null && fat !== null && carbs !== null;
-
-  async function save() {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/foods/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, kcal, protein_g: protein, fat_g: fat, carbs_g: carbs }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Couldn't save");
-      const food = await fetch(`/api/foods/${json.id}`).then((r) => r.json());
-      onCreated(food as FoodView);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't save");
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div>
-      <button onClick={onBack} className="text-[0.9rem] text-ink-dim">
-        ← Back
-      </button>
-      <div className="grid gap-3 pt-3">
-        <TextField label="Name" value={name} onChange={setName} />
-        <p className="text-[0.9rem] text-ink-dim">Per 100g</p>
-        <div className="grid grid-cols-4 gap-2">
-          <NumberField label="kcal" value={kcal} onChange={setKcal} />
-          <NumberField label="Protein" value={protein} onChange={setProtein} />
-          <NumberField label="Fat" value={fat} onChange={setFat} />
-          <NumberField label="Carbs" value={carbs} onChange={setCarbs} />
-        </div>
-      </div>
-      <button onClick={save} disabled={busy || !ready} className={`${button} mt-4`}>
-        {busy ? "…" : "Add to the library"}
-      </button>
-      {error ? <p className="pt-3 text-center text-[0.9rem] text-ink-dim">{error}</p> : null}
-    </div>
   );
 }
