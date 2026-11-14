@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
    */
   allowedDevOrigins: ["192.168.1.*", "192.168.0.*", "10.0.0.*", "*.local"],
 
+  // The dev bubble sits on top of the dock's Add food button. Errors still show without it.
+  devIndicators: false,
+
   // Without this Turbopack walks up to the home directory looking for a lockfile.
   turbopack: { root: projectRoot },
 };
