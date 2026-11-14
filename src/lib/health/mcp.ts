@@ -18,6 +18,7 @@ import {
   updateEntry,
   type HealthDayView,
 } from "./entries";
+import { changeFridge, getFridge } from "./fridge";
 import { createNamedDraft, FoodPatchSchema, getFood, getLibrary, readDraft, searchFoods, updateFood } from "./foods";
 import { getGuidelines, SectionSchema, updateGuideline } from "./guidance";
 import { once } from "./once";
@@ -125,6 +126,18 @@ async function withSources<T extends { food_id: number | null }>(rows: T[]) {
   return rows.map((r) => ({ ...r, numbers_from: SOURCE_WORDS[by.get(r.food_id ?? -1) ?? ""] ?? "unknown" }));
 }
 
+/** The fridge as an assistant should read it: what is in the house, and how much of each is left. */
+async function fridgeOut() {
+  const { items } = await getFridge();
+  return items.map((i) => ({
+    food_id: i.food.id,
+    name: i.food.name,
+    grams_left: i.left,
+    ...(i.count ? { count_left: `${i.count.n} ${i.count.label}` } : {}),
+    per_100g: i.food.per100,
+  }));
+}
+
 async function zoneFor(user: User): Promise<string> {
   return (await lastZoneOf(user.id)) ?? ANCHOR_TZ;
 }
@@ -142,6 +155,8 @@ function questionFor(p: PendingItem): string {
       return `"${p.phrase}" could be more than one food. Ask which, and answer with its food_id.`;
     case "needs_grams":
       return `How much does one ${p.phrase} weigh? Answer with grams_per_piece, which is remembered for next time, or grams for this once.`;
+    case "who":
+      return `Who ate the ${p.candidates[0]?.name ?? p.phrase}? The sentence didn't say. Ask, then answer with who: "me", "both" (split evenly) or "partner".`;
     case "draft":
       return `"${p.candidates[0]?.name ?? p.phrase}" is still a draft. Show its values (search_foods with include_drafts), confirm_food it on yes, then answer with its food_id.`;
   }
@@ -198,24 +213,26 @@ export function mcpHandlerFor(user: User, client: Client) {
           title: "Today, in one call",
           description:
             "Call this first for any question about today. The caller's totals, target and what remains, with " +
-            "today's entries; the partner's totals; the foods the caller logs most lately; and how many drafts " +
-            "are waiting for a yes. All numbers are computed by Tummy.",
+            "today's entries; the partner's totals; the foods the caller logs most lately; what is in the " +
+            "fridge; and how many drafts are waiting for a yes. All numbers are computed by Tummy.",
           inputSchema: z.object({}),
           annotations: { readOnlyHint: true, openWorldHint: false },
         },
         () =>
           run(async () => {
             const day = await getHealthDay(user, await today());
-            const [me, partner, recent, { drafts }] = await Promise.all([
+            const [me, partner, recent, { drafts }, fridge] = await Promise.all([
               dayOut(day, "me"),
               dayOut(day, "partner"),
               recentFoods(user),
               getLibrary(),
+              fridgeOut(),
             ]);
             return {
               today: me,
               partner,
               recent_foods: recent.slice(0, 10).map((f) => ({ food_id: f.foodId, name: f.name, last_grams: f.grams })),
+              fridge,
               drafts_waiting: drafts,
               before_advice: "Call get_guidelines and follow it.",
             };
@@ -271,6 +288,70 @@ export function mcpHandlerFor(user: User, client: Client) {
         },
         ({ date, who }) =>
           run(async () => dayOut(await getHealthDay(user, isDate(date) ? date : await today()), who)),
+      );
+
+      /* ─── The fridge (healthspec.md §5.10) ─────────────────────────────── */
+
+      server.registerTool(
+        "get_fridge",
+        {
+          title: "What's in the fridge",
+          description:
+            "The food in the house right now, shared by both people, with the grams left of each. Logging a " +
+            "food takes it out of the fridge on its own. Use this, with what remains today from get_context, " +
+            "to answer 'what can I eat?' or 'what could we cook?': suggest only food that is actually here, " +
+            "in amounts that are actually left.",
+          inputSchema: z.object({}),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        () => run(async () => ({ fridge: await fridgeOut() })),
+      );
+
+      server.registerTool(
+        "stock_fridge",
+        {
+          title: "Put food in the fridge",
+          description:
+            "After shopping: adds grams of confirmed foods to the fridge. Nothing is logged as eaten. Each " +
+            "item is a food_id from search_foods and the total grams bought (two 212g packs is 424). A food " +
+            "that isn't in the library has to be added and confirmed with add_food first.",
+          inputSchema: z.object({
+            items: z.array(z.object({ food_id: z.number().int(), grams: z.number().positive().max(100_000) })).min(1).max(40),
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        },
+        (input) =>
+          write("stock_fridge", input, async () => {
+            for (const item of input.items) {
+              await changeFridge(user, { foodId: item.food_id, kind: "stocked", grams: item.grams, client });
+            }
+            return { message: `Stocked ${input.items.length} food${input.items.length === 1 ? "" : "s"}.`, fridge: await fridgeOut() };
+          }),
+      );
+
+      server.registerTool(
+        "correct_fridge",
+        {
+          title: "Correct what the fridge thinks is there",
+          description:
+            "When the fridge has drifted from the house. change: 'set' makes it exactly `grams`; 'finished' " +
+            "means none is left; 'discarded' means none is left because it was thrown out, not eaten. None " +
+            "of these logs anything as eaten.",
+          inputSchema: z.object({
+            food_id: z.number().int(),
+            change: z.enum(["set", "finished", "discarded"]),
+            grams: z.number().min(0).max(100_000).optional().describe("Required for 'set'."),
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("correct_fridge", input, async () => {
+            if (input.change === "set" && input.grams === undefined) throw new Error("Set it to how many grams?");
+            await changeFridge(user, { foodId: input.food_id, kind: input.change, grams: input.grams, client });
+            return { fridge: await fridgeOut() };
+          }),
       );
 
       /* ─── The food library ─────────────────────────────────────────────── */
@@ -465,7 +546,8 @@ export function mcpHandlerFor(user: User, client: Client) {
             "The main way to log. Pass `text`: the caller's own words, exactly as they said them ('just had 1 " +
             "shoyu senbei', 'we split a bag of chips', 'usual lunch', 'undo that', 'actually that was 2'). " +
             "Never pass calories or macros: Tummy computes them. Clear matches are logged at once; anything " +
-            "uncertain comes back under needs_choice, each with a question and a token. Ask the person, then " +
+            "uncertain comes back under needs_choice, each with a question and a token (including who ate it, " +
+            "when the words don't say: pass them as said, 'I had', 'we split', and don't add a subject they didn't use). Ask the person, then " +
             "answer with resolve_choice. Quote the result's message.",
           inputSchema: z.object({ text: z.string().min(1).max(500), request_id: requestId }),
           annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
@@ -565,6 +647,7 @@ export function mcpHandlerFor(user: User, client: Client) {
             food_id: z.number().int().optional(),
             grams: z.number().positive().max(10_000).optional(),
             grams_per_piece: z.number().positive().max(5_000).optional(),
+            who: z.enum(["me", "both", "partner"]).optional().describe("For a question about who ate it."),
             new_food: z.boolean().optional(),
             request_id: requestId,
           }),
@@ -578,6 +661,7 @@ export function mcpHandlerFor(user: User, client: Client) {
               const p = asked.payload as LogItemChoice;
               const foodId = input.food_id ?? (p.candidates.length === 1 ? p.candidates[0].id : null);
               if (!foodId) throw new Error("Which food? Pass its food_id.");
+              if (p.reason === "who" && !input.who) throw new Error('Who ate it? Pass who: "me", "both" or "partner".');
               // "An hour ago" meant an hour before it was said, not before it was answered.
               const waited = Math.round((Date.now() - asked.askedAt.getTime()) / 60_000);
               const { entry, day } = await resolvePending(
@@ -589,8 +673,9 @@ export function mcpHandlerFor(user: User, client: Client) {
                   unit: p.unit,
                   minutesAgo: (p.minutesAgo ?? 0) + waited || null,
                   gramsPerPiece: input.grams_per_piece ?? null,
-                  grams: input.grams ?? null,
+                  grams: input.grams ?? p.grams ?? null,
                   shared: p.shared,
+                  who: input.who,
                 },
                 { tz: p.tz, source: "mcp", client },
               );

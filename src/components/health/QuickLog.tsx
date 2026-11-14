@@ -199,14 +199,14 @@ function AskSheet({ result, onClose }: { result: QuickResult; onClose: () => voi
 }
 
 function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
-  const { setDay, toast } = useHealthDay();
+  const { day: shown, setDay, toast } = useHealthDay();
   const [food, setFood] = useState<FoodView | null>(null);
   const [perPiece, setPerPiece] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
 
-  async function resolve(foodId: number, gramsPerPiece?: number) {
+  async function resolve(foodId: number, gramsPerPiece?: number, who?: "me" | "both") {
     setBusy(true);
     setError(null);
     try {
@@ -219,7 +219,10 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
           unit: item.unit,
           minutesAgo: item.minutesAgo,
           gramsPerPiece,
+          // For a question about who: the amount is already settled, and travels with the answer.
+          grams: who ? (item.grams ?? undefined) : undefined,
           shared: item.shared,
+          who: who ?? (item.who === "unstated" ? "me" : item.who),
         }),
       );
       setDay(day);
@@ -293,6 +296,34 @@ function AskItem({ item, onDone }: { item: PendingItem; onDone: () => void }) {
   }
 
   if (item.reason === "needs_grams") return <p className="pt-2 text-ink-dim">…</p>;
+
+  // The sentence named no one (§5.7): never guessed, one tap either way.
+  if (item.reason === "who" && item.candidates[0]) {
+    const it = item.candidates[0];
+    return (
+      <div className="pt-2">
+        <p className="text-[1.05rem] leading-snug">Who had the {it.name}?</p>
+        <p className="pt-1 text-[0.85rem] text-ink-faint">{fmt(item.grams ?? 0, 0)}g in all.</p>
+        <div className="flex gap-2 pt-4">
+          <button
+            disabled={busy}
+            onClick={() => resolve(it.id, undefined, "both")}
+            className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-ink"
+          >
+            Split with {shown.partner.displayName}
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => resolve(it.id, undefined, "me")}
+            className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-ink"
+          >
+            Only me
+          </button>
+        </div>
+        {error ? <p className="pt-3 text-center text-[0.9rem] text-ink-dim">{error}</p> : null}
+      </div>
+    );
+  }
 
   if (item.reason === "draft") {
     return (

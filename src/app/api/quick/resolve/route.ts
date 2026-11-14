@@ -23,6 +23,7 @@ export async function POST(req: Request) {
         gramsPerPiece: num(b.gramsPerPiece),
         grams: num(b.grams),
         shared: b.shared === true,
+        who: b.who === "me" || b.who === "both" || b.who === "partner" ? b.who : undefined,
       },
       { tz, source: b.source === "voice" ? "voice" : "touch" },
     );

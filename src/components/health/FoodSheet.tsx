@@ -101,7 +101,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
     setDay(day);
     onClose();
     toast({
-      text: `Added ${food.name}${partnerGrams ? " for both of you" : ""} · ${entry.macros.kcal} kcal`,
+      text: `Added ${food.name}${partnerGrams ? (grams ? " for both of you" : ` for ${day.partner.displayName}`) : ""} · ${entry.macros.kcal} kcal`,
       undo: undo(ids),
     });
   }
@@ -289,7 +289,8 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
         <AmountStep
           food={step.food}
           left={fridge.find((i) => i.food.id === step.food.id)?.left ?? null}
-          partnerName={day.partner.displayName}
+          me={day.me}
+          partner={day.partner}
           onBack={() => setStep({ kind: "search" })}
           onLog={log}
           onStock={stock}

@@ -4,9 +4,9 @@ import { sql } from "../db";
 import type { User } from "../auth";
 import { fold } from "./fold";
 import { groqJson } from "./groq";
-import { parseSentence, type Parsed } from "./parse";
+import { parseSentence, type Parsed, type Who } from "./parse";
 import type { Client } from "./client";
-import { getHealthDay, logEntry, logShared, macrosFor, type EntrySource, type HealthDayView } from "./entries";
+import { getHealthDay, logEntry, logShared, macrosFor, partnerOf, type EntrySource, type HealthDayView } from "./entries";
 import { listMeals } from "./meals";
 import { dateIn } from "./zone";
 
@@ -51,7 +51,9 @@ export type PendingReason =
   /** A count of something with no piece weight yet: "1 senbei" before anyone has said what one weighs. */
   | "needs_grams"
   /** The food exists but is still waiting for review. */
-  | "draft";
+  | "draft"
+  /** What and how much are settled, but the sentence didn't say who ate it: split, or only the speaker (§5.7). */
+  | "who";
 
 export type PendingItem = {
   phrase: string;
@@ -63,6 +65,10 @@ export type PendingItem = {
   candidates: Candidate[];
   /** "We split…": the answer is logged for both of you, half each. */
   shared: boolean;
+  /** Who the sentence said ate it. */
+  who: Who;
+  /** For `who`: the amount already worked out, waiting only on whose day it goes in. */
+  grams?: number | null;
 };
 
 export type LoggedItem = {
@@ -72,6 +78,8 @@ export type LoggedItem = {
   kcal: number;
   /** Also logged into the partner's day (§5.7). */
   shared: boolean;
+  /** Set when it went into the partner's day alone: their name. */
+  forPartner?: string;
 };
 
 export type QuickResult = {
@@ -140,8 +148,15 @@ function deterministicMatch(phrase: string, library: LibraryFood[]): Match {
   if (exact.length === 1) return { food: exact[0], how: "exact" };
   if (exact.length > 1) return { candidates: exact.sort(byUse) };
   const k = keys[0];
+  // "calbee chips" for "Calbee usushio chips": every word said is somewhere in the name.
+  const words = phrase.split(/\s+/).flatMap((w) => keysFor(w).slice(-1)).filter((w) => w.length >= 2);
   const near = library.filter((f) =>
-    variants(f).some((v) => (v.length >= 2 && k.includes(v)) || (k.length >= 2 && v.includes(k))),
+    variants(f).some(
+      (v) =>
+        (v.length >= 2 && k.includes(v)) ||
+        (k.length >= 2 && v.includes(k)) ||
+        (words.length > 1 && words.every((w) => v.includes(w))),
+    ),
   );
   return { candidates: near.sort(byUse).slice(0, 8) };
 }
@@ -218,6 +233,8 @@ export function resolveAmount(
     const pack = serving("pack");
     const piece = serving("piece") ?? (pack && food.default_grams === pack ? pack : null);
     if (piece) return { grams: q * piece };
+    // "125 of rice": with nothing to count in, a number that size was a weight.
+    if (u === null && quantity !== null && quantity >= 20) return { grams: quantity };
     return { needsGrams: true };
   }
   // A vague amount ("a bowl", "some") uses the food's own default (§5.5).
@@ -227,7 +244,7 @@ export function resolveAmount(
 /* ─── The pipeline ───────────────────────────────────────────────────────── */
 
 const summarise = (logged: LoggedItem[]) =>
-  logged.map((l) => `${l.name} · ${l.kcal} kcal${l.shared ? " each" : ""}`).join(", ");
+  logged.map((l) => `${l.name} · ${l.kcal} kcal${l.shared ? " each" : l.forPartner ? ` for ${l.forPartner}` : ""}`).join(", ");
 
 const cand = (f: LibraryFood): Candidate => ({ id: f.id, name: f.name, nameJa: f.name_ja });
 
@@ -236,7 +253,8 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
   if (!sentence) throw new Error("Say what you ate.");
   if (sentence.length > 500) throw new Error("That's a lot at once. Try one meal at a time.");
   const now = ctx.now ?? new Date();
-  const parsed = await parseSentence(sentence);
+  const partner = await partnerOf(me);
+  const parsed = await parseSentence(sentence, { speaker: me.displayName, partner: partner.displayName });
   const day = () => getHealthDay(me, dateIn(ctx.tz, now));
 
   if (parsed.intent === "undo") {
@@ -267,11 +285,17 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
   const [library, meals] = await Promise.all([loadLibrary(me.id), listMeals()]);
   const logged: LoggedItem[] = [];
   const pending: PendingItem[] = [];
+  // "Just had a senbei" names nobody, but nobody says it about someone else. The
+  // parse model doesn't reliably see that, so the sentence itself settles it:
+  // only a bare food ("2 eggs") is left to be asked about.
+  const spokenAsMe = /\b(i|i'm|i've|i'll|my|me|just|had|have|having|ate|eaten|eating|drank|finished)\b/i.test(sentence);
+  for (const item of parsed.items) if (item.who === "unstated" && spokenAsMe) item.who = "me";
   /**
    * `halve`: "we split a bag" puts half the amount in each day. `both`: a
-   * shared saved meal puts its per-person amounts in each day.
+   * shared saved meal puts its per-person amounts in each day. `partner`:
+   * "Bunny had one" goes into the partner's day alone.
    */
-  const toLog: { foodId: number; grams: number; at: Date; split: "none" | "halve" | "both" }[] = [];
+  const toLog: { foodId: number; grams: number; at: Date; split: "none" | "halve" | "both" | "partner" }[] = [];
 
   for (const item of parsed.items) {
     const at = item.minutes_ago ? new Date(now.getTime() - item.minutes_ago * 60_000) : now;
@@ -280,7 +304,8 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
       quantity: item.quantity,
       unit: item.unit,
       minutesAgo: item.minutes_ago,
-      shared: parsed.shared,
+      shared: item.who === "both",
+      who: item.who,
     };
 
     // A saved meal said by name logs the whole meal: "usual lunch".
@@ -288,7 +313,7 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
     if (meal) {
       const times = item.quantity ?? 1;
       for (const i of meal.items) {
-        toLog.push({ foodId: i.foodId, grams: i.grams * times, at, split: meal.shared || parsed.shared ? "both" : "none" });
+        toLog.push({ foodId: i.foodId, grams: i.grams * times, at, split: meal.shared || item.who === "both" ? "both" : "none" });
       }
       continue;
     }
@@ -318,7 +343,17 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
       continue;
     }
     if (match.how === "chosen") await learnAlias(food.id, item.phrase);
-    toLog.push({ foodId: food.id, grams: amount.grams, at, split: parsed.shared ? "halve" : "none" });
+    // Nobody named: not guessed either way. One question, split or only me, and it's logged on the answer.
+    if (item.who === "unstated") {
+      pending.push({ ...base, reason: "who", candidates: [cand(food)], grams: amount.grams });
+      continue;
+    }
+    toLog.push({
+      foodId: food.id,
+      grams: amount.grams,
+      at,
+      split: item.who === "both" ? "halve" : item.who === "partner" ? "partner" : "none",
+    });
   }
 
   // One transaction, so a sentence's entries share a creation time and
@@ -329,6 +364,18 @@ export async function quickLog(me: User, text: string, ctx: QuickContext): Promi
       if (l.split === "none") {
         const entry = await logEntry(me, me.id, { ...base, grams: l.grams }, tx);
         logged.push({ entryId: entry.id, name: entry.name, grams: entry.grams, kcal: entry.macros.kcal, shared: false });
+      } else if (l.split === "partner") {
+        const { theirs } = await logShared(me, { ...base, myGrams: 0, partnerGrams: l.grams }, tx);
+        if (theirs) {
+          logged.push({
+            entryId: theirs.id,
+            name: theirs.name,
+            grams: theirs.grams,
+            kcal: theirs.macros.kcal,
+            shared: false,
+            forPartner: partner.displayName,
+          });
+        }
       } else {
         const each = l.split === "halve" ? l.grams / 2 : l.grams;
         const { mine } = await logShared(me, { ...base, myGrams: each, partnerGrams: each }, tx);
@@ -422,6 +469,8 @@ export type Resolution = {
   grams?: number | null;
   /** Split it with your partner, half each. */
   shared?: boolean;
+  /** Whose day it goes in. Overrides `shared` when given. */
+  who?: "me" | "both" | "partner";
 };
 
 /**
@@ -448,9 +497,13 @@ export async function resolvePending(me: User, r: Resolution, ctx: QuickContext)
   if (r.phrase.trim()) await learnAlias(r.foodId, r.phrase);
   const at = r.minutesAgo ? new Date(now.getTime() - r.minutesAgo * 60_000) : now;
   const base = { foodId: r.foodId, source: ctx.source, client: ctx.client, tz: ctx.tz, loggedAt: at, inputText: r.phrase };
-  const entry = r.shared
-    ? (await logShared(me, { ...base, myGrams: amount.grams / 2, partnerGrams: amount.grams / 2 })).mine!
-    : await logEntry(me, me.id, { ...base, grams: amount.grams });
+  const who = r.who ?? (r.shared ? "both" : "me");
+  const entry =
+    who === "both"
+      ? (await logShared(me, { ...base, myGrams: amount.grams / 2, partnerGrams: amount.grams / 2 })).mine!
+      : who === "partner"
+        ? (await logShared(me, { ...base, myGrams: 0, partnerGrams: amount.grams })).theirs!
+        : await logEntry(me, me.id, { ...base, grams: amount.grams });
   return { entry, day: await getHealthDay(me, dateIn(ctx.tz, now)) };
 }
 
@@ -463,6 +516,8 @@ export async function deleteEntries(me: User, ids: number[]) {
   await sql`
     delete from food_entries
     where (user_id = ${me.id} and id = any(${ids}))
+       -- Something you logged into your partner's day alone ("Bunny had one").
+       or (created_by = ${me.id} and id = any(${ids}))
        or (created_by = ${me.id} and shared_meal_id in (
              select shared_meal_id from food_entries
              where user_id = ${me.id} and id = any(${ids}) and shared_meal_id is not null))`;
