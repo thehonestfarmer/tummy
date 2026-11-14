@@ -16,6 +16,8 @@
   --ink-faint: #5c636c;
   --bunny: #c58f95;
   --bear: #8d9e85;
+  /* The one alarm colour: removing something. */
+  --danger: #c4483f;
   /* The dock on Home: the Add food row and its padding, before the safe area. */
   --dock-h: 5.75rem;
   /* Named so every edge reads from one place — and so a test can fake a notch. */
@@ -34,6 +36,7 @@
   --color-ink-faint: var(--ink-faint);
   --color-bunny: var(--bunny);
   --color-bear: var(--bear);
+  --color-danger: var(--danger);
   --font-sans: var(--font-nunito), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 

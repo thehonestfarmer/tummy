@@ -8,6 +8,7 @@ import { SideLine } from "./MacroBar";
 import { EntrySheet } from "./EntrySheet";
 import { SaveMealSheet } from "./SaveMealSheet";
 import { Sheet } from "./Sheet";
+import { SwipeRow } from "./SwipeRow";
 import { fmt } from "./fields";
 
 type Group = { key: string; hour: number; entries: EntryView[] };
@@ -57,7 +58,9 @@ const rowClass = "flex w-full items-center gap-3 py-3 text-left";
  * busy hour folds into one row that opens on a tap.
  */
 export function HealthToday() {
-  const { day, date } = useHealthDay();
+  const { day, date, setDay, toast } = useHealthDay();
+  // The one row slid open to show Remove, if any.
+  const [swiped, setSwiped] = useState<number | null>(null);
   const [editing, setEditing] = useState<EntryView | null>(null);
   const [open, setOpen] = useState<Set<string>>(new Set());
   // Picking entries to save as a meal: "what I just had is my usual lunch" (§5.6).
@@ -65,6 +68,22 @@ export function HealthToday() {
   const [saving, setSaving] = useState(false);
   const [partner, setPartner] = useState(false);
   const groups = groupByHour(day.me.entries);
+
+  /** Swiped away (§5.4). The swipe and the tap on the bin are the two steps; there is no third. */
+  async function remove(entry: EntryView) {
+    setSwiped(null);
+    try {
+      const res = await fetch(`/api/entries/${entry.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Couldn't remove that");
+      setDay(json as HealthDayView);
+      toast({ text: `Removed ${entry.name}` });
+      return true;
+    } catch (err) {
+      toast({ text: err instanceof Error ? err.message : "Couldn't remove that" });
+      return false;
+    }
+  }
   const toggle = (id: number) => {
     if (!picking) return;
     const next = new Set(picking);
@@ -117,9 +136,18 @@ export function HealthToday() {
             }
             return g.entries.map((e) => (
               <li key={e.id} className="border-b border-hairline">
-                <button onClick={() => (picking ? toggle(e.id) : setEditing(e))} className={rowClass}>
-                  <EntryLine entry={e} picked={picking ? picking.has(e.id) : undefined} />
-                </button>
+                <SwipeRow
+                  open={swiped === e.id}
+                  onOpenChange={(open) => setSwiped(open ? e.id : null)}
+                  onTap={() => (picking ? toggle(e.id) : setEditing(e))}
+                  onRemove={() => remove(e)}
+                  label={`Remove ${e.name}`}
+                  disabled={picking !== null}
+                >
+                  <button className={rowClass}>
+                    <EntryLine entry={e} picked={picking ? picking.has(e.id) : undefined} />
+                  </button>
+                </SwipeRow>
               </li>
             ));
           })}
