@@ -182,13 +182,9 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       <input ref={camera} type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
       {step.kind === "search" ? (
         <>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="What did you eat?"
-            className="w-full rounded-[10px] border border-hairline bg-ground-sunk px-3 py-2.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
-          />
-          <ul className="min-h-0 flex-1 overflow-y-auto pt-1">
+          <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-1">
+            {/* While searching, matches settle against the search box rather than the far end of the sheet. */}
+            {query.trim() ? <li aria-hidden className="mt-auto" /> : null}
             {!query.trim() && meals.length ? (
               <>
                 <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">Meals</li>
@@ -268,6 +264,13 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 Add &ldquo;{query.trim()}&rdquo; by name
               </button>
             ) : null}
+            {/* Search sits at the bottom, under the thumb, with the list above it. */}
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="What did you eat?"
+              className="w-full rounded-xl border border-hairline bg-ground-sunk h-12 px-3.5 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+            />
             <button
               onClick={() => camera.current?.click()}
               className="flex h-12 items-center justify-center gap-2 rounded-xl border border-hairline-strong bg-ground-raised text-[1rem] text-ink"

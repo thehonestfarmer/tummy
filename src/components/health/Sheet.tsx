@@ -59,6 +59,26 @@ export function Sheet({
     };
   }, []);
 
+  // A keyboard covers the bottom of the screen without shrinking it, and the
+  // bottom is where a sheet keeps its inputs. Fit the sheet to what is visible.
+  useEffect(() => {
+    const view = window.visualViewport;
+    const node = root.current;
+    if (!view || !node) return;
+    const fit = () => {
+      const covered = window.innerHeight - view.height > 80;
+      node.style.top = covered ? `${view.offsetTop}px` : "";
+      node.style.bottom = covered ? "auto" : "";
+      node.style.height = covered ? `${view.height}px` : "";
+    };
+    view.addEventListener("resize", fit);
+    view.addEventListener("scroll", fit);
+    return () => {
+      view.removeEventListener("resize", fit);
+      view.removeEventListener("scroll", fit);
+    };
+  }, []);
+
   const move = (y: number) => {
     if (panel.current) panel.current.style.transform = y ? `translateY(${y}px)` : "";
   };
@@ -67,7 +87,7 @@ export function Sheet({
     <div ref={root} className="sheet-scrim fixed inset-0 z-50 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
         ref={panel}
-        className={`sheet-panel mx-auto flex w-full ${tall ? "h-[88dvh]" : "max-h-[88dvh]"} max-w-2xl flex-col rounded-t-[18px] border-t border-hairline-strong bg-ground px-4`}
+        className={`sheet-panel mx-auto flex w-full ${tall ? "h-[88dvh] max-h-full" : "max-h-[min(88dvh,100%)]"} max-w-2xl flex-col rounded-t-[18px] border-t border-hairline-strong bg-ground px-4`}
         style={{ paddingBottom: "calc(var(--safe-bottom) + 1rem)" }}
         onClick={(e) => e.stopPropagation()}
       >
