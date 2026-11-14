@@ -11,15 +11,16 @@ import type { Reading } from "./reading";
  * is the step where accuracy matters most, and Groq is kept for
  * transcription and quick parsing, where speed matters (healthspec.md §9).
  *
- * Which model is not settled by assumption. Until the first seeding batch has
- * been reviewed, every draft is read by each of `visionModels()` side by
- * side, and `bun run vision:compare` scores each against what the reviewer
- * confirmed. Set HEALTH_VISION_COMPARE to empty to stop paying for the
- * second reading once a winner is picked.
+ * Claude reads every label, and its reading is the one shown (settled
+ * 2026-11-14: in use Gemini took 10 to 35 seconds a label against Claude's
+ * 4 to 9, and someone is standing there waiting). The first model here
+ * always leads. Naming others in HEALTH_VISION_COMPARE has them read the
+ * same photo in the background, for `bun run vision:compare` to score
+ * against what the reviewer confirmed; nobody waits on them.
  */
 export function visionModels(): string[] {
   const primary = process.env.HEALTH_VISION_MODEL || "claude-opus-5";
-  const compare = process.env.HEALTH_VISION_COMPARE ?? "gemini-flash-latest";
+  const compare = process.env.HEALTH_VISION_COMPARE ?? "";
   return [...new Set([primary, ...compare.split(",").map((m) => m.trim()).filter(Boolean)])];
 }
 

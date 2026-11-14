@@ -534,14 +534,14 @@ The catalogue has no tab; it is searched from Add food and edited from a fridge 
 
 | Job | Provider | Why |
 |---|---|---|
-| Label, pack, and screenshot reading (PWA path) | **Claude or Gemini Flash, picked by comparison** | Accuracy matters most here |
+| Label and pack reading (PWA path) | **Claude** (settled 2026-11-14) | Accuracy matters most here, and it was two to four times quicker than Gemini Flash in use |
 | Picking reference rows, tie-breaks | Claude, as built (`HEALTH_TEXT_MODEL`) | Few calls, and a wrong pick is a wrong number |
 | Transcription | Groq Whisper | Speed |
 | Parsing food lines and sets | Groq | Speed |
 | Estimating a dish eaten out from a photo or description (§5.11) | The vision model picked above | One call per new dish; returns a range, never a single number |
 | Chat inside the app (§10) | Claude, with the MCP tool set | It has to use tools well; cost is per message, so it is the paid path |
 
-- **Pick the vision model from real seeding data.** The first seeding batch is read by one Claude model and the current Gemini Flash side by side. `vision.ts` already reads every draft with each model in `HEALTH_VISION_COMPARE` and stores each reading in `food_readings`; it gains a switch on the model name so `gemini-*` goes to Gemini. `bun run vision:compare` scores each against what the reviewer confirmed (kcal, macros, net weight, piece count, name) and writes `docs/vision-comparison.md`, kept in the repo. Keep the winner; empty `HEALTH_VISION_COMPARE` to stop paying for the second read. Check current model IDs at build time.
+- **Claude reads every label and its reading is the one shown.** Gemini is off by default; naming it in `HEALTH_VISION_COMPARE` has it read in the background for scoring, and nobody waits on it. *What follows is how the comparison was set up:* **Pick the vision model from real seeding data.** The first seeding batch is read by one Claude model and the current Gemini Flash side by side. `vision.ts` already reads every draft with each model in `HEALTH_VISION_COMPARE` and stores each reading in `food_readings`; it gains a switch on the model name so `gemini-*` goes to Gemini. `bun run vision:compare` scores each against what the reviewer confirmed (kcal, macros, net weight, piece count, name) and writes `docs/vision-comparison.md`, kept in the repo. Keep the winner; empty `HEALTH_VISION_COMPARE` to stop paying for the second read. Check current model IDs at build time.
 - **Gemini is called the way `habit-battle/hank-api` does it** (`services/gemini-function-calling.ts`): a plain `fetch` to `v1beta/models/<model>:generateContent?key=…` with `functionDeclarations`, reading `functionCall` from the response. For labels, the image goes in as base64 `inline_data`, and one forced function call (`submit_label`) whose parameters are the label-as-printed schema. That gives typed output, like the Claude path's schema.
 - Every model call returns **strict JSON against a schema**, validated server-side. A failed parse throws an `Error` with user-facing copy ("Couldn't read that label. Try a closer photo."), matching the `withUser` error pattern.
 - **The model never computes totals** and never returns per-serving values without the basis. The server normalizes and counts.
@@ -657,7 +657,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Reference table | 日本食品標準成分表 (八訂), committed as CSV, imported into `reference_foods` |
 | Number sources, in order | Printed label → reference row → flagged estimate |
 | Cooking | Log raw weight with raw values; oil logged separately |
-| Label reading | PWA: Claude or Gemini Flash, picked by comparison. Chats: the chat's own model. Same submitted structure. |
+| Label reading | PWA: Claude. Chats: the chat's own model. Same submitted structure. |
 | OCR accuracy | Measured from corrections during review; Claude and Gemini compared on the first batch |
 | Confirmation | Same rule everywhere: a person sees the values and says yes. Possible in both the PWA and Claude or ChatGPT. |
 | App vs assistant | The app owns every fact and number; assistants hold no data |

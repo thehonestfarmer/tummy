@@ -177,7 +177,8 @@ export async function readDraft(foodId: number): Promise<void> {
 
     const named = food.requested_name;
     const models = named ? [textModel()] : visionModels();
-    const primary = models.length > 1 ? foodId % models.length : 0;
+    // The configured vision model leads; any others are there to be compared, not waited on.
+    const primary = 0;
     const urls = images(food);
 
     // A retry may have started while an earlier read was in flight; this one starts clean.
