@@ -452,7 +452,7 @@ Computed per user, once at least 14 days of data exist:
 - Either kind has: user, name, notes, and ordered **blocks**. Each block has a label and a kind (`straight`, `superset`, `emom`, `intervals`, `finisher`, or `other`), and holds ordered exercises, each with its prescription text, target sets, rep range, target RIR, start load and load step (§7.5).
 - The original prescription text is stored on every exercise so nothing gets lost in structuring.
 - Replacing a routine never touches sessions already done: a set points at an exercise, not at a plan line.
-- Either of us can view the other's routines.
+- Either of us can view the other's routines, and either can push or replace them from Claude: one of us may write both programs.
 
 ### 7.2 Exercises
 
@@ -521,9 +521,9 @@ The app suggests the load; the person decides. The rule is double progression, p
 - **No history:** the plan's start load, at the bottom of the rep range.
 - **Otherwise:** the load of the last session that included this exercise. Warm-up sets are left out throughout. If every planned set in that session reached the top of the rep range, whatever was left in reserve, the suggestion is that load **plus one step**, at the bottom of the range, and the screen says so: "22.5 kg, up from 20".
 - **The step** is per exercise, set by the plan, and comes from what the gym can load (settled 2026-11-15):
-  - **Barbell:** plates of 1.25, 2.5, 5, 10, 15, 20 and 25 kg, so the smallest jump is **2.5 kg** total (1.25 a side).
-  - **Weighted calisthenics** (belt or vest, same plates): **1.25 kg**. The load is the weight added; bodyweight is not part of it, and 0 is a valid load.
-  - **Dumbbells** are plate-loaded: 6 × 5 kg, 4 × 2.5 kg and 4 × 1.25 kg in all. As a pair, each side of each handle takes at most one plate of each size, so the step is **2.5 kg per hand** and the most a pair can hold is the handle plus 17.5 kg per hand. A single dumbbell can take all of it.
+  - **Barbell:** plates of 1.25, 2.5, 5, 10, 15, 20 and 25 kg, so the smallest jump is **2.5 kg** total (1.25 a side). The bar weighs 20 kg and is part of the logged load: "60" is the bar and 40 kg of plates.
+  - **Weighted calisthenics** (belt or vest, same plates): **1.25 kg**. The load is the weight added; bodyweight is not part of it, and 0 is a valid load. At 0 the app never suggests adding weight, only last time's reps: Claude decides when a bodyweight exercise takes load, by pushing a start load.
+  - **Dumbbells** are plate-loaded: 6 × 5 kg, 4 × 2.5 kg and 4 × 1.25 kg in all. As a pair, each side of each handle takes at most one plate of each size, so the step is **2.5 kg per hand**. An empty handle weighs 2.5 kg and is part of the logged load, so a pair runs from 2.5 to **20 kg per hand**. A single dumbbell can take all the plates.
   - A suggestion never goes past what can be loaded. At the ceiling it says so and suggests the same load for more reps.
 - It never suggests going down. A bad day is logged as it happened and the same load is suggested again.
 - Whatever is logged is what counts. Overriding the suggestion needs no explanation, and tomorrow's suggestion follows from what was actually lifted.
@@ -691,7 +691,6 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 3. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
 4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data.
 5. **Mic prompts on iOS.** Accepted for now; the options are in §3.
-6. **Handle and bar weights.** What an empty dumbbell handle and the bar weigh, which fixes the dumbbell ceiling and whether logged loads include them.
 
 ---
 

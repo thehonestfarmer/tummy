@@ -160,7 +160,7 @@ About 25 tools. Each description states its rules plainly, because the descripti
 
 | Tool | Does |
 |---|---|
-| `push_routine` | Create or replace one of a user's routines by name, with its place in the rotation, using the structure in `healthspec.md` §7.1 (blocks, exercises, prescription text, rep ranges, target RIR, start loads, load steps). |
+| `push_routine` | Create or replace one of a user's routines by name (the caller's or their partner's), with its place in the rotation, using the structure in `healthspec.md` §7.1 (blocks, exercises, prescription text, rep ranges, target RIR, start loads, load steps). |
 | `push_session_plan` | Create or replace a dated plan for a user and one day, in the same structure. It overrides the rotation that day and may name the routine it stands in for. |
 | `list_routines` | A user's routines in rotation order, and which is next. |
 | `get_session` | A session's plan and logged sets. |
