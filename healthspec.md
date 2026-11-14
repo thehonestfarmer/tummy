@@ -60,7 +60,7 @@ Weigh-ins and the 7-day trend (§6.2), adaptive expenditure (§6.3), propose-and
 
 ### Out of scope for v1
 
-Runs (they will come from Strava later, §7.5), Siri Shortcuts, Apple Health / step sync, micronutrients, barcode scanning, fasting-window tracking, push reminders to log, streaks or adherence scores, third users, building a workout plan inside the app, a native app wrapper (§3, kept as the fallback for mic prompts).
+Runs (they will come from Strava later, §7.6), Siri Shortcuts, Apple Health / step sync, micronutrients, barcode scanning, fasting-window tracking, push reminders to log, streaks or adherence scores, third users, building a workout plan inside the app, a native app wrapper (§3, kept as the fallback for mic prompts).
 
 ---
 
@@ -442,16 +442,22 @@ Computed per user, once at least 14 days of data exist:
 
 ## 7. Training
 
-### 7.1 Plans
+*(§7.1 to §7.4 revised 2026-11-15, before anything was built. Four things changed: plans are reusable routines with dated overrides, a session can go off-plan, the app suggests the load, and each phone shows only its owner's workout.)*
 
-- Session plans are written in Claude and **pushed to the app through MCP** (`mcpspec.md`). The markdown stays the human-readable copy.
-- A plan: user, date (optional), name ("Upper B"), notes, and ordered **blocks**. Each block has a label and a kind (`straight`, `superset`, `emom`, `intervals`, `finisher`, or `other`), and holds ordered exercises, each with its prescription text, target sets, rep range, target RIR, and start load.
+### 7.1 Routines and plans
+
+- Plans are written in Claude and **pushed to the app through MCP** (`mcpspec.md`). Nothing in the app builds or edits one.
+- A **routine** is a plan with no date: "Upper A", "Upper B", "Lower A", "Lower B". Each of us has our own set, in an order, which is the rotation. Pushed once and used until Claude replaces it.
+- A **dated plan** is a plan for one day. It wins over the rotation on that day (a deload, a swap for a sore back) and is gone the day after. It can name the routine it stands in for, so the rotation moves on as if that routine had been done.
+- Either kind has: user, name, notes, and ordered **blocks**. Each block has a label and a kind (`straight`, `superset`, `emom`, `intervals`, `finisher`, or `other`), and holds ordered exercises, each with its prescription text, target sets, rep range, target RIR, start load and load step (§7.5).
 - The original prescription text is stored on every exercise so nothing gets lost in structuring.
-- Each of us has our own plans. Either can view the other's.
+- Replacing a routine never touches sessions already done: a set points at an exercise, not at a plan line.
+- Either of us can view the other's routines.
 
 ### 7.2 Exercises
 
-- `exercises` table with canonical names and aliases ("chest-supported row", "CS row", "incline DB row"). The model maps whatever is said to a canonical exercise; unknown names create a new exercise after confirmation.
+- `exercises` table with canonical names and aliases ("chest-supported row", "CS row", "incline DB row"), and the kind of set it takes (§7.3). The model maps whatever is said to a canonical exercise; an unknown name creates a new exercise after one confirmation.
+- The list is shared. History is per person.
 
 ### 7.3 Set kinds
 
@@ -466,30 +472,59 @@ The model decides what kind a set is; the database stores one of a fixed set:
 
 **Dumbbell and kettlebell loads are stored per hand**, with `per_hand = true`. Barbell and machine loads are total.
 
-Every set also stores: exercise, session, set order, `source` (`touch`, `voice`, `mcp`), `client`, the **raw transcript** or input text, and `logged_at`. Sets are editable and deletable.
+Every set also stores: user, exercise, session, set order, `source` (`touch`, `voice`, `mcp`), `client`, the **raw transcript** or input text, and `logged_at`. Sets are editable and deletable.
 
 ### 7.4 The session
 
-We lift together, once a day at most, so a session belongs to both of us.
+We lift together, once a day at most, so a session belongs to both of us. Each of us follows our own plan in it, on our own phone.
 
-**Starting and joining.**
-- **Start workout** is on Home for each of us until that person has trained today (a session with at least one set of theirs on today's date; derived, not stored). After that it is replaced by a quiet line, "Trained · Upper B". On a rest day the button simply sits there; nothing counts or nags.
-- When one of us starts, the other gets a push ("Bear started Upper B. Join?") and, for 30 seconds, a prominent prompt in the app if it's open. That window is a prompt, not a cutoff: for as long as the session is open, the partner's button reads **Join Bear's workout**.
-- Joining puts both of us in the same session. Each sees their own plan for the day and logs their own sets. Either can leave; the session closes when both have finished or left.
-- A session nobody joins is a solo session. Nothing else changes.
+**1. Starting.** **Start workout** is on Home for each of us until that person has trained today (a session with at least one set of theirs on today's date; derived, not stored). Tapping it asks one question, *what are you doing today?*, already answered:
+- today's dated plan, if Claude pushed one;
+- otherwise the next routine in the rotation: the one after the last routine that person trained. The others are listed under it, one tap away;
+- **No plan**, always last: an empty session, filled as you go.
 
-**Logging sets.** Every set is matched to an exercise in a plan that exists beforehand (§7.1, §7.2), the same way a food phrase is matched to the catalogue.
+One more tap starts it. On a rest day the button simply sits there; nothing counts or nags.
+
+**2. Joining.** When one of us starts, the other gets a push ("Bear started Upper B. Join?") and, for 30 seconds, a prominent prompt in the app if it's open. That window is a prompt, not a cutoff: for as long as the session is open, the partner's button reads **Join Bear's workout**. Joining asks the same question, about the joiner's own plans. A session nobody joins is a solo session; nothing else changes.
+
+**3. Workout mode.** The session takes over the screen (§8).
+- The day's exercises in block order, each with sets done out of sets planned. The first unfinished one is the **active exercise**; tapping any other makes it active, so the order is a suggestion.
+- The active exercise is large: its prescription as Claude wrote it, **today's suggestion** (§7.5), and what happened last time ("last: 20 × 12, 12, 11").
+- One large button logs the suggested set as it stands. Steppers change it first: load by the exercise's step, ±1 rep, RIR chips 0–4. Large targets, usable with chalk on the hands. After the first set of an exercise, the next is pre-filled from the set just logged.
+- In a superset the active exercise alternates between the block's exercises after each set.
+- **Time since the last logged set** is shown (derived, no timer state). There is no rest countdown.
+- Only your own workout is on your screen. Nothing shows what your partner is doing, and nobody logs a set for someone else. *(This drops "the partner's progress alongside" and logging for each other from the 2026-11-10 draft.)*
+
+**4. Going off-plan.** **Add an exercise** finds one in the exercise list by name, or creates it after a confirmation, and makes it active. It belongs to this session only: the routine is not changed. A No plan session is nothing but these. An added exercise exists once it has a set; before that it is only on the screen.
+
+**5. Other ways to log.** Every way lands in the same server function.
 - **Voice:** hold to talk, release to send. Groq Whisper transcribes; the model parses with the speaker's plan and the session so far as context, so "40 for 8, two left" lands on the active exercise. One utterance can log several sets.
-- **Chat:** the same sentence typed, in the app or in Claude or ChatGPT, through the same server function.
-- **Touch:** each exercise is pre-filled from the plan and the last logged result. One large button logs the pre-filled set. Steppers: ±2.5kg (the smallest DB jump), ±1 rep, RIR chips 0–4. Large targets, usable with chalk on the hands.
-- A clear match is logged straight away with an undo. An exercise that isn't in today's plan, or a phrase that fits two, is asked about, never guessed.
-- Either of us can log a set for the other ("Bunny did 20 for 10"); it is tagged with who entered it, like a shared meal.
-- Show **time since the last logged set** (derived, no timer state), and what the partner last logged.
-- At the end: session rating out of 10 and an optional note, per person.
+- **Chat:** the same sentence typed, in the app or in Claude or ChatGPT.
+- A clear match is logged straight away with an undo. A phrase that fits two exercises is asked about, never guessed. An exercise that isn't in today's session is offered as an addition: "Add face pulls to this session?"
 
-**Storage.** `sessions` (date, started_by, started_at, ended_at) and `session_people` (session, user, plan, joined_at, finished_at, rating, note). Sets carry their user and session (§7.3). At most one open session at a time, enforced by a partial unique index.
+**6. Finishing.** **Finish** asks for a rating out of 10 and an optional note, then shows the session: every exercise with its sets, and which loads go up next time. Leaving workout mode without finishing returns to Home with the session still open and the button reading **Back to workout**. The session closes when everyone in it has finished. One left untouched for three hours is closed by the next request that looks at it, so a forgotten Finish never blocks tomorrow.
 
-### 7.5 Runs
+**7. Afterwards.** Home shows a quiet line in place of the button, "Trained · Upper B", and the same for your partner under their day. Tapping either opens that session: yours with every set editable, theirs read-only.
+
+**Storage.**
+- `plans` (user, name, notes, date or null, position in the rotation, the routine a dated plan stands in for), `plan_blocks`, `plan_exercises`.
+- `sessions` (date, started_by, started_at, ended_at) and `session_people` (session, user, plan or null, joined_at, finished_at, rating, note). At most one open session at a time, enforced by a partial unique index.
+- `sets` (§7.3). The exercises of a session are the plan's plus any that have sets; nothing stores the list.
+- `push_subscriptions`, one row per device (§3).
+
+### 7.5 Progression
+
+The app suggests the load; the person decides. The rule is double progression, per person and per exercise, **derived on read** from the sets (§11). Nothing stores a "current weight".
+
+- **No history:** the plan's start load, at the bottom of the rep range.
+- **Otherwise:** the load of the last session that included this exercise. If every planned set in that session reached the top of the rep range, the suggestion is that load **plus one step**, at the bottom of the range, and the screen says so: "22.5 kg, up from 20".
+- **The step** is per exercise, set by the plan. Default 2.5 kg: per hand for dumbbells and kettlebells, total for a bar or machine.
+- It never suggests going down. A bad day is logged as it happened and the same load is suggested again.
+- Whatever is logged is what counts. Overriding the suggestion needs no explanation, and tomorrow's suggestion follows from what was actually lifted.
+- `time`, `distance` and `rounds` sets get no suggestion, only last time's result.
+- Claude can read the same history (`get_exercise_history`) and push a routine with different loads, ranges or steps. That is how a deload or a change of program happens; the app only climbs.
+
+### 7.6 Runs
 
 Not in v1. Runs will come from Strava later, as their own feature. Nothing here logs a run by voice or screenshot.
 
@@ -536,7 +571,7 @@ Opened from Add food, and in workout mode. A plain conversation with the app (§
 
 ### Workout mode
 
-Takes over the screen while a session is open (§7.4): today's plan in block order, the active exercise large, the mic and chat for logging sets, and the partner's progress alongside. The macro display stays at the top; leaving workout mode returns to Home with the session still open.
+Takes over the screen while a session is open (§7.4): the day's exercises in block order, the active exercise large with today's suggested load and last time's sets, one button to log the set, the mic and chat for logging by words, and **Add an exercise**. Only your own workout; your partner's is not shown. The macro display stays at the top; leaving workout mode returns to Home with the session still open.
 
 ### Settings
 
@@ -617,7 +652,7 @@ The same conversation can happen in two places: in Claude or ChatGPT through the
 3. **Scan and eat in one flow; shared by default.** *(Built: camera straight from Add food, confirm in place, amounts in servings, the two-person amount step, who-ate-it parsing with the Split / Only me question.)* Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
 4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
 5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
-6. **Training.** Web push; plans and exercises pushed from Claude; the shared session with start and join; set logging by touch, then voice and chat; workout mode.
+6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line; (c) web push and joining; (d) sets by voice and chat.
 7. **Later:** weigh-ins and the trend, adaptive expenditure and proposals (§6), Trends, runs from Strava.
 
 **Ship points:** each of steps 1 to 5 is usable on its own. Step 1 changes how the app feels without changing what it stores.
@@ -650,6 +685,9 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 3. **ChatGPT.** Check again, before Bunny relies on it, whether ChatGPT accepts a secret in the connector URL and whether write tools run in its mobile apps (`mcpspec.md` §12). Claude remains the dependable path.
 4. **Quick-log latency.** The target is under about 3 seconds from release to "Added" on a deterministic match. Measure Whisper + parse + match on real devices over mobile data.
 5. **Mic prompts on iOS.** Accepted for now; the options are in §3.
+6. **Warm-up sets.** Whether they are logged at all, and if so marked so progression ignores them. Until decided, only working sets are logged.
+7. **Whether RIR gates progression.** As written, reaching the top of the range on every set is enough, whatever was left in reserve.
+8. **Load steps by equipment.** 2.5 kg everywhere is a default, not a fact about the gym: the smallest dumbbell jump, plate pair and machine pin all differ.
 
 ---
 
@@ -706,7 +744,9 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Eating out | Counts toward totals, as a low–high range that stays visible. A photo estimate is the last resort. Saved per dish and reused. |
 | Ways to add food | From the fridge, by voice, by scanning, by chat |
 | Chat | In the app and in Claude or ChatGPT, through one tool list and the same state. In-app costs API credits; the connector is free. |
-| Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. |
+| Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. Each phone shows only its owner's workout. |
+| Plans | Reusable routines in a rotation, pushed from Claude; a dated plan overrides the rotation for one day. A session can also start with no plan, and any session can take extra exercises. |
+| Progression | The app suggests the load by double progression, derived from logged sets; it never suggests going down. Deloads come from Claude. |
 | Set logging | Voice, chat or touch, matched to an exercise in a plan that exists beforehand |
 | Push | Web push, for the workout invitation only |
 | Past days | Viewable and correctable |
