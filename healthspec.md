@@ -363,7 +363,7 @@ A digital copy of the food in the house: the fridge, the freezer and the cupboar
 
 **What gets stocked.** Only food whose numbers are solid: it has a nutrition label, or it is found easily in the MEXT table (swordfish sashimi, salmon, eggs, chicken thigh). Condiments, oils and anything that would need an estimate are logged when eaten and never stocked.
 
-**Weights are raw.** We weigh raw (§5.1), so the fridge counts raw grams, and cooking doesn't change them. Leftovers are not tracked as their own item; that can come later.
+**Weights are raw.** We weigh raw (§5.1), so the fridge counts raw grams, and cooking doesn't change them. A cooked dish is its own item, made by Cook (§5.12).
 
 **Keeping it honest.** It will drift: a forgotten log, food thrown out, something eaten by a guest. Every item has three corrections: **Finished** (set to zero), **Threw it out** (set to zero, recorded as waste, not eaten), and **Set amount**. Eating more than the fridge thinks is there empties the item and logs the full amount; the log is never blocked by the fridge.
 
@@ -389,6 +389,18 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 - A convenience-store item **with a label** is not eating out. It is scanned into the catalogue (§5.6).
 
 `places` (name, area), `place_dishes` (place, name, low and high per macro, source `published` | `photo` | `described` | `manual`, the model's description). Photos are read and discarded, like every other photo (§5.3).
+
+### 5.12 Cooking
+
+*(Settled and built 2026-11-14.)* A pot of curry is several foods cooked together and eaten over days, in portions nobody weighed raw. **Cook**, opened from the fridge, turns the ingredients into one dish that sits in the fridge.
+
+- **What went in.** Pick from what's in the fridge, or find any other food by name (oil, sauces: never stocked, but counted here). Each takes an amount in its own packs or pieces, or in grams, raw. It starts at one of the thing, or at what the fridge holds if that is less.
+- **What came out.** A name, how many portions it made, and, if the pot was weighed, its cooked weight.
+- **The dish is an ordinary food**, source `recipe`, with one serving, "portion". Its per-100g values are the ingredients' totals over the dish's weight: the cooked weight when given (`weight_basis` `cooked`), otherwise the raw weights added up. Either way one portion is exactly its share of the pot, so eating "1 portion", splitting it, logging it by voice and correcting what's left all work as for any food.
+- **The fridge.** Each ingredient that was in the fridge leaves it through a `cooked` change, which takes grams away and stops at zero, as eating does, without anyone having eaten it. The dish is `stocked` with its whole weight.
+- **Cooking it again.** A dish cooked before is offered at the top of Cook and fills in its last ingredients. Under the same name it is the same food: it takes the new batch's numbers and the new portions join what was left. Entries already logged keep their own numbers (§5.4).
+- **Storage.** `cooks` (dish food, portions, cooked grams, who, when) and `cook_items` (food, grams) record every batch.
+- **Not yet:** adding a missing ingredient without leaving for Stock up (the pot is kept while you do), cooking by voice or chat, and undoing a cook.
 
 ---
 

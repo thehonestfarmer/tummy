@@ -29,7 +29,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>
-      <body>{children}</body>
+      {/* Browser extensions add attributes to <body> before React loads; that isn't our mismatch to report. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

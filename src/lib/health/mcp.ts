@@ -114,6 +114,7 @@ const SOURCE_WORDS: Record<string, string> = {
   reference_table: "Japanese food composition table (MEXT)",
   llm_estimate: "a model's estimate, confirmed by a person",
   manual: "typed in by a person",
+  recipe: "a dish cooked at home, worked out from its ingredients",
 };
 
 /** Principle 8: every food says where its numbers came from. */

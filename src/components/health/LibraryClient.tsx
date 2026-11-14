@@ -28,9 +28,12 @@ export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridg
     <div className="px-5 pt-3 pb-6">
       <header className="flex items-baseline">
         <h1 className="text-[1.15rem] leading-none">Fridge</h1>
+        <Link href="/cook" className="ml-auto flex h-10 items-center rounded-full border border-hairline-strong px-4 text-[0.95rem] text-ink">
+          Cook
+        </Link>
         <Link
           href="/add"
-          className="ml-auto flex h-10 items-center rounded-full border border-hairline-strong bg-ground-raised px-4 text-[0.95rem] text-ink"
+          className="ml-2 flex h-10 items-center rounded-full border border-hairline-strong bg-ground-raised px-4 text-[0.95rem] text-ink"
         >
           Stock up
         </Link>

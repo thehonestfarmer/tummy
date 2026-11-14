@@ -11,6 +11,8 @@ import { getLibrary, type FoodView } from "./foods";
  */
 
 export type FridgeKind = "stocked" | "set" | "finished" | "discarded";
+/** What the ledger can hold: the corrections above, and `cooked`, written only by cooking (§5.12). */
+type LedgerKind = FridgeKind | "cooked";
 
 export type FridgeItem = {
   food: FoodView;
@@ -22,14 +24,14 @@ export type FridgeItem = {
 
 export type FridgeView = { items: FridgeItem[] };
 
-type Event = { food_id: number; at: Date; kind: FridgeKind | "eaten"; grams: number };
+type Event = { food_id: number; at: Date; kind: LedgerKind | "eaten"; grams: number };
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /**
  * What's left of every food that has ever been stocked. The ledger and the
  * log are walked together in time order: stocking adds, a correction sets,
- * eating takes away and stops at nothing. Eating more than the fridge
+ * eating or cooking takes away and stops at nothing. Eating more than the fridge
  * thought was there empties it, and the next shop starts again from zero
  * rather than from a debt.
  *
@@ -49,7 +51,7 @@ export async function fridgeLevels(): Promise<Map<number, { left: number; change
   for (const e of events) {
     const now = levels.get(e.food_id)?.left ?? 0;
     const left =
-      e.kind === "stocked" ? now + e.grams : e.kind === "set" ? e.grams : e.kind === "eaten" ? Math.max(0, now - e.grams) : 0;
+      e.kind === "stocked" ? now + e.grams : e.kind === "set" ? e.grams : e.kind === "eaten" || e.kind === "cooked" ? Math.max(0, now - e.grams) : 0;
     levels.set(e.food_id, { left, changedAt: e.at });
   }
   return levels;
