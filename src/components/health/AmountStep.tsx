@@ -21,7 +21,8 @@ const stepButton =
  * Food from the fridge is shared by default: the total splits evenly, and
  * either side can be moved on its own, so "two yogurts for me, one for
  * Bunny" is one tap. Anything else starts as only yours. Then one of two
- * things: log it as eaten, or put it in the fridge for later (§5.10).
+ * things: log it as eaten, or put it in the fridge for later (§5.10). "Add
+ * another food" keeps this one waiting, so a whole meal is logged at once.
  *
  * The kcal shown is a preview; the server does the real sum.
  */
@@ -30,8 +31,10 @@ export function AmountStep({
   left,
   me,
   partner,
+  waiting,
   onBack,
   onLog,
+  onMore,
   onStock,
 }: {
   food: FoodView;
@@ -39,8 +42,12 @@ export function AmountStep({
   left: number | null;
   me: Person;
   partner: Person;
+  /** How many other foods are already waiting to be logged with this one. */
+  waiting: number;
   onBack: () => void;
   onLog: (food: FoodView, grams: number, partnerGrams?: number) => Promise<void>;
+  /** Keep this one waiting and go back to choose another. */
+  onMore: (food: FoodView, grams: number, partnerGrams?: number) => void;
   onStock: (food: FoodView, grams: number) => Promise<void>;
 }) {
   // The last unit is always plain grams.
@@ -212,20 +219,32 @@ export function AmountStep({
         disabled={busy !== null || !grams}
         className="mt-5 h-14 w-full rounded-xl bg-ink text-[1.1rem] font-bold text-ground disabled:opacity-50"
       >
-        {busy === "log" ? "…" : solo ? "Log it" : "Log for both of you"}
+        {busy === "log" ? "…" : waiting ? `Log all ${waiting + 1}` : solo ? "Log it" : "Log for both of you"}
       </button>
-      <button
-        onClick={async () => {
-          if (!grams) return;
-          setBusy("stock");
-          await onStock(food, grams);
-          setBusy(null);
-        }}
-        disabled={busy !== null || !grams}
-        className="mt-2 h-12 w-full rounded-xl border border-hairline-strong text-[1rem] text-ink disabled:text-ink-faint"
-      >
-        {busy === "stock" ? "…" : "Add to fridge"}
-      </button>
+      <div className="mt-2 flex gap-2">
+        <button
+          onClick={() => grams && onMore(food, round(mine * per), solo ? undefined : round(theirs * per))}
+          disabled={busy !== null || !grams}
+          className="h-12 flex-1 rounded-xl border border-hairline-strong text-[1rem] text-ink disabled:text-ink-faint"
+        >
+          Add another food
+        </button>
+        {/* With others waiting this is a meal being logged, not shopping being put away. */}
+        {waiting ? null : (
+          <button
+            onClick={async () => {
+              if (!grams) return;
+              setBusy("stock");
+              await onStock(food, grams);
+              setBusy(null);
+            }}
+            disabled={busy !== null || !grams}
+            className="h-12 flex-1 rounded-xl border border-hairline-strong text-[1rem] text-ink disabled:text-ink-faint"
+          >
+            {busy === "stock" ? "…" : "Add to fridge"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

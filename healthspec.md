@@ -298,6 +298,8 @@ No Siri Shortcut.
 
 A fifth path, **Eating out**, is for food with no label and no weight (§5.11).
 
+**Several at once.** A meal is rarely one food. On the amount step, "Add another food" keeps the food waiting and goes back to the list; the foods waiting sit in a short list above the search box, each with its amount and a way to take it out, and one button logs them all. Each keeps its own split (§5.7). One undo removes the lot. Nothing is saved until that button: closing the sheet drops the list.
+
 Stocking the fridge after shopping is a different job from eating, and has its own entrance (§5.10).
 
 ### 5.7 Shared meals

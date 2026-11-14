@@ -23,6 +23,9 @@ type Step =
   /** A label has been photographed; `draftId` is null until the photo has landed. */
   | { kind: "scan"; draftId: number | null };
 
+/** One food waiting to be logged with others: what it is, how much for you, and how much for your partner. */
+type Waiting = { id: number; name: string; grams: number; partnerGrams?: number; kcal: number };
+
 const button =
   "w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint";
 
@@ -30,7 +33,9 @@ const button =
  * The + Food sheet (§5.6): find a food in the library and say how much.
  * When it isn't there: photograph its label, which opens the camera straight
  * away and comes back here to be confirmed and logged; ask for it by name,
- * which goes through the food table and the review queue. There is no typing
+ * which goes through the food table and the review queue. Several foods can
+ * be gathered and logged in one go: "Add another food" on the amount step
+ * keeps the first one waiting, in a list above the search box. There is no typing
  * numbers in here: a label is photographed, and a misread is fixed in Review.
  */
 export function FoodSheet({ onClose }: { onClose: () => void }) {
@@ -41,6 +46,9 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   const [fridge, setFridge] = useState<FridgeItem[]>([]);
   const [query, setQuery] = useState("");
   const [step, setStep] = useState<Step>({ kind: "search" });
+  // Foods chosen but not logged yet, when several are going in together.
+  const [waiting, setWaiting] = useState<Waiting[]>([]);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const camera = useRef<HTMLInputElement>(null);
 
@@ -84,26 +92,64 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
     if (r.ok) setDay((await r.json()) as HealthDayView);
   };
 
-  async function log(food: { id: number; name: string }, grams: number, partnerGrams?: number) {
+  /**
+   * Logs one food or several. They go up one at a time, so if one fails the
+   * ones before it are in the day and the rest are still waiting to be sent.
+   */
+  async function logAll(items: Omit<Waiting, "kcal">[]) {
     setError(null);
-    const res = await fetch("/api/entries", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // `date` is set only on a past day: something forgotten goes where it belongs.
-      body: JSON.stringify({ foodId: food.id, grams, partnerGrams, date: date ?? undefined }),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      setError(json.error ?? "Couldn't log that");
+    setSending(true);
+    const ids: number[] = [];
+    let kcal = 0;
+    let day: HealthDayView | null = null;
+    let failed: string | null = null;
+    let done = 0;
+    for (const item of items) {
+      try {
+        const res = await fetch("/api/entries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // `date` is set only on a past day: something forgotten goes where it belongs.
+          body: JSON.stringify({ foodId: item.id, grams: item.grams, partnerGrams: item.partnerGrams, date: date ?? undefined }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? `Couldn't log ${item.name}`);
+        ids.push(...(json.ids as number[]));
+        kcal += (json.entry as { macros: { kcal: number } }).macros.kcal;
+        day = json.day as HealthDayView;
+        done++;
+      } catch (err) {
+        failed = err instanceof Error ? err.message : `Couldn't log ${item.name}`;
+        break;
+      }
+    }
+    setSending(false);
+    if (day) setDay(day);
+    if (failed) {
+      // Whatever went in is out of the list; whatever didn't is kept to try again.
+      setWaiting(items.slice(done).map((i) => ({ ...i, kcal: waiting.find((w) => w.id === i.id)?.kcal ?? 0 })));
+      setStep({ kind: "search" });
+      setError(failed);
       return;
     }
-    const { entry, ids, day } = json as { entry: { macros: { kcal: number } }; ids: number[]; day: HealthDayView };
-    setDay(day);
+    if (!day) return;
+    const [only] = items;
+    const whose = only.partnerGrams ? (only.grams ? " for both of you" : ` for ${day.partner.displayName}`) : "";
     onClose();
     toast({
-      text: `Added ${food.name}${partnerGrams ? (grams ? " for both of you" : ` for ${day.partner.displayName}`) : ""} · ${entry.macros.kcal} kcal`,
+      text: items.length === 1 ? `Added ${only.name}${whose} · ${kcal} kcal` : `Added ${items.length} foods · ${kcal} kcal`,
       undo: undo(ids),
     });
+  }
+
+  const log = (food: { id: number; name: string }, grams: number, partnerGrams?: number) =>
+    logAll([...waiting.filter((w) => w.id !== food.id), { id: food.id, name: food.name, grams, partnerGrams }]);
+
+  /** Keeps a food waiting and goes back for another. Choosing the same food again replaces its amount. */
+  function hold(item: Waiting) {
+    setWaiting((w) => [...w.filter((x) => x.id !== item.id), item]);
+    setQuery("");
+    setStep({ kind: "search" });
   }
 
   /** Into the fridge for later, not into anyone's day (§5.10). */
@@ -185,7 +231,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
           <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-1">
             {/* While searching, matches settle against the search box rather than the far end of the sheet. */}
             {query.trim() ? <li aria-hidden className="mt-auto" /> : null}
-            {!query.trim() && meals.length ? (
+            {!query.trim() && meals.length && !waiting.length ? (
               <>
                 <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">Meals</li>
                 {meals.map((m) => (
@@ -219,11 +265,15 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             ) : null}
             {!query.trim() && recents.length ? (
               <>
-                <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">Recent · tap to log the same again</li>
+                <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">{waiting.length ? "Recent · tap to add the same again" : "Recent · tap to log the same again"}</li>
                 {recents.map((r) => (
                   <li key={`r${r.foodId}`} className="border-b border-hairline">
                     <button
-                      onClick={() => log({ id: r.foodId, name: r.name }, r.grams)}
+                      onClick={() =>
+                        waiting.length
+                          ? hold({ id: r.foodId, name: r.name, grams: r.grams, kcal: r.kcal })
+                          : log({ id: r.foodId, name: r.name }, r.grams)
+                      }
                       className="flex w-full items-baseline gap-2 py-2.5 text-left"
                     >
                       <span className="min-w-0 flex-1 truncate text-[1rem]">{r.name}</span>
@@ -264,6 +314,37 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 Add &ldquo;{query.trim()}&rdquo; by name
               </button>
             ) : null}
+            {waiting.length ? (
+              <div className="rounded-xl border border-hairline bg-ground-raised px-3 pt-1 pb-3">
+                <ul>
+                  {waiting.map((w) => (
+                    <li key={w.id} className="flex items-center gap-2 border-b border-hairline">
+                      <span className="min-w-0 flex-1 truncate py-2 text-[0.95rem]">{w.name}</span>
+                      <span className="shrink-0 text-[0.85rem] tabular-nums text-ink-dim">
+                        {fmt(w.grams, 0)}g
+                        {w.partnerGrams ? (w.partnerGrams === w.grams ? " each" : ` + ${fmt(w.partnerGrams, 0)}g`) : ""} · {w.kcal} kcal
+                      </span>
+                      <button
+                        aria-label={`Take out ${w.name}`}
+                        onClick={() => setWaiting(waiting.filter((x) => x.id !== w.id))}
+                        className="-mr-2 flex h-10 w-10 shrink-0 items-center justify-center text-[1.2rem] text-ink-dim"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => logAll(waiting)}
+                  disabled={sending}
+                  className="mt-3 h-12 w-full rounded-xl bg-ink text-[1.05rem] font-bold text-ground disabled:opacity-50"
+                >
+                  {sending
+                    ? "…"
+                    : `Log ${waiting.length === 1 ? "it" : `all ${waiting.length}`} · ${waiting.reduce((n, w) => n + w.kcal, 0)} kcal`}
+                </button>
+              </div>
+            ) : null}
             {/* Search sits at the bottom, under the thumb, with the list above it. */}
             <input
               value={query}
@@ -290,7 +371,11 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
           me={day.me}
           partner={day.partner}
           onBack={() => setStep({ kind: "search" })}
+          waiting={waiting.filter((w) => w.id !== step.food.id).length}
           onLog={log}
+          onMore={(food, grams, partnerGrams) =>
+            hold({ id: food.id, name: food.name, grams, partnerGrams, kcal: Math.round((food.per100.kcal * grams) / 100) })
+          }
           onStock={stock}
         />
       ) : step.kind === "scan" ? (
