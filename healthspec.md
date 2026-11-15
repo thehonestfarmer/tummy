@@ -298,6 +298,8 @@ No Siri Shortcut.
 
 A fifth path, **Eating out**, is for food with no label and no weight (§5.11).
 
+**By the piece** (added 2026-11-15). A food from the food table comes with no unit but grams, and eggs are eaten by the egg. On the amount step, "Count by the piece" asks what one is called and what it weighs, saves that to the food as a serving, and counts in it from then on, there and in Cook and Stock up. The table has no piece weights, so one is weighed once, the part that is eaten: an egg without its shell. A food that already has units is offered "Another unit" the same way; a unit of the same name is replaced.
+
 **Several at once.** A meal is rarely one food. On the amount step, "Add another food" keeps the food waiting and goes back to the list; the foods waiting sit in a short list above the search box, each with its amount and a way to take it out, and one button logs them all. Each keeps its own split (§5.7). One undo removes the lot. Nothing is saved until that button: closing the sheet drops the list.
 
 Stocking the fridge after shopping is a different job from eating, and has its own entrance (§5.10).

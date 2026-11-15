@@ -24,6 +24,9 @@ const stepButton =
  * things: log it as eaten, or put it in the fridge for later (§5.10). "Add
  * another food" keeps this one waiting, so a whole meal is logged at once.
  *
+ * A food with nothing to count it in, such as an egg from the food table,
+ * can be given a piece right here: its name and its weight, kept on the food.
+ *
  * The kcal shown is a preview; the server does the real sum.
  */
 export function AmountStep({
@@ -36,6 +39,7 @@ export function AmountStep({
   onLog,
   onMore,
   onStock,
+  onFood,
 }: {
   food: FoodView;
   /** Grams of this in the fridge, or null when there is none. */
@@ -49,6 +53,8 @@ export function AmountStep({
   /** Keep this one waiting and go back to choose another. */
   onMore: (food: FoodView, grams: number, partnerGrams?: number) => void;
   onStock: (food: FoodView, grams: number) => Promise<void>;
+  /** The food has gained a unit to be counted in; the caller swaps in the new version. */
+  onFood: (food: FoodView) => void;
 }) {
   // The last unit is always plain grams.
   const GRAMS = food.servings.length;
@@ -69,7 +75,9 @@ export function AmountStep({
   const [theirs, setTheirs] = useState(solo ? 0 : round(first / 2));
   // The total as typed, so "1." or an emptied box survive a re-render.
   const [text, setText] = useState(String(first));
-  const [busy, setBusy] = useState<"log" | "stock" | null>(null);
+  const [busy, setBusy] = useState<"log" | "stock" | "piece" | null>(null);
+  // Naming a piece ("egg", 50g), so this food can be counted rather than weighed.
+  const [piece, setPiece] = useState<{ label: string; grams: string; error: string | null } | null>(null);
 
   const per = serving ? serving.grams : 1;
   const total = solo ? mine : mine + theirs;
@@ -112,11 +120,44 @@ export function AmountStep({
     fromTotal(round(t), alone);
   };
 
+  /** Saves the piece to the food, for good, and counts in it from here on: one each. */
+  async function savePiece() {
+    if (!piece) return;
+    const label = piece.label.trim();
+    const each = Number(piece.grams);
+    if (!label || !(each > 0)) {
+      setPiece({ ...piece, error: "Say what one is called and how many grams it weighs." });
+      return;
+    }
+    setBusy("piece");
+    try {
+      const res = await fetch(`/api/foods/${food.id}/servings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label, grams: each }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json as { error?: string }).error ?? "Couldn't save that");
+      const next = json as FoodView;
+      const at = next.servings.findIndex((s) => s.label.toLowerCase() === label.toLowerCase());
+      onFood(next);
+      setUnit(at < 0 ? next.servings.length : at);
+      setText(String(solo ? 1 : 2));
+      fromTotal(solo ? 1 : 2);
+      setPiece(null);
+    } catch (err) {
+      setPiece({ ...piece, error: err instanceof Error ? err.message : "Couldn't save that" });
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const kcal = (amount: number) => fmt((food.per100.kcal * amount * per) / 100, 0);
   const said = (amount: number) => (serving ? `${fmt(amount)} ${plural(serving.label, amount)}` : `${fmt(amount)}g`);
 
   return (
-    <div className="min-h-0 overflow-y-auto">
+    // Nothing else is touched while a piece is being saved: the amounts are reset when it lands.
+    <div className="min-h-0 overflow-y-auto" style={{ pointerEvents: busy === "piece" ? "none" : undefined }}>
       <button onClick={onBack} className="h-9 text-[0.9rem] text-ink-dim">
         ← Back
       </button>
@@ -127,23 +168,73 @@ export function AmountStep({
         {food.nameJa ? ` · ${food.nameJa}` : ""}
       </p>
 
-      {food.servings.length ? (
-        <div className="flex flex-wrap gap-1.5 pt-4">
-          {[...food.servings.map((s) => `${plural(s.label, 2)} · ${fmt(s.grams)}g each`), "grams"].map((name, i) => (
+      <div className="flex flex-wrap gap-1.5 pt-4">
+        {food.servings.length
+          ? [...food.servings.map((s) => `${plural(s.label, 2)} · ${fmt(s.grams)}g each`), "grams"].map((name, i) => (
+              <button
+                key={name}
+                aria-pressed={unit === i}
+                onClick={() => choose(i)}
+                className="h-10 rounded-full border px-3.5 text-[0.9rem]"
+                style={{
+                  borderColor: unit === i ? "var(--ink-dim)" : "var(--hairline)",
+                  color: unit === i ? "var(--ink)" : "var(--ink-dim)",
+                  background: unit === i ? "var(--ground-raised)" : "transparent",
+                }}
+              >
+                {name}
+              </button>
+            ))
+          : null}
+        {piece ? null : (
+          <button
+            onClick={() => setPiece({ label: "", grams: "", error: null })}
+            className="h-10 rounded-full border border-dashed border-hairline-strong px-3.5 text-[0.9rem] text-ink-dim"
+          >
+            {food.servings.length ? "+ Another unit" : "+ Count by the piece"}
+          </button>
+        )}
+      </div>
+      {piece ? (
+        <div className="mt-3 rounded-xl border border-hairline bg-ground-raised p-3">
+          <div className="flex gap-2">
+            <label className="flex min-w-0 flex-1 flex-col">
+              <span className="pb-1 text-[0.8rem] text-ink-faint">One is called</span>
+              <input
+                aria-label="What one is called"
+                value={piece.label}
+                onChange={(e) => setPiece({ ...piece, label: e.target.value, error: null })}
+                placeholder="egg, banana, slice"
+                autoCapitalize="none"
+                className="h-11 w-full min-w-0 rounded-[10px] border border-hairline bg-ground-sunk px-3 text-[1rem] text-ink placeholder:text-ink-faint focus:border-hairline-strong focus:outline-none"
+              />
+            </label>
+            <label className="flex w-28 shrink-0 flex-col">
+              <span className="pb-1 text-[0.8rem] text-ink-faint">Grams in one</span>
+              <input
+                aria-label="Grams in one"
+                inputMode="decimal"
+                value={piece.grams}
+                onChange={(e) => setPiece({ ...piece, grams: e.target.value.replace(/[^\d.,]/g, "").replace(",", "."), error: null })}
+                className="h-11 w-full min-w-0 rounded-[10px] border border-hairline bg-ground-sunk px-3 text-[1rem] tabular-nums text-ink focus:border-hairline-strong focus:outline-none"
+              />
+            </label>
+          </div>
+          <p className="pt-2 text-[0.8rem] leading-relaxed text-ink-dim">
+            {piece.error ?? "Weigh the part you eat: an egg without its shell, a banana without its peel. It's kept for next time."}
+          </p>
+          <div className="flex gap-2 pt-2">
             <button
-              key={name}
-              aria-pressed={unit === i}
-              onClick={() => choose(i)}
-              className="h-10 rounded-full border px-3.5 text-[0.9rem]"
-              style={{
-                borderColor: unit === i ? "var(--ink-dim)" : "var(--hairline)",
-                color: unit === i ? "var(--ink)" : "var(--ink-dim)",
-                background: unit === i ? "var(--ground-raised)" : "transparent",
-              }}
+              onClick={savePiece}
+              disabled={busy !== null}
+              className="h-11 flex-1 rounded-xl border border-hairline-strong bg-ground text-[0.95rem] text-ink disabled:text-ink-faint"
             >
-              {name}
+              {busy === "piece" ? "…" : "Count in these"}
             </button>
-          ))}
+            <button onClick={() => setPiece(null)} className="h-11 rounded-xl border border-hairline px-4 text-[0.95rem] text-ink-dim">
+              Cancel
+            </button>
+          </div>
         </div>
       ) : null}
 

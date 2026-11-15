@@ -676,3 +676,24 @@ export async function foodFromReference(me: User, referenceId: number, client: C
   });
   return (await getFood(id))!;
 }
+
+const ServingSchema = z.object({ label: z.string().trim().min(1).max(40), grams });
+
+/**
+ * Gives a food one more unit to be counted in ("egg", 50g), so a food from
+ * the table can be logged by the piece (§5.6). A unit of the same name is
+ * replaced: weighing an egg again corrects the first weighing.
+ */
+export async function addServing(foodId: number, raw: unknown): Promise<FoodView> {
+  const parsed = ServingSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Needs what one is called and how many grams it weighs.");
+  const { label, grams: each } = parsed.data;
+  await sql.begin(async (tx) => {
+    const [food] = await tx<{ id: number }[]>`select id from foods where id = ${foodId} and status = 'confirmed' for update`;
+    if (!food) throw new Error("That food is no longer in the library.");
+    await tx`delete from food_servings where food_id = ${foodId} and lower(label) = lower(${label})`;
+    await tx`insert into food_servings (food_id, label, grams) values (${foodId}, ${label}, ${each})`;
+    await tx`update foods set updated_at = now() where id = ${foodId}`;
+  });
+  return (await getFood(foodId))!;
+}

@@ -391,6 +391,11 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             hold({ id: food.id, name: food.name, grams, partnerGrams, kcal: Math.round((food.per100.kcal * grams) / 100) })
           }
           onStock={stock}
+          onFood={(food) => {
+            setLibrary((l) => (l ? l.map((f) => (f.id === food.id ? food : f)) : l));
+            setFridge((items) => items.map((i) => (i.food.id === food.id ? { ...i, food } : i)));
+            setStep({ kind: "amount", food });
+          }}
         />
       ) : step.kind === "scan" ? (
         <ScanStep
