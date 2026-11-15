@@ -31,7 +31,7 @@ Eight ideas carry the design:
 7. **Most of our food is the same food.** Eating from the fridge is shared by default, split evenly, with each person's amount adjustable (§5.7).
 8. **Together means visible.** Each of us can see the other's day: what they ate, where they stand against their targets, whether they've trained. Nothing more: no streaks, no scores, no nudges.
 
-Targets are fixed for now (§13). Adjusting them from the weight trend is designed in §6 and deferred.
+Targets change only when their owner says so: by hand in Settings, or by accepting the one the maintenance estimate suggests (§6.3, §6.4).
 
 ---
 
