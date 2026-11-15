@@ -12,6 +12,7 @@ import { AmountStep } from "./AmountStep";
 import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
+import { TableRows, useTableRows } from "./TableRows";
 import { fmt } from "./fields";
 
 const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
@@ -31,9 +32,11 @@ const button =
 
 /**
  * The + Food sheet (§5.6): find a food in the library and say how much.
- * When it isn't there: photograph its label, which opens the camera straight
- * away and comes back here to be confirmed and logged; ask for it by name,
- * which goes through the food table and the review queue. Several foods can
+ * Typing searches our foods and the food table together, so a banana or a
+ * sweet potato is one tap away with no label. When it isn't in either:
+ * photograph its label, which opens the camera straight away and comes back
+ * here to be confirmed and logged; or ask for it by name, which has Claude
+ * look for it and goes through the review queue. Several foods can
  * be gathered and logged in one go: "Add another food" on the amount step
  * keeps the first one waiting, in a list above the search box. There is no typing
  * numbers in here: a label is photographed, and a misread is fixed in Review.
@@ -81,6 +84,9 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
     if (!q) return library;
     return library.filter((f) => [f.name, f.nameJa, f.brand, ...f.aliases].some((s) => fold(s).includes(q))).slice(0, 30);
   }, [library, query]);
+
+  // The food table, searched alongside our own foods (§5.8).
+  const tableRows = useTableRows(query, results);
 
   /** Undo removes exactly what was added, including the partner's half of a shared meal. */
   const undo = (ids: number[]) => async () => {
@@ -295,6 +301,14 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 </button>
               </li>
             ))}
+            <TableRows
+              rows={tableRows}
+              onError={setError}
+              onFood={(food) => {
+                setLibrary((l) => (l ? [food, ...l.filter((f) => f.id !== food.id)] : [food]));
+                setStep({ kind: "amount", food });
+              }}
+            />
           </ul>
           <div className="grid gap-2 pt-3">
             {query.trim() ? (
@@ -311,7 +325,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                 }}
                 className="rounded-[10px] border border-hairline py-2.5 text-[0.95rem] text-ink-dim"
               >
-                Add &ldquo;{query.trim()}&rdquo; by name
+                Not here? Have Claude look up &ldquo;{query.trim()}&rdquo;
               </button>
             ) : null}
             {waiting.length ? (

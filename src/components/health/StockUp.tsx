@@ -17,6 +17,7 @@ import { prepare } from "@/lib/resize";
 import { uploadFoodImage } from "@/lib/health/upload";
 import { useHealthDay } from "./HealthDay";
 import { fmt } from "./fields";
+import { TableRows, useTableRows } from "./TableRows";
 
 /**
  * One thing bought. It is a photo or a name on its way to being read
@@ -332,6 +333,7 @@ export function StockUp() {
         .filter((f) => !(lines ?? []).some((l) => l.foodId === f.id))
         .slice(0, 5)
     : [];
+  const tableRows = useTableRows(query, found).slice(0, 5);
 
   return (
     <div className="px-5 pt-3">
@@ -485,9 +487,17 @@ export function StockUp() {
                 </button>
               </li>
             ))}
+            <TableRows
+              rows={tableRows}
+              onError={setError}
+              onFood={(food) => {
+                setFoods((f) => new Map(f).set(food.id, food));
+                add({ draftId: null, foodId: food.id, label: food.name });
+              }}
+            />
             <li>
               <button onClick={() => lookUp(query.trim())} className="w-full py-2.5 text-left text-[0.95rem] text-ink-dim">
-                Look up &ldquo;{query.trim()}&rdquo; in the food table
+                Not here? Have Claude look up &ldquo;{query.trim()}&rdquo;
               </button>
             </li>
           </ul>

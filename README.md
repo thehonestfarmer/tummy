@@ -55,6 +55,12 @@ DATABASE_URL='<connection string>' bun run seed:reference
 To refresh it after MEXT publishes an update, download the 第2章 Excel file
 and run `bun scripts/reference-csv.ts <file>`.
 
+The table is Japanese only. So that it can be searched in English and
+romaji, `db/reference/mext-names-en.tsv` holds MEXT's English food names
+from "Standard Tables of Food Composition in Japan - 2015 - (Seventh Revised
+Edition)", and `mext-names-en-extra.tsv` our own translations of the rows
+added since. `bun scripts/reference-names.ts` writes both into a migration.
+
 ## Picking the vision model
 
 Every photo draft is read by `HEALTH_VISION_MODEL` and each model in

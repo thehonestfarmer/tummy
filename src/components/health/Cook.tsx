@@ -12,6 +12,7 @@ import { prepare } from "@/lib/resize";
 import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
+import { TableRows, useTableRows } from "./TableRows";
 import { fmt } from "./fields";
 
 /** One ingredient: a food, and how much of it in one of its servings or in grams. */
@@ -192,6 +193,7 @@ export function Cook() {
   const all = foods ? [...foods.values()].filter((f) => !picked.has(f.id)) : [];
   const found = q ? all.filter((f) => [f.name, f.nameJa, f.brand, ...f.aliases].some((s) => fold(s).includes(q))).slice(0, 6) : [];
   const stocked = all.filter((f) => inFridge.has(f.id));
+  const tableRows = useTableRows(query, found).slice(0, 5);
 
   async function cook() {
     if (!complete || !made || !name.trim()) return;
@@ -405,7 +407,15 @@ export function Cook() {
                 </button>
               </li>
             ))}
-            {!found.length ? <li className="pt-2 text-[0.9rem] text-ink-dim">Nothing called that in your foods yet.</li> : null}
+            <TableRows
+              rows={tableRows}
+              onError={setError}
+              onFood={(food) => {
+                setFoods((have) => new Map(have).set(food.id, food));
+                add(food.id);
+              }}
+            />
+            {!found.length && !tableRows.length ? <li className="pt-2 text-[0.9rem] text-ink-dim">Nothing called that in your foods or the food table.</li> : null}
             <li className="flex gap-2 pt-2">
               <button
                 onClick={() => camera.current?.click()}

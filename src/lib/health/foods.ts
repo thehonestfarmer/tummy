@@ -637,3 +637,42 @@ export async function searchFoods(query: string): Promise<FoodView[]> {
     [f.name, f.nameJa, f.brand, ...f.aliases].some((s) => (s ?? "").normalize("NFKC").toLowerCase().includes(q)),
   );
 }
+
+/**
+ * A food straight from a row of the food table (§5.8), chosen by the person
+ * from a search rather than by the model: picking the row is the
+ * confirmation. The same row picked again is the same food.
+ */
+export async function foodFromReference(me: User, referenceId: number, client: Client = "pwa"): Promise<FoodView> {
+  const [row] = await sql<{ name: string; name_en: string | null; name_ja: string | null; kcal: number | null; protein_g: number | null; fat_g: number | null; carbs_g: number | null }[]>`
+    select r.name, n.name_en, n.name_ja, r.kcal, r.protein_g, r.fat_g, r.carbs_g
+    from reference_foods r left join reference_names n using (food_number)
+    where r.id = ${referenceId}`;
+  if (!row || row.kcal === null) throw new Error("That row isn't in the food table.");
+
+  const id = await sql.begin(async (tx) => {
+    // One at a time per row, so two taps can't make two foods.
+    await tx`select pg_advisory_xact_lock(7305, ${referenceId})`;
+    const [existing] = await tx<{ id: number }[]>`
+      select id from foods
+      where reference_food_id = ${referenceId} and source = 'reference_table' and status = 'confirmed'
+      order by id limit 1`;
+    if (existing) return existing.id;
+
+    const ja = row.name_ja ?? row.name;
+    // The table says how each row was prepared; a row that says nothing (honey, bread) is as sold.
+    const basis: WeightBasis = /(^| )生( |$)/.test(ja)
+      ? "raw"
+      : /ゆで|焼き|蒸し|揚げ|いため|ソテー|フライ|天ぷら|水煮|甘煮|めし|かゆ|電子レンジ|いり/.test(ja)
+        ? "cooked"
+        : "as_packaged";
+    const [made] = await tx<{ id: number }[]>`
+      insert into foods (name, name_ja, kcal, protein_g, fat_g, carbs_g, weight_basis, default_grams,
+                         source, reference_food_id, client, status, created_by, confirmed_by, confirmed_via, confirmed_at)
+      values (${row.name_en ?? ja}, ${ja}, ${row.kcal}, ${row.protein_g ?? 0}, ${row.fat_g ?? 0}, ${row.carbs_g ?? 0},
+              ${basis}, 100, 'reference_table', ${referenceId}, ${client}, 'confirmed', ${me.id}, ${me.id}, ${client}, now())
+      returning id`;
+    return made.id;
+  });
+  return (await getFood(id))!;
+}

@@ -126,3 +126,54 @@ export async function pickReference(
     return null;
   }
 }
+
+/** One row of the food table as a person searching sees it. */
+export type ReferenceHit = {
+  id: number;
+  /** English where there is one, the table's Japanese otherwise. */
+  name: string;
+  nameJa: string;
+  kcal: number;
+  /** The library food already made from this row, if any. */
+  foodId: number | null;
+};
+
+/**
+ * The table searched by what a person types (§5.8): English, romaji or
+ * Japanese, every word of it found somewhere in the row's names. Rows named
+ * for what was typed come first, then raw ones, because that is how we
+ * weigh, then the plainest name.
+ */
+export async function lookupReference(query: string, limit = 12): Promise<ReferenceHit[]> {
+  const words = query.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+  // One letter of English matches half the table; one kanji (米, 卵) is a food.
+  if (!words.length || words.every((w) => /^[a-z0-9]?$/.test(w))) return [];
+  const escape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
+  const latin = words.map((w) => `%${escape(w)}%`);
+  const kana = words.map((w) => `%${escape(fold(w))}%`);
+  const first = `${escape(words[0])}%`;
+  // "honey" is the word in Honey and only the start of one in honeysuckle; a plural still counts.
+  const whole = words.map((w) => `% ${escape(w)} %`);
+  const plural = words.map((w) => `% ${escape(w)}s %`);
+  const rows = await sql<{ id: number; name_en: string | null; name_ja: string | null; name: string; kcal: number; food_id: number | null }[]>`
+    select r.id, n.name_en, n.name_ja, r.name, r.kcal,
+           (select min(f.id) from foods f
+            where f.reference_food_id = r.id and f.source = 'reference_table' and f.status = 'confirmed') as food_id
+    from reference_foods r left join reference_names n using (food_number)
+    where r.kcal is not null
+      and (select bool_and(coalesce(n.search, '') like l or r.search_key like k)
+           from unnest(${latin}::text[], ${kana}::text[]) as w(l, k))
+    order by (coalesce(n.search, '') like ${first} or coalesce(n.name_ja, r.name) like ${first}) desc,
+             (select count(*) from unnest(${whole}::text[], ${plural}::text[]) as w(one, many)
+              where ' ' || coalesce(n.search, '') || ' ' like one or ' ' || coalesce(n.search, '') || ' ' like many) desc,
+             (r.name ~ '(^| )生( |$)') desc,
+             length(coalesce(n.name_en, n.name_ja, r.name)) asc, r.food_number asc
+    limit ${limit}`;
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name_en ?? r.name_ja ?? r.name,
+    nameJa: r.name_ja ?? r.name,
+    kcal: r.kcal,
+    foodId: r.food_id,
+  }));
+}

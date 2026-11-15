@@ -1,0 +1,2191 @@
+01001	Amaranth, whole grain, raw
+01002	Foxtail millet, milled grain, raw
+01003	Foxtail millet, glutinous cake
+01004	Common oats*, oatmeal, raw ［*Syn. Oats］
+01005	Barley, under-milled pressed grain, raw
+01006	Barley, pressed grain, raw
+01007	Barley, split grain, raw
+01008	Barley, dried noodles, raw
+01009	Barley, dried noodles, boiled
+01010	Barley, roasted flour
+01011	Proso millet*, milled grain, raw ［*Syn. Common millet］
+01012	Common wheat, whole grain, domestic, medium-strength, raw
+01013	Common wheat, whole grain, imported, soft, raw
+01014	Common wheat, whole grain, imported, hard, raw
+01015	Common wheat, soft flour, first grade
+01016	Common wheat, soft flour, second grade
+01018	Common wheat, medium-strength flour, first grade
+01019	Common wheat, medium-strength flour, second grade
+01020	Common wheat, hard flour, first grade
+01021	Common wheat, hard flour, second grade
+01023	Common wheat, hard flour, whole grain
+01146	Common wheat, premixed flour for "Okonomiyaki" (Japanese-style savory pancake with various ingredients)
+01024	Common wheat, premixed flour for pancake
+01147	Common wheat, premixed flour for fried food
+01025	Common wheat, premixed flour for Tempura
+01026	Common wheat, bread, white
+01028	Common wheat, bread, white long roll
+01030	Common wheat, bread, hardtack
+01031	Common wheat, bread, French bread
+01032	Common wheat, bread, rye and wheat bread
+01033	Common wheat, bread, raisin bread
+01034	Common wheat, bread, soft rolls
+01035	Common wheat, bread, croissants
+01036	Common wheat, bread, English muffins
+01037	Common wheat, bread, naan
+01148	Common wheat, bread, bagel
+01038	Common wheat, "Udon" (thick wheat noodles), uncooked
+01039	Common wheat, "Udon" (thick wheat noodles), boiled
+01041	Common wheat, "Udon" (thick wheat noodles), dried noodles, uncooked
+01042	Common wheat, "Udon" (thick wheat noodles), dried noodles, boiled
+01043	Common wheat, "Somen and Hiyamugi" (thin wheat noodles), dried noodles, uncooked
+01044	Common wheat, "Somen and Hiyamugi" (thin wheat noodles), dried noodles, boiled
+01045	Common wheat, "Somen and Hiyamugi" (thin wheat noodles), dried noodles, hand-stretched, raw
+01046	Common wheat, "Somen and Hiyamugi" (thin wheat noodles), dried noodles, hand-stretched, boiled
+01047	Common wheat, yellow alkaline noodles, uncooked
+01048	Common wheat, yellow alkaline noodles, boiled
+01049	Common wheat, yellow alkaline noodles, steamed noodles
+01050	Common wheat, yellow alkaline noodles, dried noodles, uncooked
+01051	Common wheat, yellow alkaline noodles, dried noodles, boiled
+01052	Common wheat, Okinawa noodles, uncooked
+01053	Common wheat, Okinawa noodles, boiled
+01054	Common wheat, Okinawa noodles, dried noodles, uncooked
+01055	Common wheat, Okinawa noodles, dried noodles, boiled
+01056	Common wheat, instant Chinese noodles, dried by frying, seasoned
+01057	Common wheat, instant Chinese noodles, dried by frying, not seasoned
+01058	Common wheat, instant Chinese noodles, dried without frying
+01059	Common wheat, instant Chinese noodles, dried by frying and packed in cups
+01060	Common wheat, "Yakisoba", instant Chinese oil-fried noodles, dried by frying and in cups
+01061	Common wheat, instant, Chinese noodles, dried by without frying and packed in cups
+01062	Common wheat, instant, "Udon" noodles, Japanese thick wheat noodles, dried by frying and packed in cups
+01063	Durum wheat, macaroni and spaghetti, dry pasta, uncooked
+01064	Durum wheat, macaroni and spaghetti, dry pasta, boiled
+01149	Durum wheat, macaroni and spaghetti, fresh pasta, uncooked
+01065	Common wheat, "Fu" (wheat gluten cake), "Namafu" (steamed dough made from gluten and glutinous rice flour)
+01066	Common wheat, "Fu" (wheat gluten cake), "Kamayakifu" (dried by oven baking)
+01067	Common wheat, "Fu" (wheat gluten cake), "Itafu" (dried gluten sheet by baking)
+01068	Common wheat, "Fu" (wheat gluten cake), "Kurumafu" (dried gluten cake by baking ring-shaped)
+01070	Common wheat, wheat germ
+01071	Common wheat, wheat gluten, powdered type
+01072	Common wheat, wheat gluten, pellet type
+01073	Common wheat, wheat gluten, paste type
+01074	Common wheat, Outer steamed wheat "Jiaozi *" dough (*Chinese meat dumpling)
+01075	Common wheat, Outer steamed wheat "Shumai *" dough (*Chinese meat dumpling)
+01076	Common wheat, pizza crust
+01069	Common wheat, "Chikuwabu" (tube-shaped steamed wheat dough)
+01077	Common wheat, bread crumbs, fresh
+01078	Common wheat, bread crumbs, semi-dry
+01079	Common wheat, bread crumbs, dry
+01150	Common wheat, cold noodles, uncooked
+01080	Rice, paddy rice, brown rice, raw
+01081	Rice, paddy rice, half-milled, raw
+01082	Rice, paddy rice, under-milled, raw
+01083	Rice, paddy rice, non-glutinous, well-milled, raw
+01151	Rice, paddy rice, glutinous rice, well-milled, raw
+01152	Rice, long grain, paddy rice, well-milled, raw
+01084	Rice, short grain, paddy rice, well-milled, rice with embryo, raw
+01153	Rice, short grain, paddy rice, germinated brown rice, raw
+01085	Rice, short grain, paddy rice, brown, "meshi" (cooked rice)
+01086	Rice, short grain, paddy rice, half-milled, "meshi" (cooked rice)
+01087	Rice, short grain, paddy rice, under-milled, "meshi" (cooked rice)
+01088	Rice, short grain, paddy rice, nonglutinous rice, well-milled, "meshi" (cooked rice)
+01154	Rice, short grain, paddy rice, glutinous rice, well-milled, "meshi" (cooked rice)
+01089	Rice, short grain, paddy rice, well-milled, rice with embryo, "meshi" (cooked rice)
+01155	Rice, short grain, paddy rice, germinated brown rice, "meshi" (cooked rice)
+01090	Rice, short grain, paddy rice, brown, "zengayu" (gruel)
+01091	Rice, short grain, paddy rice, half-milled, "zengayu" (gruel)
+01092	Rice, short grain, paddy rice, under-milled, "zengayu" (gruel)
+01093	Rice, short grain, paddy rice, well-milled, "zengayu" (gruel)
+01094	Rice, short grain, paddy rice, brown, "gobugayu" (diluted gruel)
+01095	Rice, short grain, paddy rice, half-milled, "gobugayu" (diluted gruel)
+01096	Rice, short grain, paddy rice, under-milled, "gobugayu" (diluted gruel)
+01097	Rice, short grain, paddy rice, well-milled, "gobugayu" (diluted gruel)
+01098	Rice, short grain, paddy rice, brown, "omoyu" (thin gruel)
+01099	Rice, short grain, paddy rice, half-milled, "omoyu" (thin gruel)
+01100	Rice, short grain, paddy rice, under-milled, "omoyu" (thin gruel)
+01101	Rice, short grain, paddy rice, well-milled, "omoyu" (thin gruel)
+01102	Rice, short grain, upland rice, brown, raw
+01103	Rice, short grain, upland rice, half-milled, raw
+01104	Rice, short grain, upland rice, under-milled, raw
+01105	Rice, short grain, upland rice, well-milled, raw
+01106	Rice, short grain, upland rice, brown, "meshi" (cooked rice)
+01107	Rice, short grain, upland rice, half-milled, "meshi" (cooked rice)
+01108	Rice, short grain, upland rice, under-milled, "meshi" (cooked rice)
+01109	Rice, short grain, upland rice, well-milled, "meshi" (cooked rice)
+01110	Rice, non-glutinous rice products, quick-cooking rice, regular, raw
+01156	Rice, non-glutinous rice products, quick-cooking rice, fortified product for school lunch, raw
+01111	Rice, non-glutinous rice products, "Onigiri" (rice ball)
+01112	Rice, non-glutinous rice products, "Yaki-onigiri" (baked rice ball)
+01113	Rice, non-glutinous rice products, "Kiritanpo" (baked tube-shaped cooked rice)
+01114	Rice, non-glutinous rice products, "Joshinko" (ordinary rice flour)
+01157	Rice, non-glutinous rice products, roasted brown rice flour
+01158	Rice, non-glutinous rice products, fine flour
+01159	Rice, non-glutinous rice products, rice bread
+01160	Rice, non-glutinous rice products, fresh noodles, rice noodles, raw
+01115	Rice, non-glutinous rice products, dried noodles, raw
+01116	Rice, non-glutinous rice products, rice-koji
+01117	Rice, glutinous rice products, rice cake
+01118	Rice, glutinous rice products, "Sekihan" (steamed rice with adzuki beans or cowpeas)
+01119	Rice, glutinous rice products, "Akumaki" (lye-soaked and cooked rice in bamboo leaf wrapping)
+01120	Rice, glutinous rice products, "Shiratamako" (flour milled in water)
+01121	Rice, glutinous rice products, "Domyojiko" (steamed flour)
+01161	Rice, bran
+01122	Buckwheat flour, straight
+01123	Buckwheat flour, inner layer
+01124	Buckwheat flour, middle layer
+01125	Buckwheat flour, outer layer
+01126	Buckwheat, parboiled grain
+01127	Buckwheat, fresh noodles, uncooked
+01128	Buckwheat, fresh noodles, boiled
+01129	Buckwheat, dried noodles, uncooked
+01130	Buckwheat, dried noodles, boiled
+01131	Corn, whole grain, yellow kernel, raw
+01162	Corn, whole grain, white kernel, raw
+01132	Corn, Corn meal, yellow kernel, raw
+01163	Corn, Corn meal, white kernel, raw
+01133	Corn, Corn grits, yellow kernel, raw
+01164	Corn, Corn grits, white kernel, raw
+01134	Corn, Corn flour, yellow kernel, raw
+01165	Corn, Corn flour, white kernel, raw
+01135	Corn, cultivar: Cuzco, oil-roasted and salted
+01136	Corn, popcorn, oil-popped and salted
+01137	Corn, cornflakes
+01138	Job's tears, milled grain, raw
+01139	Japanese barnyard millet, milled grain, raw
+01140	Sorghum, whole grain, raw
+01141	Sorghum, milled grain, raw
+01142	Rye, whole flour
+01143	Rye, flour
+01166	Miscellaneous products, mixture of five grains
+02001	Jerusalem-artichoke, tuber, raw
+02041	Jerusalem-artichoke, tuber, boiled
+02002	Konjac, fine powder
+02003	Konjac, block, made from fine powder
+02004	Konjac, block, made from corm
+02042	Konjac, block, red
+02043	Konjac, freeze-dried, raw
+02044	Konjac, freeze-dried, rehydrated and boiled
+02005	Konjac, noodles
+02006	Sweet potato, tuberous root, without skin, raw
+02007	Sweet potato, tuberous root, without skin, steamed
+02008	Sweet potato, tuberous root, without skin, baked
+02045	Sweet potato, tuberous root, with skin, raw
+02046	Sweet potato, tuberous root, with skin, steamed
+02047	Sweet potatoes, tuberous root, with skin, tempura
+02009	Sweet potato, purple flesh type, tuberous root, without skin, raw
+02048	Sweet potato, purple flesh type, tuberous root, without skin, steamed
+02049	Sweet potato, Mushikiriboshi (sliced and dried after steaming)
+02010	Taro, "Satoimo", corm, raw
+02011	Taro, "Satoimo", corm, boiled
+02012	Taro, "Satoimo", corm, frozen
+02050	Taro, 'Celebes', corm, raw
+02051	Taro, 'Celebes', corm, boiled
+02052	Taro, "Takenoko-imo", corm, raw
+02053	Taro, "Takenoko-imo", corm, boiled
+02013	Taro, "Mizuimo", corm, raw
+02014	Taro, "Mizuimo", corm, boiled
+02015	Taro, "Yatsugashira", corm, raw
+02016	Taro, "Yatsugashira", corm, boiled
+02017	Potatoes, tuber, raw
+02018	Potatoes, tuber, steamed
+02019	Potatoes, tuber, boiled
+02020	Potatoes, french fries
+02021	Potatoes, dehydrated mashed potato
+02054	Yacon, tuber, raw
+02055	Yacon, tuber, boiled
+02022	Yam, Chinese yam, "Ichoimo", tuberous root, raw
+02023	Yam, Chinese yam, "Nagaimo", tuberous root, raw
+02024	Yam, Chinese yam, "Nagaimo", tuberous root, boiled
+02025	Yam, Chinese yam, "Yamatoimo", tuberous root, raw
+02026	Yam, Japanese yam, tuberous root, raw
+02027	Yam, white yam, tuberous root, raw
+02028	Starch, cassava starch
+02029	Starch, kudzu starch
+02030	Starch, rice starch
+02031	Starch, wheat starch
+02032	Starch, sago starch
+02033	Starch, sweet potato starch
+02034	Starch, potato starch
+02035	Starch, corn starch
+02036	Starch products, "kuzukiri" (kudzu starch noodles), dried, uncooked
+02037	Starch products, "kuzukiri" (kudzu starch noodles), dried, boiled
+02056	Starch products, "Goma-dofu" (tofu-like gel made from sesame paste and kudzu starch)
+02038	Starch products, tapioca pearls, dried, uncooked
+02057	Starch products, tapioca pearls, boiled
+02058	Starch products, fresh noodles, uncooked
+02059	Starch products, dried noodles, uncooked
+02060	Starch products, dried noodles, boiled
+02039	Starch products, "Harusame" (thin starch noodles), made from mung bean starch, dried, uncooked
+02061	Starch products, "Harusame" (thin starch noodles), made from mung bean starch, boiled
+02040	Starch products, "Harusame" (thin starch noodles), made from potato and sweet potato starches, dried, uncooked
+02062	Starch products, "Harusame" (thin starch noodles), made from potato and sweet potato starches, boiled
+03001	Sugars, brown sugar lump
+03002	Sugars, "Wasanbonto" (traditional non-centrifugal soft white cane sugar)
+03003	Sugars, soft sugars, white
+03004	Sugars, soft sugars, yellow
+03005	Sugars, hard sugars, granulated
+03006	Sugars, hard sugars, coarse crystal, white
+03007	Sugars, hard sugars, coarse crystal, yellow
+03008	Sugars, reprocessed sugars, cubes
+03009	Sugars, reprocessed sugars, "Korizato" (crystal candy sugar)
+03010	Sugars, reprocessed sugars, candy sugar for coffee
+03011	Sugars, reprocessed, powdered
+03012	Sugars, liquid sugars, sucrose
+03013	Sugars, liquid sugars, inverted
+03014	Sugars, candy sugar molasses
+03015	Starch sweeteners, dried glucose syrup
+03024	Starch sweeteners, glucose syrup, enzyme-converted
+03025	Starch sweeteners, glucose syrup, acid-converted
+03017	Starch sweeteners, glucose*, total sugar type, powdered ［*Syn. dextrose］
+03018	Starch sweeteners, glucose*, monohydrate ［*Syn. dextrose］
+03019	Starch sweeteners, glucose*, anhydrous ［*Syn. dextrose］
+03020	Starch sweeteners, fructose
+03026	Starch sweeteners, glucose fructose syrup
+03027	Starch sweeteners, fructose glucose syrup
+03028	Starch sweeteners, high fructose syrup
+03029	Brown sugar syrup
+03022	Honey
+03023	Maple syrup
+04001	Adzuki beans, mature seeds, whole, raw
+04002	Adzuki beans, mature seeds, whole, boiled
+04003	Adzuki beans, mature seeds, whole, boiled, canned in syrup
+04004	Adzuki beans, mature seeds, "An" (bean paste), "Koshi-an"(strained bean paste)
+04005	Adzuki beans, mature seeds, "An" (bean paste), "Sarashi-an" (powder of strained bean paste)
+04006	Adzuki beans, mature seeds, "An" (bean paste), "Tsubushi-an" (mushed sweet bean paste)
+04007	Kidney beans, mature seeds, whole, raw
+04008	Kidney beans, mature seeds, whole, boiled
+04009	Kidney beans, mature seeds, "Uzura-mame" (beans cooked with sugar and salt)
+04010	Kidney beans, mature seeds, "Koshi-an" (strained sweet bean paste)
+04011	Kidney beans, mature seeds, "Mame-kinton" (sweetened whole beans with bean paste)
+04012	Peas, mature seeds, green seed coats and cotyledons, whole, raw
+04074	Peas, mature seeds, dun seed coats, whole, raw
+04013	Peas, mature seeds, green seed coats and cotyledons, whole, boiled
+04075	Peas, mature seeds, dun seed coats, whole, boiled
+04014	Peas, mature seeds, oil-roasted and salted
+04015	Peas, mature seeds, "Shio-mame" (peas roasted and coated with calcium carbonate and salt)
+04016	Peas, mature seeds, "Uguisu-mame" (green peas cooked with sugar and salt)
+04017	Cowpeas, mature seeds, whole, raw
+04018	Cowpeas, mature seeds, whole, dried, boiled
+04019	Broad beans, mature seeds, whole, raw
+04020	Broad beans, mature seeds, oil-roasted and salted
+04021	Broad beans, mature seeds, "Otafuku-mame" (beans cooked with sugar and salt or soy sauce)
+04022	Broad beans, mature seeds, "Fuki-mame" (hulled beans cooked with sugar and salt)
+04076	Broad beans, mature seeds, "Shoyu-mame" (beans cooked with sugar and soy sauce)
+04023	Soybeans, mature seeds, whole, domestic, yellow seed coats, raw
+04077	Soybeans, mature seeds, whole, domestic, black seed coats, raw
+04024	Soybeans, mature seeds, whole, domestic, yellow seed coats, boiled
+04025	Soybeans, mature seeds, whole, imported from the U.S.A., yellow seed coats, raw
+04026	Soybeans, mature seeds, whole, imported from China, yellow seed coats, raw
+04027	Soybeans, mature seeds, whole, imported from Brazil, yellow seed coats, dried, raw
+04078	Soybeans, mature seeds, whole, yellow seed coats, roasted
+04079	Soybeans, mature seeds, whole, black seed coats, roasted
+04080	Soybeans, mature seeds, whole, green seed coats, roasted
+04028	Soybeans, mature seeds, whole, yellow seed coats, boiled, canned in water, drained
+04081	Soybeans, mature seeds, whole, yellow seed coats, steamed, retort packed
+04029	Soybeans, "Kinako" (roasted and ground beans), made from whole beans with yellow seed coats
+04082	Soybeans, "Kinako" (roasted and ground beans), made from whole beans with green seed coats and cotyledons
+04030	Soybeans, "Kinako" (roasted and ground beans), made from hulled beans with yellow seed coats
+04083	Soybeans, embryonic axis
+04031	Soybeans, "Budo-mame" (beans cooked with sugar and salt)
+04032	Soybeans, tofu, "Momen-tofu" (regular tofu)
+04033	Soybeans, tofu, "Kinugoshi-tofu" (silken tofu)
+04034	Soybeans, tofu, soft tofu
+04035	Soybeans, tofu, "Juten-tofu" (packaged tofu)
+04036	Soybeans, tofu, "Okinawa-tofu" (firm tofu made in Okinawa prefecture)
+04037	Soybeans, tofu, "Yushi-dofu" (unmoulded tofu)
+04038	Soybeans, tofu, "Yaki-tofu" (grilled tofu)
+04039	Soybeans, tofu, "Nama-age" (fried slices of drained tofu)
+04040	Soybeans, tofu, "Abura-age" (fried thin slices of pressed tofu), uncooked
+04084	Soybeans, tofu, "Abura-age" (fried thin slices of pressed tofu), blanched with boiling water, uncooked
+04085	Soybeans, tofu, "Abura-age" (fried thin slices of pressed tofu), blanched with boiling water, baked
+04086	Soybeans, tofu, "Abura-age" (fried thin slices of pressed tofu), blanched with boiling water, boiled
+04041	Soybeans, tofu, "Ganmodoki" (fried mixture of crushed tofu, vegetables and ground yam)
+04042	Soybeans, tofu, "Kori-dofu" (freeze dried tofu), uncooked
+04087	Soybeans, tofu, "Kori-dofu" (freeze dried tofu), rehydrated with hot water and boiled
+04043	Soybeans, tofu, "Tofu-yo" (fermented tofu)
+04044	Soybeans, tofu, "Tofu-chikuwa" (tubular tofu made with surimi), steamed type
+04045	Soybeans, tofu, "Tofu-chikuwa" (tubular tofu made with surimi), baked type
+04088	Soybeans, tofu, "Rokujo-tofu" (salted and sun-dried tofu)
+04046	Soybeans, natto, "Itohiki-natto" (fermented whole soybean)
+04047	Soybeans, natto, "Hikiwari-natto" (fermented dehulled and split soybean)
+04048	Soybeans, natto, "Goto-natto" (natto fermented with rice-koji and salt)
+04049	Soybeans, natto, "Tera-natto" (koji-molded, salted, steamed soybeans)
+04051	Soybeans, "Okara" (insoluble residue from soy milk processing), fresh
+04089	Soybeans, "Okara" (insoluble residue from soy milk processing), dried
+04052	Soybeans, soy milk, regular
+04053	Soybeans, soy milk, reconstituted
+04054	Soybeans, soy milk based beverage, coffee flavored
+04055	Soybeans, soy protein, textured
+04056	Soybeans, soy protein, concentrated
+04057	Soybeans, soy protein, isolated, regular
+04090	Soybeans, soy protein, isolated, mineral- controlled product
+04058	Soybeans, soy protein, structured
+04059	Soybeans, "Yuba" (film formed on surface of warmed soy milk), fresh
+04060	Soybeans, "Yuba" (film formed on surface of warmed soy milk), dried, uncooked
+04091	Soybeans, "Yuba" (film formed on surface of boiling soy milk), dried, rehydrated with hot water
+04061	Soybeans, "Kinzanji-miso" (fermented roasted soybeans, barley or wheat, vegetable and salt with koji mold)
+04062	Soybeans, "Hishio-miso" (fermented soybeans, barley or wheat, and vegetable with koji mold)
+04063	Soybeans, Tempeh (fermented soybeans with Rhizopus oligospore)
+04064	Rice beans, mature seeds, whole, raw
+04092	Rice beans, mature seeds, whole, boiled
+04065	Chickpeas*, mature seeds, whole, raw ［*Syn. Garbanzo beans］
+04066	Chickpeas*, mature seeds, whole, boiled ［*Syn. Garbanzo beans］
+04067	Chickpeas*, mature seeds, whole, oil-roasted and salted ［*Syn. Garbanzo beans］
+04068	Scarlet runner beans, mature seeds, whole, raw
+04069	Scarlet runner beans, mature seeds, whole, boiled
+04070	Lima beans*, mature seeds, whole, raw ［*Syn. Sieva beans］
+04093	Lima beans*, mature seeds, whole, boiled ［*Syn. Sieva beans］
+04071	Mung beans, mature seeds, whole, raw
+04072	Mung beans, mature seeds, whole, boiled
+04073	Lentils, mature seeds, whole, raw
+04094	Lentils, mature seeds, whole, boiled
+05001	Almonds, raw
+05002	Almonds, oil-roasted and salted
+05040	Almonds, roasted, without salt
+05003	Hemp seeds, dried
+05041	Flax seeds, roasted
+05004	Perilla, "Egoma", seeds, dried
+05005	Cashew nuts, oil-roasted and salted
+05006	Pumpkin seeds, roasted and salted
+05007	Japanese torreya seeds, roasted
+05008	Ginkgo nuts, raw
+05009	Ginkgo nuts, shelled and skinned, boiled
+05010	Chestnuts, Japanese chestnuts, raw
+05011	Chestnuts, Japanese chestnuts, boiled
+05012	Chestnuts, Japanese chestnuts, Kanroni (boiled and sweetened), drained
+05013	Chestnuts, Chinese chestnuts, roasted
+05014	Walnuts, roasted
+05015	Poppy seeds, dried
+05016	Coconut, powder
+05017	Sesame seeds, whole, dried
+05018	Sesame seeds, whole, dried and roasted
+05019	Sesame seeds, dried and hulled
+05042	Sesame seeds, paste
+05020	Sweet acorns, raw
+05021	Watermelon seeds, roasted and salted
+05022	Japanese horse chestnuts, steamed
+05023	Lotus seeds, immature, raw
+05024	Lotus seeds, mature, dried, shelled and skinned, raw
+05043	Lotus seeds, mature, dried, shelled and skinned, boiled
+05025	Japanese water chestnuts, raw
+05026	Pistachio nuts, roasted and salted
+05027	Sunflower seeds, oil-roasted and salted
+05028	Brazil nuts, oil-roasted and salted
+05029	Hazel nuts*, skinned, oil-roasted and salted ［*Syn. European filberts］
+05030	Pecan nuts, oil-roasted and salted
+05031	Macadamia nuts, roasted and salted
+05032	Pine nuts, raw
+05033	Pine nuts, roasted
+05034	Peanuts, mature seeds, Virginia type, raw
+05044	Peanuts, mature seeds, Spanish type, raw
+05035	Peanuts, mature seeds, Virginia type, roasted
+05045	Peanuts, mature seeds, Spanish type, roasted
+05036	Peanuts, mature seeds, oil-roasted and salted
+05037	Peanuts, peanut butter
+06001	Globe artichoke, flower bud, raw
+06002	Globe artichoke, flower bud, boiled
+06003	Chive, "Asatsuki", leaves, raw
+06004	Chive, "Asatsuki", leaves, boiled
+06005	Angelica, "Ashitaba", stems and leaves, raw
+06006	Angelica, "Ashitaba", stems and leaves, boiled
+06007	Asparagus, green, shoots, raw
+06008	Asparagus, green, shoots, boiled
+06327	Asparagus, green, shoots, sautéed
+06009	Asparagus, white, canned in brine
+06328	Aloe, leaves, raw
+06010	Kidney beans, "Sayaingen", immature pods, raw
+06011	Kidney beans, "Sayaingen", immature pods, boiled
+06012	Japanese spikenard, "Udo", blanching cultivation, stem, raw
+06013	Japanese spikenard, "Udo", blanching cultivation, stem, bleached in water
+06014	Japanese spikenard, "Udo", outdoor cultivation, stem, raw
+06015	Soybeans, immature*, raw ［*Syn. Green soybeans］
+06016	Soybeans, immature*, boiled ［*Syn. Green soybeans］
+06017	Soybeans, immature*, frozen ［*Syn. Green soybeans］
+06018	Endive, leaves, raw
+06019	Peas, stem and leaves, raw
+06329	Peas, sprouts, raw
+06330	Peas, sprouts, boiled
+06331	Peas, sprouts, sautéed
+06020	Peas, snow peas, immature pods, raw
+06021	Peas, snow peas, immature pods, boiled
+06022	Peas, snap peas, immature pods, raw
+06023	Peas, green peas, raw
+06024	Peas, green peas, boiled
+06025	Peas, green peas, frozen
+06026	Peas, green peas, canned in brine
+06027	Non-heading Chinese cabbage, "Osaka-shirona", leaves, raw
+06028	Non-heading Chinese cabbage, "Osaka-shirona", leaves, boiled
+06029	Non-heading Chinese cabbage, "Osaka-shirona", leaves, salted pickles
+06030	Japanese saltwort, stems and leaves, raw
+06031	Japanese saltwort, stems and leaves, boiled
+06032	Okra, pods, raw
+06033	Okra, pods, boiled
+06034	Turnip, leaves, raw
+06035	Turnip, leaves, boiled
+06036	Turnip, root, with skin, raw
+06037	Turnip, root, with skin, boiled
+06038	Turnip, root, without skin, raw
+06039	Turnip, root, without skin, boiled
+06040	Turnip, pickles, salted pickles, leaves
+06041	Turnip, pickles, salted pickles, root with skin
+06042	Turnip, pickles, salted pickles, root without skin
+06043	Turnip, pickles, "Nukamiso-zuke" (pickled in salty rice bran paste), leaves
+06044	Turnip, pickles, "Nukamiso-zuke" (pickled in salty rice bran paste), root with skin
+06045	Turnip, pickles, "Nukamiso-zuke" (pickled in salty rice bran paste), root without skin
+06046	Pumpkin and squash, Japanese squash*, fruit, raw ［*Syn. Pumpkin］
+06047	Pumpkin and squash, Japanese squash*, fruit, boiled ［*Syn. Pumpkin］
+06048	Pumpkin and squash, winter squash*, fruit, raw ［*Syn. Pumpkin］
+06049	Pumpkin and squash, winter squash*, fruit, boiled ［*Syn. Pumpkin］
+06332	Pumpkin and squash, winter squash*, fruit, baked ［*Syn. Pumpkin］
+06050	Pumpkin and squash, winter squash*, fruit, frozen ［*Syn. Pumpkin］
+06051	Pumpkin and squash, spaghetti squash*, fruit, raw ［*Syn. Summer squash, field pumpkin］
+06052	Leaf mustard, "Karashina", leaves, raw
+06053	Leaf mustard, "Karashina", leaves, salted pickles
+06054	Cauliflower, inflorescence, raw
+06055	Cauliflower, inflorescence, boiled
+06056	Gourd, "Kanpyo" (dried gourd strips), raw
+06057	Gourd, "Kanpyo" (dried gourd strips), boiled
+06058	Chrysanthemum, petals, raw
+06059	Chrysanthemum, petals, boiled
+06060	Chrysanthemum, "Kikunori" (sheet of dried chrysanthemum petals)
+06061	Cabbage, common, head, raw
+06062	Cabbage, common, head, boiled
+06333	Cabbage, common, head, sautéed
+06063	Cabbage, green ball, head raw
+06064	Cabbage, red cabbage, head raw
+06065	Cucumber, fruit, raw
+06066	Cucumber, fruit, pickles, salted pickles
+06067	Cucumber, fruit, pickles, pickled in soy sauce
+06068	Cucumber, fruit, pickles, "Nukamiso-zuke" (pickled in salty rice bran paste)
+06069	Cucumber, fruit, pickles, sweet type (pickled with seasoned vinegar)
+06070	Cucumber, fruit, pickles, sour type (processed by lactic acid fermentation)
+06071	Japanese victory onion, leaves, raw
+06075	Leaf celery, stems and leaves, raw
+06076	Leaf celery, stems and leaves, boiled
+06077	Watercress, stems and leaves, raw
+06078	Arrowhead, tuber, raw
+06079	Arrowhead, tuber, boiled
+06080	Kale, leaves, raw
+06081	Kohlrabi, enlarged stems, raw
+06082	Kohlrabi, enlarged stems, boiled
+06083	Ostrich-feather fern, fiddlehead, raw
+06084	Edible burdock, root, raw
+06085	Edible burdock, root, boiled
+06086	Spinach mustard, "Komatsuna", leaves, raw
+06087	Spinach mustard, "Komatsuna", leaves, boiled
+06088	Stem mustard, pickles
+06089	Non-heading Chinese cabbage, "Santosai", leaves, raw
+06090	Non-heading Chinese cabbage, "Santosai", leaves, boiled
+06091	Non-heading Chinese cabbage, "Santosai", leaves, salted pickles
+06092	Winged beans, immature pods, raw
+06093	Sweet peppers, "Shishito", fruit, raw
+06094	Sweet peppers, "Shishito", fruit, sautéed
+06095	Perilla, "Shiso", leaves, raw
+06096	Perilla, "Shiso", immature seeds, raw
+06097	Yandlong beans, immature pods, raw
+06098	Yandlong beans, immature pods, boiled
+06099	Garland chrysanthemum, leaves, raw
+06100	Garland chrysanthemum, leaves, boiled
+06101	Water shield, young leaves, bottled in water
+06102	Ginger, immature rhizome with stem, raw
+06103	Ginger, mature rhizome, raw
+06104	Ginger, mature rhizome, pickles
+06105	Ginger, mature rhizome, pickles, sweetened
+06106	Oriental pickling melon, fruit, raw
+06107	Oriental pickling melon, fruits, pickles, salted pickles
+06108	Oriental pickling melon, fruits, pickles, "Nara-zuke" (pickled with Sake lees)
+06109	Taro, petiole, fresh, raw
+06110	Taro, petiole, fresh, boiled
+06111	Taro, petiole, dried, raw
+06112	Taro, petiole, dried and boiled
+06113	Turnip, "Sugukina", leaves, raw
+06114	Turnip, "Sugukina", root, raw
+06115	Turnip, "Sugukina", leaves and root, pickles
+06116	Zucchini, fruit, raw
+06117	Water dropwort, stems and leaves, raw
+06118	Water dropwort, stems and leaves, boiled
+06119	Celery, petiole, raw
+06120	Japanese royal fern, fiddleheads, fresh, raw
+06121	Japanese royal fern, fiddleheads, fresh, boiled
+06122	Japanese royal fern, fiddleheads, dried, raw
+06123	Japanese royal fern, fiddleheads, dried, boiled
+06124	Broad beans, immature beans, raw
+06125	Broad beans, immature beans, boiled
+06126	Tatsoi, leaves, raw
+06127	Tatsoi, leaves, boiled
+06128	Japanese radishes, Daikon, sprouts, raw
+06129	Japanese radishes, Daikon, cultivar for leaf use, leaves, raw
+06130	Japanese radishes, Daikon, leaves, raw
+06131	Japanese radishes, Daikon, leaves, boiled
+06132	Japanese radishes, Daikon, root with skin, raw
+06133	Japanese radishes, Daikon, root with skin, boiled
+06134	Japanese radishes, Daikon, root without skin, raw
+06135	Japanese radishes, Daikon, root without skin, boiled
+06136	Japanese radishes, Daikon, "Kiriboshi-daikon" (cut and dried Daikon root), raw
+06334	Japanese radishes, Daikon, "Kiriboshi-daikon" (cut and dried Daikon root), rehydrated and boiled
+06335	Japanese radishes, Daikon, "Kiriboshi-daikon" (cut and dried Daikon root), rehydrated and sautéed
+06137	Japanese radishes, Daikon, root, pickles, "Nukamiso-zuke" (pickled in salty rice bran paste)
+06138	Japanese radishes, Daikon, root, pickles, "Takuan-zuke" (pickled with rice bran and salt), made of salted Daikon
+06139	Japanese radishes, Daikon, root, pickles, "Takuan-zuke" (pickled with rice bran and salt), made of sun-dried Daikon
+06140	Japanese radishes, Daikon, root, pickles, "Moriguchi-zuke" (slender root cultivar pickled with Sake lees)
+06141	Japanese radishes, Daikon, root, pickles, "Bettara-zuke" (pickled with rice koji)
+06142	Japanese radishes, Daikon, root, pickles, "Miso-zuke" (pickled with miso)
+06143	Japanese radishes, Daikon, root, pickles, "Fukujin-zuke" (pickled with Daikon, eggplant, immature sword pods and east Indian lotus rhizome)
+06144	Chinese mustard, "Taisai", young leaves, raw
+06145	Chinese mustard, "Taisai", leaves, raw
+06146	Chinese mustard, "Taisai", leaves, salted pickles
+06147	Leaf mustard, "Takana", leaves, raw
+06148	Leaf mustard, "Takana", leaves, salted pickles
+06149	Bamboo shoots, raw
+06150	Bamboo shoots, boiled
+06151	Bamboo shoots, canned in water
+06152	Bamboo shoots, "Shinachiku" (boiled, fermented and salted bamboo shoots), desalted
+06153	Onions, bulb, raw
+06154	Onions, bulb, bleached in water
+06155	Onions, bulb, boiled
+06336	Onions, bulb, sautéed
+06156	Onions, red onions, bulb, raw
+06337	Onions, immature onions, bulb and stem, raw
+06157	Japanese angelica-tree, spears, raw
+06158	Japanese angelica-tree, spears, boiled
+06159	Chicory, spears, raw
+06160	Green bok choy, leaves, raw
+06161	Green bok choy, leaves, boiled
+06338	Green bok choy, leaves, sautéed
+06162	Field horsetail, fertile shoot, raw
+06163	Field horsetail, fertile shoot, boiled
+06164	New Zealand spinach, stems and leaves, raw
+06165	Malabar nightshade, stems and leaves, raw
+06166	Malabar nightshade, stems and leaves, boiled
+06167	Leopard plant, petiole, raw
+06168	Leopard plant, petiole, boiled
+06169	Hot peppers, leaves and fruits, raw
+06170	Hot peppers, leaves and fruits, sautéed
+06171	Hot peppers, fruit, raw
+06172	Hot peppers, fruit, dried
+06173	Chinese preserving melon, fruit, raw
+06174	Chinese preserving melon, fruit, boiled
+06175	Corn, sweet corn, immature kernels, raw
+06176	Corn, sweet corn, immature kernels, boiled
+06339	Corn, sweet corn, immature kernels, microwaved
+06177	Corn, sweet corn, immature kernels on cob, frozen
+06178	Corn, sweet corn, immature kernels, frozen
+06179	Corn, sweet corn, canned products, cream style
+06180	Corn, sweet corn, canned products, whole kernel style
+06181	Corn, sweet corn, young ear, raw
+06182	Tomatoes, fruit, raw
+06183	Tomatoes, cherry tomatoes, fruit, raw
+06184	Tomatoes, canned products, whole, without salt
+06185	Tomatoes, canned products, juice, with salt
+06340	Tomatoes, canned products, juice, without salt
+06186	Tomatoes, canned products, tomato-based vegetable juice, with salt
+06341	Tomatoes, canned products, tomato-based vegetable juice, without salt
+06187	Red chicory, leaves, raw
+06188	Summer cypress, seeds, boiled
+06189	Semi-heading Chinese cabbage, "Nagasaki-hakusai", leaves, raw
+06190	Semi-heading Chinese cabbage, "Nagasaki-hakusai", leaves, boiled
+06191	Eggplant*, Japanese type, fruit, raw ［*Syn. Aubergine］
+06192	Eggplant*, Japanese type, fruit, boiled ［*Syn. Aubergine］
+06342	Eggplant*, Japanese type, fruit, sautéed ［*Syn. Aubergine］
+06343	Eggplant*, Japanese type, fruit, tempura ［*Syn. Aubergine］
+06193	Eggplant*, western type, fruit, raw ［*Syn. Aubergine］
+06194	Eggplant*, western type, fruit, deep-fried ［*Syn. Aubergine］
+06195	Eggplant*, pickles, salted pickles ［*Syn. Aubergine］
+06196	Eggplant*, pickles, "Nukamiso-zuke" (pickled with salty rice bran paste) ［*Syn. Aubergine］
+06197	Eggplant*, pickles, "Koji-zuke" (pickled small oval type with rice koji) ［*Syn. Aubergine］
+06198	Eggplant*, pickles, "Karashi-zuke" (pickled small oval type with mustard) ［*Syn. Aubergine］
+06199	Eggplant*, pickles, "Shiba-zuke" (pickled with perilla leaf, cucumber and Myoga, etc.) ［*Syn. Aubergine］
+06200	Shepherd's purse, leaves, raw
+06201	Turnip rape, flower buds and stems, raw
+06202	Turnip rape, flower buds and stems, boiled
+06203	Rape, stems and leaves, raw
+06204	Rape, stems and leaves, boiled
+06205	Bitter melon, fruit, raw
+06206	Bitter melon, fruit, sautéed
+06207	Chinese chive, leaves, raw
+06208	Chinese chive, leaves, boiled
+06344	Chinese chive, leaves, sautéed
+06209	Chinese chive, scape and flower bud, raw
+06210	Chinese chive, blanching culture, leaves, raw
+06211	Carrots, cultivar for leaf use, leaves, raw
+06212	Carrot, regular (European type), root with skin, raw
+06213	Carrot, regular (European type), root with skin, boiled
+06214	Carrot, regular (European type), root without skin, raw
+06215	Carrot, regular (European type), root without skin, boiled
+06345	Carrot, regular (European type), root without skin, sautéed
+06346	Carrot, regular (European type), root without skin, deep-fried carrot
+06347	Carrot, regular (European type), skin, raw
+06216	Carrot, regular (European type), root, frozen
+06348	Carrot, regular (European type), glazed carrot
+06217	Carrot, regular (European type), juice, canned
+06218	Carrot, "Kintoki" (oriental type), root with skin, raw
+06219	Carrot, "Kintoki" (oriental type), root with skin, boiled
+06220	Carrot, "Kintoki" (oriental type), root without skin, raw
+06221	Carrot, "Kintoki" (oriental type), root without skin, boiled
+06222	Carrot, baby carrot, root, raw
+06223	Garlic, bulb, raw
+06349	Garlic, bulb, sautéed
+06224	Garlic, scape, raw
+06225	Garlic, scape, boiled
+06226	Welsh onions, "Nebuka-negi" (large variety, blanching cultivation), leaves, raw
+06350	Welsh onions, "Nebuka-negi" (large variety, blanching cultivation), leaves, boiled
+06351	Welsh onions, "Nebuka-negi" (large variety, blanching cultivation), leaves, sautéed
+06227	Welsh onions, "Ha-negi" (large variety, green), leaves, raw
+06352	Welsh onions, "Ha-negi" (large variety, green), leaves, sautéed
+06228	Welsh onions, "Konegi" (small variety), leaves, raw
+06229	Turnip green, "Nozawana", leaves, raw
+06230	Turnip green, "Nozawana", leaves, pickles, salted pickles
+06231	Turnip green, "Nozawana", leaves, pickles, seasoned
+06232	Wild onion, "Nobiru", bulb and leaves, raw
+06233	Chinese cabbage, head, raw
+06234	Chinese cabbage, head, boiled
+06235	Chinese cabbage, head, pickles, salted pickles
+06236	Chinese cabbage, head, pickles, Kimchi
+06237	Bok choy, leaves, raw
+06238	Basil, leaves, raw
+06239	Parsley, leaves, raw
+06240	Little radish, root, raw
+06241	Chayote, fruit, white-colored, raw
+06353	Chayote, fruit, green-colored, raw
+06242	Chayote, fruit, white-colored, salted pickles
+06243	Red beet*, root, raw ［*Syn. Table beet］
+06244	Red beet*, root, boiled ［*Syn. Table beet］
+06245	Sweet peppers, fruit, green, raw
+06246	Sweet peppers, fruit, green, sautéed
+06247	Sweet peppers, fruit, red, raw
+06248	Sweet peppers, fruit, red, sautéed
+06249	Sweet peppers, fruit, yellow, raw
+06250	Sweet peppers, fruit, yellow, sautéed
+06251	Sweet peppers, "Tomapi", fruit, raw
+06252	Turnip, "Hinona", root with top portion, raw
+06253	Turnip, "Hinona", root with top portion, pickles, sweetened
+06254	Non-heading Chinese cabbage, "Hiroshimana", leaves, raw
+06255	Non-heading Chinese cabbage, "Hiroshimana", leaves, salted pickles
+06256	Japanese butterbur, petiole, raw
+06257	Japanese butterbur, petiole, boiled
+06258	Japanese butterbur, inflorescence, raw
+06259	Japanese butterbur, inflorescence, boiled
+06260	Hyacinth beans, immature pods, raw
+06261	Swiss chard, leaves, raw
+06262	Swiss chard, leaves, boiled
+06263	Broccoli, inflorescence, raw
+06264	Broccoli, inflorescence, boiled
+06354	Broccoli, sprouts, raw
+06265	Sponge gourd, immature fruit, raw
+06266	Sponge gourd, immature fruit, boiled
+06267	Spinach, leaves, all season, raw
+06355	Spinach, leaves, summer harvest, raw
+06356	Spinach, leaves, winter harvest, raw
+06268	Spinach, leaves, all season, boiled
+06357	Spinach, leaves, summer harvest, boiled
+06358	Spinach, leaves, winter harvest, boiled
+06359	Spinach, leaves, all season, sautéed
+06269	Spinach, leaves, frozen
+06270	Horseradish, rhizome, raw
+06271	Manchurian wild rice, stem, raw
+06272	Turnip green, "Mizukakena", leaves, raw
+06273	Turnip green, "Mizukakena", leaves, salted pickles
+06072	Leaf green, "Mizuna", leaves, raw
+06073	Leaf green, "Mizuna", leaves, boiled
+06074	Leaf green, "Mizuna", leaves, salted pickles
+06274	Japanese hornwort, "Kiri-mitsuba" (branched in a dark place), leaves, raw
+06275	Japanese hornwort, "Kiri-mitsuba" (branched in a dark place), leaves, boiled
+06276	Japanese hornwort, "Ne-mitsuba" (branched by covering with soil), leaves, raw
+06277	Japanese hornwort, "Ne-mitsuba" (branched by covering with soil), leaves, boiled
+06278	Japanese hornwort, "Ito-mitsuba" (young plants), leaves, raw
+06279	Japanese hornwort, "Ito-mitsuba" (young plants), leaves, boiled
+06360	Leaf green, "Mibuna", leaves, raw
+06280	Japanese ginger, "Myoga", spike, raw
+06281	Japanese ginger, "Myoga", young stems and leaves, raw
+06282	Yam, bulbil, raw
+06283	Brussels sprouts, head, raw
+06284	Brussels sprouts, head, boiled
+06285	Water pepper sprouts, raw
+06286	Bean sprouts, alfalfa sprouts, raw
+06287	Bean sprouts, soybean sprouts, raw
+06288	Bean sprouts, soybean sprouts, boiled
+06289	Bean sprouts, black gram sprouts, raw
+06290	Bean sprouts, black gram sprouts, boiled
+06291	Bean sprouts, mung bean sprouts, raw
+06292	Bean sprouts, mung bean sprouts, boiled
+06293	Nalta jute*, stems and leaves, raw ［*Syn. Tossa jute］
+06294	Nalta jute*, stems and leaves, boiled ［*Syn. Tossa jute］
+06295	Thistle root, "Yamagobo", pickled with miso
+06296	Lily, bulb, raw
+06297	Lily, bulb, boiled
+06298	Water convolvulus, stems and leaves, raw
+06299	Water convolvulus, stems and leaves, boiled
+06300	Aster, "Yomena", leaves, raw
+06301	Japanese wormwood, leaves, raw
+06302	Japanese wormwood, leaves, boiled
+06303	Peanuts, immature beans, raw
+06304	Peanuts, immature beans, boiled
+06305	Japanese scallion, "Rakkyo", mature bulb, raw
+06306	Japanese scallion, "Rakkyo", mature bulb, pickles, sweetened
+06307	Japanese scallion, "Rakkyo", immature bulb, raw
+06308	Leeks, bulb and leaves, raw
+06309	Leeks, bulb and leaves, boiled
+06319	Rocket salad, leaves, raw
+06310	Garden rhubarb, petiole, raw
+06311	Garden rhubarb, petiole, boiled
+06312	Lettuce, head lettuce, crisp type, soil culture, head, raw
+06361	Lettuce, head lettuce, crisp type, hydroculture, head, raw
+06313	Lettuce, head lettuce, butter type, leaves, raw
+06314	Lettuce, green leaf lettuce, leaves, raw
+06315	Lettuce, red leaf lettuce, leaves, raw
+06362	Lettuce, Sang-chu lettuce, leaves, raw
+06316	Lettuce, Romaine lettuce, leaves, raw
+06317	East Indian lotus root, rhizome, raw
+06318	East Indian lotus root, rhizome, boiled
+06320	Green onion, "Wakegi", leaves, raw
+06321	Green onion, "Wakegi", leaves, boiled
+06322	Wasabi, rhizome, raw
+06323	Wasabi, pickled with Sake lees
+06324	Bracken fern, fiddleheads, raw
+06325	Bracken fern, fiddleheads, boiled
+06326	Bracken fern, fiddleheads, dried, raw
+07001	Akebia, flesh, raw
+07002	Akebia, peel, raw
+07003	Acerola, sour type, raw
+07159	Acerola, sweet type, raw
+07004	Acerola, 10 % fruit juice beverage
+07005	Atemoya, raw
+07006	Avocados, raw
+07007	Apricots, raw
+07008	Apricots, dried
+07009	Apricots, canned in heavy syrup
+07010	Apricots, jam, heavily sweetened
+07011	Apricots, jam, lightly sweetened
+07012	Strawberries, raw
+07013	Strawberries, jam, heavily sweetened
+07014	Strawberries, jam, lightly sweetened
+07160	Strawberries, dried
+07015	Figs, raw
+07016	Figs, dried
+07017	Figs, canned in heavy syrup
+07019	Mume*, raw ［*Syn. Japanese apricots］
+07020	Mume*, salted pickles ［*Syn. Japanese apricots］
+07021	Mume*, pickles, seasoned ［*Syn. Japanese apricots］
+07022	Mume*, "Umeboshi" (pickled and dried mume), salted pickles ［*Syn. Japanese apricots］
+07023	Mume*, "Umeboshi" (pickled and dried mume), seasoned pickles ［*Syn. Japanese apricots］
+07024	Mume*,"Umebishio" (sweetened puree of pickled mume) ［*Syn. Japanese apricots］
+07025	Mume*, 20 % fruit juice beverage ［*Syn. Japanese apricots］
+07037	Olives, in brine, green
+07038	Olives, in brine, ripe
+07039	Olives, in brine, stuffed olives
+07049	Japanese persimmons*, nonastringent, raw ［*Syn. Kaki］
+07050	Japanese persimmons*, astringency removed, raw ［*Syn. Kaki］
+07051	Japanese persimmons*, dried ［*Syn. Kaki］
+07053	Chinese quinces, raw
+07018	Citrus, "Iyo", juice sacs
+07026	Satsuma mandarins, segments, early ripening type, raw
+07027	Satsuma mandarins, segments, normal ripening type, raw
+07028	Satsuma mandarins, juice sacs, early ripening type, raw
+07029	Satsuma mandarins, juice sacs, normal ripening type, raw
+07030	Satsuma mandarins, straight fruit juice
+07031	Satsuma mandarins, reconstituted fruit juice
+07032	Satsuma mandarins, juice with juice sacs
+07033	Satsuma mandarins, 50 % fruit juice beverage
+07034	Satsuma mandarins, 20 % fruit juice beverage
+07035	Satsuma mandarins, canned in light syrup, solids
+07036	Satsuma mandarins, canned in light syrup, liquid
+07040	Oranges, navel, juice sacs, raw
+07041	Oranges, Valencia, imported from the U.S.A., juice sacs, raw
+07042	Oranges, Valencia, straight fruit juice
+07043	Oranges, Valencia, reconstituted fruit juice
+07044	Oranges, Valencia, 50 % fruit juice beverage
+07045	Oranges, Valencia, 30 % fruit juice beverage
+07046	Oranges, Valencia, marmalade, heavily sweetened
+07047	Oranges, Valencia, marmalade, lightly sweetened
+07161	Oranges, Fukuhara-orange, juice sacs, raw
+07048	Oroblanco, juice sacs, raw
+07052	Citrus, "Kabosu", juice, fresh
+07162	Citrus, "Kawachi-bankan", juice sacs, raw
+07163	Citrus, "Kiyomi", juice sacs, raw
+07056	Kumquats, whole, raw
+07062	Grapefruit, white flesh type, juice sacs, raw
+07164	Grapefruit, red flesh type, juice sacs, raw
+07063	Grapefruit, straight fruit juice
+07064	Grapefruit, reconstituted fruit juice
+07065	Grapefruit, 50 % fruit juice beverage
+07066	Grapefruit, 20 % fruit juice beverage
+07067	Grapefruit, canned in light syrup
+07074	Citrus, "Sanbokan", juice sacs, raw
+07075	Citrus, "Shiikuwasha", juice, fresh
+07076	Citrus, "Shiikuwasha", 10 % fruit juice beverage
+07165	Citrus, "Shiranuhi", juice sacs, raw
+07078	Citrus, "Sudachi", peel, raw
+07079	Citrus, "Sudachi", juice, fresh
+07166	Citrus, "Setoka", juice sacs, raw
+07085	Citrus, Seminole, juice sacs, raw
+07083	Citrus, sour oranges, juice, fresh
+07093	Citrus, "Natsudaidai", juice sacs, raw
+07094	Citrus, "Natsudaidai", canned in heavy syrup
+07105	Citrus, "Hassaku", juice sacs, raw
+07167	Citrus, "Harumi", juice sacs, raw
+07112	Citrus, "Hyuga-natsu", segments and albedo, raw
+07113	Citrus, "Hyuga-natsu", juice sacs, raw
+07126	Pummelo, juice sacs, raw
+07127	Pummelo, candied peel
+07129	Ponkan mandarins, juice sacs, raw
+07142	Citrus, "Yuzu", peel, raw
+07143	Citrus, "Yuzu", juice, fresh
+07145	Limes, juice, fresh
+07155	Lemons, whole, raw
+07156	Lemons, juice, fresh
+07054	Kiwifruit, green flesh type, raw
+07168	Kiwifruit, yellow flesh type, raw
+07055	Kiwano, raw
+07057	Guava, red flesh type, raw
+07169	Guava, white flesh type, raw
+07058	Guava, fruit juice, 20 % fruit juice beverage (nectar)
+07059	Guava, fruit juices, 10 % fruit juice beverage
+07060	Gooseberries, raw
+07061	Oleasters, raw
+07157	Coconut, coconut water
+07158	Coconut, coconut milk
+07170	Coconut, Nata de coco in syrup
+07070	Sweet cherries, domestic, raw
+07071	Sweet cherries, imported from the U.S.A., raw
+07072	Sweet cherries, canned in heavy syrup
+07073	Pomegranates, raw
+07077	Watermelon, red flesh type, raw
+07171	Watermelon, yellow flesh type, raw
+07069	Carambola, raw
+07080	Plums, Japanese plums, raw
+07081	Plums, European plums, raw
+07082	Plums, European plums, dried
+07086	Cherimoya, raw
+07111	Pitaya, raw
+07087	Durian, raw
+07088	Pears, sand pears*, raw ［Syn. Nashi pears］
+07089	Pears, sand pears*, canned in heavy syrup ［*Syn. Nashi pears］
+07090	Pears, Chinese white pears, raw
+07091	Pears, European pears, raw
+07092	Pears, European pears, canned in heavy syrup
+07095	Jujube, dried
+07096	Dates, dried
+07097	Pineapple, raw
+07098	Pineapple, straight fruit juice
+07099	Pineapple, reconstituted fruit juice
+07100	Pineapple, 50 % fruit juice beverage
+07101	Pineapple, 10 % fruit juice beverage
+07102	Pineapple, canned in heavy syrup
+07103	Pineapple, candied
+07104	Blue berried honeysuckle, raw
+07106	Passion fruit, juice, fresh
+07107	Bananas, raw
+07108	Bananas, dried
+07109	Papaya, ripe, raw
+07110	Papaya, unripe, raw
+07114	Loquats, raw
+07115	Loquats, Raw, canned in heavy syrup
+07116	Grapes, raw
+07117	Grapes, raisins
+07118	Grapes, straight fruit juice
+07119	Grapes, reconstituted fruit juice
+07120	Grapes, 70 % fruit juice beverage
+07121	Grapes, 10 % fruit juice beverage
+07122	Grapes, canned in heavy syrup
+07123	Grapes, jam
+07124	Blueberries, raw
+07125	Blueberries, jam
+07172	Blueberries, dried
+07128	White sapote, raw
+07130	Oriental melon, yellow flesh type, raw
+07173	Oriental melon, white flesh type, raw
+07131	Common quinces, raw
+07132	Mangoes, raw
+07133	Mangosteen, raw
+07134	Muskmelon, greenhouse culture, raw
+07135	Muskmelon, open culture, green flesh type, raw
+07174	Muskmelon, open culture, orange flesh type, raw
+07136	Peaches, raw
+07137	Peaches, 30 % fruit juice beverage (nectar)
+07138	Peaches, white flesh type, canned in heavy syrup, solids
+07175	Peaches, yellow flesh type, canned in heavy syrup, solids
+07139	Peaches, canned in heavy syrup, liquid
+07140	Nectarines, raw
+07141	Red bayberries, raw
+07144	Lychees*, raw ［*Syn. Litchi］
+07146	Red raspberries, raw
+07147	Longans, dried
+07148	Apples, without skin, raw
+07176	Apples, with skin, raw
+07149	Apples, straight fruit juice
+07150	Apples, reconstituted fruit juice
+07151	Apples, 50 % fruit juice beverage
+07152	Apples, 30 % fruit juice beverage
+07153	Apples, canned in heavy syrup
+07154	Apples, jam
+08001	Mushrooms, winter mushrooms*, raw ［*Syn. Enokitake, Enoki］
+08002	Mushrooms, winter mushrooms*, boiled ［*Syn. Enokitake, Enoki］
+08037	Mushrooms, winter mushrooms*, sautéed ［*Syn. Enokitake, Enoki］
+08003	Mushrooms, winter mushrooms*, bottled in seasoning ［*Syn. Enokitake, Enoki］
+08004	Mushrooms, tree ears, Cloud ear fungus, dried, raw
+08005	Mushrooms, tree ears, Cloud ear fungus, dried, boiled
+08038	Mushrooms, tree ears, Cloud ear fungus, dried, rehydrated and sautéed
+08006	Mushrooms, tree ears, Cloud ear, dried, raw
+08007	Mushrooms, tree ears, Cloud ear, dried, boiled
+08008	Mushrooms, tree ears, white jelly fungus, dried, raw
+08009	Mushrooms, tree ears, white jelly fungus, dried, boiled
+08010	Mushrooms, abalone mushrooms, raw
+08039	Mushrooms, "Shiitake", bed-log cultivation, fresh, raw
+08040	Mushrooms, "Shiitake", bed-log cultivation, fresh, boiled
+08041	Mushrooms, "Shiitake", bed-log cultivation, fresh, sautéed
+08042	Mushrooms, "Shiitake", wood-log cultivation, fresh, raw
+08043	Mushrooms, "Shiitake", wood-log cultivation, fresh, boiled
+08044	Mushrooms, "Shiitake", wood-log cultivation, fresh, sautéed
+08013	Mushrooms, "Shiitake", dried, raw
+08014	Mushrooms, "Shiitake", dried, boiled
+08015	Mushrooms, "Hatakeshimeji", raw
+08045	Mushrooms, "Hatakeshimeji", boiled
+08016	Mushrooms, beech mushrooms, raw
+08017	Mushrooms, beech mushrooms, boiled
+08046	Mushrooms, beech mushrooms, sautéed
+08018	Mushrooms, "Honshimeji", raw
+08047	Mushrooms, "Honshimeji", boiled
+08019	Mushrooms, golden oyster mushrooms, raw
+08020	Mushrooms, "Nameko", raw
+08021	Mushrooms, "Nameko", boiled
+08022	Mushrooms, "Nameko", canned in brine
+08023	Mushrooms, "Numerisugitake", raw
+08024	Mushrooms, phoenix mushrooms, raw
+08025	Mushrooms, king oyster mushrooms, raw
+08048	Mushrooms, king oyster mushrooms, boiled
+08049	Mushrooms, king oyster mushrooms, baked
+08050	Mushrooms, king oyster mushrooms, sautéed
+08026	Mushrooms, oyster mushrooms, raw
+08027	Mushrooms, oyster mushrooms, boiled
+08028	Mushrooms, "Maitake", raw
+08029	Mushrooms, "Maitake", boiled
+08051	Mushrooms, "Maitake", sautéed
+08030	Mushrooms, "Maitake", dried, raw
+08031	Mushrooms, button mushrooms, fresh, raw
+08032	Mushrooms, button mushrooms, fresh, boiled
+08052	Mushrooms, button mushrooms, fresh, sautéed
+08033	Mushrooms, button mushrooms, canned in brine, solids
+08034	Mushrooms, "Matsutake", raw
+08036	Mushrooms, black poplar mushrooms, raw
+09001	Algae, Sea lettuce, dried
+09002	Algae, green laver, dried
+09003	Algae, purple laver, dried
+09004	Algae, purple laver, dried, toasted
+09005	Algae, purple laver, dried, seasoned and toasted
+09006	Algae, "Arame", steamed and dried
+09007	Algae, "Iwa-nori", dried
+09012	Algae, Green caviar, raw
+09008	Algae, "Ego-nori", dried
+09009	Algae, "Ego-nori", "Okyuto" (algae jelly)
+09010	Algae, "Ogo-nori", salted products, desalted
+09011	Algae, "Kawa-nori", dried
+09013	Algae, kombu, "Enaga-oni-kombu", dried
+09014	Algae, kombu, "Gagome-kombu", dried
+09015	Algae, kombu, "Naga-kombu", dried
+09016	Algae, kombu, "Hosome-kombu", dried
+09017	－
+09018	Algae, kombu, "Mitsuishi-kombu", dried
+09019	Algae, kombu, "Rishiri-kombu", dried
+09020	Algae, kombu, "Kizami-kombu" (dried and cut into thin strips)
+09021	Algae, kombu, "Kezuri-kombu" (dried and thinly shaved)
+09022	Algae, kombu, "Shio-kombu" (seasoned and dried)
+09023	Algae, kombu, "Tsukudani" (simmered in soy sauce and sugar)
+09024	Algae, "Suizenji-nori", dried, soaked in water
+09025	Algae, "Tengusa", dried
+09026	Algae, "Tengusa", "Tokoroten" (Gelidium jelly)
+09027	Algae, "Tengusa", agar-agar
+09028	Algae, "Tengusa", agar jelly
+09049	Algae, "Tengusa", agar-agar powder
+09029	Algae, "Tosaka-nori", red, salted products, desalted
+09030	Algae, "Tosaka-nori", green, salted products, desalted
+09050	Algae, "Hijiki", boiled and dried, stainless steel pot process, raw
+09051	Algae, "Hijiki", boiled and dried, stainless steel pot process, rehydrated and boiled
+09052	Algae, "Hijiki", boiled and dried, stainless steel pot process, rehydrated and sautéed
+09053	Algae, "Hijiki", boiled and dried, steel pot process, raw
+09054	Algae, "Hijiki", boiled and dried, steel pot process, rehydrated and boiled
+09055	Algae, "Hijiki", boiled and dried, steel pot process, rehydrated and sautéed
+09032	Algae, "Hitoegusa", dried
+09033	Algae, "Hitoegusa", "Tsukudani" (simmered in soy sauce and sugar)
+09034	Algae, "Fu-nori", dried
+09035	Algae, "Matsumo", dried
+09036	Algae, "Mukade-nori", salted products, desalted
+09037	Algae, "Okinawa-mozuku", salted products, desalted
+09038	Algae, "Mozuku", salted products, desalted
+09039	Algae, "Wakame", raw
+09040	Algae, "Wakame", dried
+09041	Algae, "Wakame", dried, soaked in water
+09042	Algae, "Wakame", dried, "Ita-wakame" (made into sheets and dried)
+09043	Algae, "Wakame", "Haiboshi" (coated with ash and dried), soaked in water
+09044	Algae, "Wakame", cut and dried
+09045	Algae, "Wakame", blanched and salted products, desalted
+09046	Algae, "Wakame", stipe and center vein, blanched and salted products, desalted
+09047	Algae, "Wakame", fruit-bearing leaves, raw
+10001	Fish, fat greenling, raw
+10002	Fish, Matsubara's red rockfish, raw
+10003	Fish, horse mackerel, Japanese Jack mackerel＊, with integument, raw ［*Syn. horse mackerel］
+10389	Fish, horse mackerel, Japanese Jack mackerel*, sashimi ［*Syn. horse mackerel］
+10004	Fish, horse mackerel, Japanese Jack mackerel＊, with integument, boiled ［*Syn. horse mackerel］
+10005	Fish, horse mackerel, Japanese Jack mackerel＊, with integument, baked ［*Syn. horse mackerel］
+10390	Fish, horse mackerel, Japanese Jack mackerel*, with integument, breaded and fried ［*Syn. horse mackerel］
+10006	Fish, horse mackerel, Japanese Jack mackerel＊, "Hirakiboshi" (salted and semi-dried split), raw ［*Syn. horse mackerel］
+10007	Fish, horse mackerel, Japanese Jack mackerel＊, "Hirakiboshi" (salted and semi-dried split), baked ［*Syn. horse mackerel］
+10391	Fish, horse mackerel, Japanese Jack mackerel*, small fish, with bones, raw ［*Syn. horse mackerel］
+10392	Fish, horse mackerel, Japanese Jack mackerel*, small fish, with bones, floured and deep-fried ［*Syn. horse mackerel］
+10393	Fish, horse mackerel, blue mackerel, raw
+10394	Fish, horse mackerel, blue mackerel, baked
+10008	Fish, horse mackerel, Atlantic horse mackerel, raw
+10009	Fish, horse mackerel, Atlantic horse mackerel, boiled
+10010	Fish, horse mackerel, Atlantic horse mackerel, baked
+10011	Fish, horse mackerel, brownstriped mackerel scad, raw
+10012	Fish, horse mackerel, brownstriped mackerel scad, baked
+10013	Fish, horse mackerel, brownstriped mackerel scad, "Hirakiboshi" (salted and semi-dried split)
+10014	Fish, horse mackerel, brownstriped mackerel scad, "Kusaya" (brine-soaked and dried scad)
+10015	Fish, common Japanese conger, raw
+10016	Fish, common Japanese conger, steamed
+10017	Fish, Amago salmon, cultured, raw
+10018	Fish, tile fish, raw
+10019	Fish, tile fish, boiled
+10020	Fish, tile fish, baked
+10021	Fish, Ayu, wild, raw
+10022	Fish, Ayu, wild, baked
+10023	Fish, Ayu, wild, viscera, raw
+10024	Fish, Ayu, wild, viscera, baked
+10025	Fish, Ayu, cultured, raw
+10026	Fish, Ayu, cultured, baked
+10027	Fish, Ayu, cultured, viscera, raw
+10028	Fish, Ayu, cultured, viscera, baked
+10029	Fish, Ayu, "Uruka" (salted and fermented viscera)
+10030	Fish, Pacific ocean perch, raw
+10031	Fish, anglerfish, raw
+10032	Fish, anglerfish, liver, raw
+10033	Fish, Japanese sand lance, raw
+10034	Fish, Japanese sand lance, "Niboshi" (boiled and dried whole)
+10035	Fish, Japanese sand lance, "Tsukudani" (simmered whole in soy sauce and sugar)
+10036	Fish, Japanese sand lance, "Ameni" (simmered whole in glucose syrup and soy sauce)
+10037	Fish, three-line grunt, raw
+10038	Fish, Japanese parrot fish, raw
+10039	Fish, golden-thread, raw
+10040	Fish, golden-thread, Surimi
+10041	Fish, Japanese butterfish*, raw ［*Syn. butterfish］
+10042	Fish, sardine, Pacific round herring*, raw ［*Syn. red-eye round herring］
+10043	Fish, sardine, Pacific round herring*, "Maruboshi" (salted and dried whole), raw ［*Syn. red-eye round herring］
+10044	Fish, sardine, Japanese anchovy, raw
+10045	Fish, sardine, Japanese anchovy, "Niboshi" (boiled and dried whole)
+10046	Fish, sardine, Japanese anchovy, "Tazukuri" (dried young anchovy)
+10047	Fish, sardine, Japanese pilchard, raw
+10048	Fish, sardine, Japanese pilchard, boiled
+10049	Fish, sardine, Japanese pilchard, baked
+10395	Fish, sardine, Japanese pilchard, breaded and fried
+10050	Fish, sardine, Japanese pilchard, "Shioiwashi" (salted pilchard), raw
+10051	Fish, sardine, Japanese pilchard, "Namaboshi" (mild salted and semi-dried whole), raw
+10052	Fish, sardine, Japanese pilchard, "Maruboshi" (salted and dried whole), raw
+10053	Fish, sardine, "Mezashi" (skewered, salted and semi-dried whole), raw
+10054	Fish, sardine, "Mezashi" (skewered, salted and semi-dried whole), baked
+10396	Fish, sardine, whitebait, raw
+10055	Fish, sardine, "Shirasuboshi" (boiled and dried whitebait), mild dried
+10056	Fish, sardine, "Shirasuboshi" (boiled and dried whitebait), semi-dried
+10057	Fish, sardine, "Tatamiiwashi" (sheet of dried whitebait)
+10058	Fish, sardine, Japanese anchovy, "Mirinboshi" (split seasoned with Mirin and dried)
+10059	Fish, sardine, Japanese pilchard, "Mirinboshi" (split seasoned with Mirin and dried)
+10060	Fish, sardine, Japanese pilchard, canned products, in brine
+10061	Fish, sardine, Japanese pilchard, canned products, with seasoning
+10062	Fish, sardine, Japanese pilchard, canned products, in tomato sauce
+10063	Fish, sardine, Japanese pilchard, canned products, in oil
+10064	Fish, sardine, Japanese pilchard, "Kabayaki" (baked and seasoned fillet), canned products
+10397	Fish, sardine, anchovy, canned products, in oil
+10065	Fish, white-spotted char*, cultured, raw ［*Syn. char, Japanese char］
+10066	Fish, Japanese dace, raw
+10067	Fish, eel, cultured, raw
+10068	Fish, eel, viscera, raw
+10069	Fish, eel, "Shirayaki" (mild-baked and steamed fillet)
+10070	Fish, eel, "Kabayaki" (seasoned and baked fillet)
+10071	Fish, black scraper*, raw ［*Syn. filefish］
+10072	Fish, black scraper*, "Ajitsuke-hirakiboshi" (seasoned and dried fillet) ［*Syn. filefish］
+10073	Fish, ray, raw
+10074	Fish, lizardfish, raw
+10075	Fish, pale chub, raw
+10076	Fish, angry rockfish, raw
+10077	Fish, devil stinger, raw
+10078	Fish, Pacific halibut, raw
+10079	Fish, marbled rockfish*, raw ［*Syn. scorpionfish］
+10080	Fish, Japanese sculpin*, raw ［*Syn. Japanese fluvial sculpin］
+10081	Fish, Japanese sculpin*, boiled ［*Syn. Japanese fluvial sculpin］
+10082	Fish, Japanese sculpin*, "Tsukudani" (simmered whole fish in soy sauce and sugar) ［*Syn. Japanese fluvial sculpin］
+10083	Fish, Pacific blue marlin*, raw ［*Syn. blue marlin, black marlin］
+10084	Fish, striped marlin, raw
+10085	Fish, swordfish, raw
+10398	Fish, swordfish, baked
+10086	Fish, skipjack tuna*, caught in spring, raw ［*Syn. bonito, skipjack］
+10087	Fish, skipjack tuna*, caught in autumn, raw ［*Syn. bonito, skipjack］
+10088	Fish, frigate mackerel, raw
+10089	Fish, skipjack tuna, processed products, "Namari" (boiled meat)
+10090	Fish, skipjack tuna, processed products, "Namari-bushi" (boiled and semi-dried fillet)
+10091	Fish, skipjack tuna, processed products, "Katsuo-bushi" (boiled, smoke-dried and fermented skipjack tuna fillet)
+10092	Fish, skipjack tuna and frigate mackerel, processed products, "Kezuri-bushi" (shaved "Katsuo-bushi"), uncooked (cf. 10091"Katsuo-bushi")
+10093	Fish, skipjack tuna and frigate mackerel, processed products, "Kezuri-bushi" (shaved "Katsuo-bushi"), simmered in soy sauce and sugar (cf. 10091"Katsuo-bushi")
+10094	Fish, skipjack tuna and frigate mackerel, processed products, "Kakuni" (meat cube boiled in soy sauce and sugar)
+10095	Fish, skipjack tuna, processed products, "Shiokara" (salted and fermented viscera)
+10096	Fish, skipjack tuna and frigate mackerel, canned products, flaked meat with seasoning
+10097	Fish, skipjack tuna and frigate mackerel, canned products, flaked meat in oil
+10098	Fish, barracuda, raw
+10099	Fish, barracuda, baked
+10100	Fish, righteye flounder, brown sole, raw
+10101	Fish, righteye flounder, brown sole, boiled
+10102	Fish, righteye flounder, brown sole, baked
+10103	Fish, righteye flounder, marbled sole, raw
+10399	Fish, righteye flounder, marbled sole, baked
+10104	Fish, righteye flounder, with ovary, raw
+10105	Fish, righteye flounder, with ovary, boiled
+10106	Fish, righteye flounder, dried
+10107	Fish, leatherfish*, raw ［*Syn. Triggerfish, threadsail filefish］
+10108	Fish, greater amberjack*, raw ［*Syn. amberjack］
+10109	Fish, Japanese whiting, raw
+10400	Fish, Japanese whiting, tempura
+10110	Fish, Kichiji rockfish*, raw ［*Syn. thornyhead; broadbanded thornyhead］
+10111	Fish, blue sprat, raw
+10112	Fish, blue sprat, seasoned and dried
+10113	Fish, caviar, salted product
+10114	Fish, kingclip, raw
+10115	Fish, sablefish, raw
+10401	Fish, sablefish, boiled
+10116	Fish, splendid alfonsino*, raw ［*Syn. alfonsino］
+10117	Fish, croaker, raw
+10118	Fish, croaker, baked
+10119	Fish, common carp, cultured, raw
+10120	Fish, common carp, cultured, boiled
+10121	Fish, common carp, cultured, viscera, raw
+10122	Fish, flathead, bar-tailed flathead, raw
+10123	Fish, flathead, big-eyed flathead, raw
+10124	Fish, dotted gizzard shad*, raw ［*Syn. gizzard shad］
+10125	Fish, dotted gizzard shad*, "Amazu-zuke" (marinated in vinegar and sugar) ［*Syn. gizzard shad］
+10126	Fish, salmon and trout, pink salmon, raw
+10127	Fish, salmon and trout, pink salmon, baked
+10128	Fish, salmon and trout, pink salmon, salted
+10129	Fish, salmon and trout, pink salmon, canned in brine
+10130	Fish, salmon and trout, Coho salmon, cultured, raw
+10131	Fish, salmon and trout, Coho salmon, cultured, baked
+10132	Fish, salmon and trout, cherry salmon, raw
+10133	Fish, salmon and trout, cherry salmon, baked
+10134	Fish, salmon and trout, chum salmon, raw
+10135	Fish, salmon and trout, chum salmon, boiled
+10136	Fish, salmon and trout, chum salmon, baked
+10137	Fish, salmon and trout, chum salmon, "Aramaki" (salted whole body), raw
+10138	Fish, salmon and trout, chum salmon, "Aramaki" (salted whole body), baked
+10139	Fish, salmon and trout, chum salmon, "Shiozake" (salted salmon), raw
+10140	Fish, salmon and trout, chum salmon, "Ikura" (salted roe)
+10141	Fish, salmon and trout, chum salmon, "Sujiko" (salted ovary)
+10142	Fish, salmon and trout, chum salmon, "Mefun" (salted and fermented kidney)
+10143	Fish, salmon and trout, chum salmon, canned in brine
+10144	Fish, salmon and trout, Atlantic salmon, cultured, raw
+10145	Fish, salmon and trout, Atlantic salmon, cultured, baked
+10146	Fish, salmon and trout, rainbow trout, cultured in the sea, with integument, raw
+10402	Fish, salmon and trout, rainbow trout, cultured in the sea, sashimi
+10147	Fish, salmon and trout, rainbow trout, cultured in the sea, with integument, baked
+10148	Fish, salmon and trout, rainbow trout, cultured in freshwater, with integument, raw
+10149	Fish, salmon and trout, sockeye salmon, raw
+10150	Fish, salmon and trout, sockeye salmon, baked
+10151	Fish, salmon and trout, sockeye salmon, smoked
+10152	Fish, salmon and trout, chinook salmon, raw
+10153	Fish, salmon and trout, chinook salmon, baked
+10154	Fish, mackerel, chub mackerel*, raw ［*Syn. mackerel］
+10155	Fish, mackerel, chub mackerel*, boiled ［*Syn. mackerel］
+10156	Fish, mackerel, chub mackerel*, baked ［*Syn. mackerel］
+10403	Fish, mackerel, chub mackerel*, breaded and fried ［*Syn. mackerel］
+10404	Fish, mackerel, spotted mackerel, raw
+10405	Fish, mackerel, spotted mackerel, boiled
+10406	Fish, mackerel, spotted mackerel, baked
+10157	Fish, mackerel, spotted mackerel*, "Saba-bushi" (boiled, smoke-dried and fermented mackerel fillet) ［*Syn. mackerel］
+10158	Fish, mackerel, Atlantic mackerel, raw
+10159	Fish, mackerel, Atlantic mackerel, boiled
+10160	Fish, mackerel, Atlantic mackerel, baked
+10161	Fish, mackerel, processed products, "Shiosaba" (plain salted fillet)
+10162	Fish, mackerel, processed products, "Hirakiboshi" (mild salted and semi-dried split)
+10163	Fish, mackerels, processed products, "Shimesaba" (vinegar marinated fillet)
+10164	Fish, mackerel, canned products, boiled in brine
+10165	Fish, mackerel, canned products, boiled with miso
+10166	Fish, mackerel, canned products, boiled with seasoning
+10167	Fish, shark, dogfish, raw
+10168	Fish, shark, blue shark, raw
+10169	Fish, shark, dried shark fin
+10170	Fish, halfbeak, raw
+10171	Fish, Japanese Spanish mackerel*, raw ［*Syn. Spanish mackerel］
+10172	Japanese Spanish mackerel*, baked ［*Syn. Spanish mackerel］
+10173	Fish, Pacific saury, with integument, raw
+10407	Fish, Pacific saury, sashimi
+10174	Fish, Pacific saury, with integument, baked
+10175	Fish, Pacific saury, "Hirakiboshi" (mild salted and semi-dried split)
+10176	Fish, Pacific saury, "Mirinboshi" (seasoned with Mirin and dried fillet)
+10177	Fish, Pacific saury, canned products, boiled with seasoning
+10178	Fish, Pacific saury, canned products, "Kabayaki" (baked and seasoned fillet)
+10179	Fish, dolphinfish, raw
+10180	Fish, Shishamo smelt, semi-dried, raw
+10181	Fish, Shishamo smelt, semi-dried, baked
+10182	Fish, Atlantic capelin, semi-dried, raw
+10183	Fish, Atlantic capelin, semi-dried, baked
+10184	Fish, sole, raw
+10185	Fish, striped jack*, cultured, raw ［*Syn. white trevally］
+10186	Fish, Japanese icefish, raw
+10187	Fish, silver warehou, raw
+10188	Fish, Japanese sea bass, raw
+10189	Fish, sea bream, yellow sea bream, raw
+10190	Fish, sea bream, black sea bream, raw
+10191	Fish, sea bream, crimson sea bream, raw
+10192	Fish, sea bream, red sea bream, wild, raw
+10193	Fish, sea bream, red sea bream, cultured, with integument, raw
+10408	Fish, sea bream, red sea bream, cultured, sashimi
+10194	Fish, sea bream, red sea bream, cultured, with integument, boiled
+10195	Fish, sea bream, red sea bream, cultured, with integument, baked
+10196	Fish, double-lined fusilier, raw
+10197	Fish, yellowstriped butterfish, raw
+10198	Fish, Atlantic cutlassfish*, raw ［*Syn. Hairtail, cutlass fish］
+10199	Fish, cod, walleye pollock*, raw ［*Syn. Alaska pollock］
+10409	Fish, cod, walleye pollock*, breaded and fried ［*Syn. Alaska pollock］
+10200	Fish, cod, walleye pollock*, surimi ［*Syn. Alaska pollock］
+10201	Fish, cod, walleye pollock*, "Sukimidara" (skinned, salted and dried fillet) ［*Syn. Alaska pollock］
+10202	Fish, cod, walleye pollock*, "Tarako" (salted roe), raw ［*Syn. Alaska pollock］
+10203	Fish, cod, walleye pollock*, "Tarako" (salted roe), baked ［*Syn. Alaska pollock］
+10204	Fish, cod, walleye pollock*, "Karashi-mentaiko" (salted roe with red hot pepper powder) ［*Syn. Alaska pollock］
+10205	Fish, cod, Pacific cod, raw
+10206	Fish, cod, Pacific cod, baked
+10207	Fish, cod, Pacific cod, milt, raw
+10208	Fish, cod, Pacific cod, salted fillet
+10209	Fish, cod, Pacific cod, dried split
+10210	Fish, cod, Pacific cod, "Denbu" (mashed and seasoned meat)
+10211	Fish, Japanese Surf smelt, raw
+10213	Fish, Asian pond loach*, raw ［*Syn. loach, pond loach］
+10214	Fish, Asian pond loach*, boiled ［*Syn. loach, pond loach］
+10215	Fish, flying fish, raw
+10212	Fish, Nile tilapia, raw
+10216	Fish, catfish, raw
+10217	Fish, Japanese argentine, raw
+10218	Fish, Pacific herring, raw
+10219	Fish, Pacific herring, "Migaki-nishin" (dried fillet)
+10220	Fish, Pacific herring, "Hirakiboshi" (dried split)
+10221	Fish, Pacific herring, smoked
+10222	Fish, Pacific herring, roe, raw
+10223	Fish, Pacific herring, roe, dried
+10224	Fish, Pacific herring, roe, salt-cured products, desalted
+10225	Fish, yellowfin goby, raw
+10226	Fish, yellowfin goby, "Tsukudani" (boiled whole in soy sauce)
+10227	Fish, yellowfin goby, "Kanroni" (simmered whole in soy sauce and sugar)
+10228	Fish, sailfin sandfish*, raw ［*Syn. sandfish］
+10229	Fish, sailfin sandfish*, "Namaboshi" (salted and semi-dried whole) ［*Syn. sandfish］
+10230	Fish, spangled emperor, raw
+10231	Fish, conger pike, raw
+10233	Fish, goldstriped amberjack, raw
+10234	Fish, olive flounder*, wild, raw ［*Syn. bastard halibut, Japanese flounder］
+10235	Fish, olive flounder*, cultured, with integument, raw ［*Syn. bastard halibut, Japanese flounder］
+10410	Fish, olive flounder*, cultured, sashimi ［*Syn. bastard halibut, Japanese flounder］
+10236	Fish, puffer, ocellate puffer, cultured, raw
+10237	Fish, puffer, purple puffer, cultured, raw
+10238	Fish, crucian carp, raw
+10239	Fish, crucian carp, boiled
+10240	Fish, crucian carp, "Kanroni" (simmered whole in soy sauce, sugar and glucose syrup)
+10241	Fish, yellowtail*, mature, raw ［*Syn. five-ray yellowtail］
+10242	Fish, yellowtail*, mature, baked ［*Syn. five-ray yellowtail］
+10243	Fish, yellowtail*, young, cultured, with integument, raw ［*Syn. five-ray yellowtail］
+10411	Fish, yellowtail*, young, cultured, sashimi ［*Syn. five-ray yellowtail］
+10244	Fish, red gurnard*, raw ［*Syn. sea robin, gurnard, gurnet］
+10245	Fish, hoki, raw
+10246	Fish, Atka mackerel*, raw ［*Syn. Arabesque greenling］
+10247	Fish, Atka mackerel*, salted ［*Syn. Arabesque greenling］
+10248	Fish, Atka mackerel*, "Hirakiboshi" (mild salted and semi-dried split), raw ［*Syn. Arabesque greenling］
+10412	Fish, Atka mackerel*, "Hirakiboshi" (mild salted and semi-dried split), baked ［*Syn. Arabesque greenling］
+10249	Fish, striped mullet, raw
+10250	Fish, striped mullet, "Karasumi" (salted and dried roe)
+10251	Fish, willow shiner, raw
+10252	Fish, tuna, yellowfin tuna, raw
+10253	Fish, tuna, bluefin tuna, lean meat, raw
+10254	Fish, tuna, bluefin tuna, fatty meat, raw
+10255	Fish, tuna, albacore, raw
+10256	Fish, tuna, southern bluefin tuna, lean meat, raw
+10257	Fish, tuna, southern bluefin tuna, fatty meat, raw
+10258	Fish, tuna, young bluefin tuna, raw
+10259	Fish, tuna, big-eye tuna, raw
+10260	Fish, tuna, canned products, flaked light meat in brine
+10261	Fish, tuna, canned products, flaked white meat in brine
+10262	Fish, tuna, canned products, flaked meat with seasoning
+10263	Fish, tuna, canned products, flaked light meat in oil
+10264	Fish, tuna, canned products, flaked white meat in oil
+10265	Fish, Patagonian toothfish, raw
+10266	Fish, silver pomfret, raw
+10232	Fish, barracouta, raw
+10267	Fish, southern blue whiting, raw
+10268	Fish, gnomefish, raw
+10269	Fish, gnomefish, boiled
+10270	Fish, Girella, raw
+10271	Fish, Japanese stingfish, raw
+10272	Fish, hake, raw
+10273	Fish, lamprey, raw
+10274	Fish, lamprey, dried
+10275	Fish, seema, cultured, raw
+10276	Fish, Japanese smelt*, raw ［*Syn. Pond smelt］
+10277	Fish, Japanese smelt*, "Tsukudani" (simmered whole in soy sauce and sugar) ［*Syn. Pond smelt］
+10278	Fish, Japanese smelt*, "Ameni" (simmered whole in glucose syrup and soy sauce) ［*Syn. Pond smelt］
+10279	Mollusks, bloody clam, raw
+10280	Mollusks, jackknife clam, raw
+10281	Mollusks, short-necked clam*, raw ［*Syn. baby-neck clam, Manila clam, Japanese littleneck］
+10282	Mollusks, short-necked clam*, "Tsukudani" (simmered meat in soy sauce and sugar) ［*Syn. baby-neck clam, Manila clam, Japanese littleneck］
+10283	Mollusks, short-necked clam*, canned products, boiled in brine ［*Syn. baby-neck clam, Manila clam, Japanese littleneck］
+10284	Mollusks, short-necked clam*, canned products, boiled with seasoning ［*Syn. baby-neck clam, Manila clam, Japanese littleneck］
+10285	Mollusks, abalone, raw
+10286	Mollusks, abalone, steamed and dried
+10287	Mollusks, abalone, "Shiokara" (salted and fermented)
+10288	Mollusks, abalone, canned in brine
+10289	Mollusks, Mediterranean mussel, raw
+10290	Mollusks, Japanese baking scallop, cultured, raw
+10291	Mollusks, Escargot Apple snails, canned in brine
+10292	Mollusks, Pacific oyster, cultured, raw
+10293	Mollusks, Pacific oyster, cultured, boiled
+10294	Mollusks, Pacific oyster, canned in oil, smoked
+10295	Mollusks, turban shell, raw
+10296	Mollusks, turban shell, baked
+10318	Mollusks, ark shell*, canned with seasoning ［*Syn. Mogai clam］
+10297	Mollusks, Japanese corbicula clam*, raw
+10413	Mollusks, Japanese corbicula clam*, boiled
+10298	Mollusks, pen shell*, adductor muscle, raw ［*Syn. comb pen shell］
+10299	Mollusks, pond snail, raw
+10300	Mollusks, whelk, raw
+10301	Mollusks, tokobushi abalone, raw
+10303	Mollusks, cockle, foot, raw
+10304	Mollusks, whelk and Ivory shell, raw
+10305	Mollusks, hen clam*, raw ［*Syn. Chinese surf clam］
+10306	Mollusks, hard clam, raw
+10307	Mollusks, hard clam, boiled
+10308	Mollusks, hard clam, baked
+10309	Mollusks, hard clam, "Tsukudani" (simmered meat in soy sauce and sugar)
+10310	Mollusks, common shield-clam, raw
+10311	Mollusks, giant ezo-scallop*, raw ［*Syn. common scallop, Japanese scallop］
+10312	Mollusks, giant ezo-scallop*, boiled ［*Syn. common scallop, Japanese scallop］
+10313	Mollusks, giant ezo-scallop*, adductor muscle, raw ［*Syn. common scallop, Japanese scallop］
+10414	Mollusks, giant ezo-scallop*, adductor muscle, baked ［*Syn. common scallop, Japanese scallop］
+10314	Mollusks, giant ezo-scallop*, adductor muscle, "Niboshi" (boiled and dried) ［*Syn. common scallop, Japanese scallop］
+10315	Mollusks, giant ezo-scallop*, adductor muscle, canned products, boiled in brine ［*Syn. common scallop, Japanese scallop］
+10316	Mollusks, Sakhalin surf clam*, raw ［*Syn. surf clam］
+10317	Mollusks, keen's gaper, siphon, raw
+10319	Crustacean, northern shrimp*, raw ［*Syn. pink shrimp］
+10320	Crustacean, Japanese spiny lobster, raw
+10321	Crustacean, Kuruma prawn, cultured, raw
+10322	Crustacean, Kuruma prawn, cultured, boiled
+10323	Crustacean, Kuruma prawn, cultured, baked
+10324	Crustacean, Sakura shrimp, boiled
+10325	Crustacean, Sakura shrimp, dried
+10326	Crustacean, Sakura shrimp, "Niboshi" (boiled and dried)
+10327	Crustacean, Chinese prawn*, raw ［*Syn. fleshy prawn］
+10328	Crustacean, Shiba shrimp, raw
+10415	Crustacean, whiteleg shrimp, raw
+10416	Crustacean, whiteleg shrimp, tempura
+10329	Crustacean, giant tiger prawn, cultured, raw
+10330	Crustacean, processed shrimp, boiled and dried shrimp
+10331	Crustacean, processed shrimp, "Tsukudani" (simmered whole in soy sauce and sugar)
+10332	Crustacean, blue crab*, raw ［*Syn. swimming crab, oriental blue crab］
+10333	Crustacean, horsehair crab, raw
+10334	Crustacean, horsehair crab, boiled
+10335	Crustacean, snow crab*, raw ［*Syn. tanner crab］
+10336	Crustacean, snow crab*, boiled ［*Syn. tanner crab］
+10337	Crustacean, snow crab*, canned products, boiled in brine ［*Syn. tanner crab］
+10338	Crustacean, red king crab*, raw ［*Syn. king crab］
+10339	Crustacean, red king crab*, boiled ［*Syn. king crab］
+10340	Crustacean, red king crab*, canned products, boiled in brine ［*Syn. king crab］
+10341	Crustacean, processed crab, "Ganzuke" (salted and fermented fiddler crabs)
+10342	Mollusks, neon flying squid, raw
+10343	Mollusks, swordtip squid, raw
+10344	Mollusks, golden cuttlefish*, raw ［*Syn. cuttlefish］
+10345	Mollusks, Japanese common squid*, raw ［*Syn. short-finned squid］
+10346	Mollusks, Japanese common squid*, baked ［*Syn. short-finned squid］
+10347	Mollusks, Japanese common squid*, baked ［*Syn. short-finned squid］
+10417	Mollusks, Japanese common squid*, mantle, with integument, raw ［*Syn. short-finned squid］
+10418	Mollusks, Japanese common squid*, mantle, sashimi ［*Syn. short-finned squid］
+10419	Mollusks, Japanese common squid*, mantle, tempera ［*Syn. short-finned squid］
+10420	Mollusks, Japanese common squid*, arms, tentacles and fins, raw ［*Syn. short-finned squid］
+10348	Mollusks, firefly squid, raw
+10349	Mollusks, firefly squid, boiled
+10350	Mollusks, firefly squid, seasoned and smoked
+10351	Mollusks, firefly squid, "Tsukudani" (simmered whole in soy sauce and sugar)
+10352	Mollusks, spear squid, raw
+10353	Mollusks, processed squid, "Surume" (dried squid)
+10354	Mollusks, processed squid, "Saki-ika" (dried, seasoned and shredded squid)
+10355	Mollusks, processed squid, seasoned and smoked
+10356	Mollusks, processed squid, "Kiriika-ameni" (dried shredded squid, simmered in glucose syrup and soy sauce)
+10357	Mollusks, processed squid, "Ika-arare" (dried squid flakes, simmered in glucose syrup and soy sauce)
+10358	Mollusks, processed squid, "Shiokara" (salted and fermented meat and liver)
+10359	Mollusks, processed squid, canned with seasoning
+10360	Mollusks, ocellated octopus, raw
+10361	Mollusks, common octopus, raw
+10362	Mollusks, common octopus, boiled
+10363	Crustacean, opossum shrimp*, "Tsukudani" (simmered whole in soy sauce and sugar) ［*Syn. Mysids］
+10364	Crustacean, opossum shrimp, "Shiokara" (salted and fermented) ［*Syn. Mysids］
+10365	Sea urchin, raw gonads
+10366	Sea urchin, "Tsubu-uni" (salted whole gonads)
+10367	Sea urchin, "Neri-uni" (salted whole gonad paste)
+10368	Crustacean, Antarctic krill, raw
+10369	Crustacean, Antarctic krill, boiled
+10370	Jellyfish, Salted, desalted
+10371	Crustacean, mantis shrimp, boiled
+10372	Sea cucumber, raw
+10373	Sea cucumber, "Konowata" (salted and fermented viscera)
+10374	Sea squirt*, raw ［*Syn. Ascidian］
+10375	Sea squirt*, "Shiokara" (salted and fermented meat and viscera) ［*Syn. Ascidian］
+10376	Surimi products, "Kanifumi-kamaboko" (imitation crab meat made from surimi)
+10377	Surimi products, "Kobumaki-kamaboko" (surimi rolled in kombu, steamed)
+10378	Surimi products, "Sumaki-kamaboko" (steamed kamaboko covered with straw)
+10379	Surimi products, "Mushi-kamaboko" (steamed kamaboko)
+10380	Surimi products, "Yakinuki-kamaboko" (baked kamaboko)
+10381	Surimi products, "Yaki-chikuwa" (baked tubular kamaboko)
+10382	Surimi products, "Datemaki" (sweet rolled omelet made of egg and surimi)
+10383	Surimi products, "Tsumire" (boiled red meat fish paste)
+10384	Surimi products, "Naruto" (boiled stick kamaboko with cross section of red swirl)
+10385	Surimi products, "Hanpen" (boiled fishcake made of surimi, yam paste and starch)
+10386	Surimi products, "Satsuma-age" (fried surimi)
+10387	Surimi products, fish ham
+10388	Surimi products, fish sausage
+11001	Wild boar, meat, lean and fat, raw
+11002	"Inobuta" (Pig-wild boar crossbred), meat, lean and fat, raw
+11003	Rabbit, meat, lean, raw
+11004	Beef, Japanese beef cattle, chuck, lean and fat, raw
+11005	Beef, Japanese beef cattle, chuck, without subcutaneous fat, raw
+11006	Beef, Japanese beef cattle, chuck, lean, raw
+11007	Beef, Japanese beef cattle, chuck, fat, raw
+11008	Beef, Japanese beef cattle, chuck roll, Lean and fat, raw
+11009	Beef, Japanese beef cattle, chuck roll, without subcutaneous fat, raw
+11010	Beef, Japanese beef cattle, chuck roll, lean, raw
+11011	Beef, Japanese beef cattle, rib loin, lean and fat, raw
+11248	Beef, Japanese beef cattle, rib loin, lean and fat, roasted
+11249	Beef, Japanese beef cattle, rib-loin, lean and fat, boiled
+11012	Beef, Japanese beef cattle, rib loin, without subcutaneous fat, raw
+11013	Beef, Japanese beef cattle, rib loin, lean, raw
+11014	Beef, Japanese beef cattle, rib loin, fat, raw
+11015	Beef, Japanese beef cattle, sirloin, lean and fat, raw
+11016	Beef, Japanese beef cattle, sirloin, without subcutaneous fat, raw
+11017	Beef, Japanese beef cattle, sirloin, lean, raw
+11018	Beef, Japanese beef cattle, flank or short plate, lean and fat, raw
+11019	Beef, Japanese beef cattle, inside round, lean and fat, raw
+11020	Beef, Japanese beef cattle, inside round, without subcutaneous fat, raw
+11250	Beef, Japanese beef cattle, inside round, without subcutaneous fat, roasted
+11251	Beef, Japanese beef cattle, inside round, without subcutaneous fat, boiled
+11021	Beef, Japanese beef cattle, inside round, lean, raw
+11022	Beef, Japanese beef cattle, inside round, fat, raw
+11023	Beef, Japanese beef cattle, silver side, lean and fat, raw
+11024	Beef, Japanese beef cattle, silver side, without subcutaneous fat, raw
+11025	Beef, Japanese beef cattle, silver side, lean, raw
+11026	Beef, Japanese beef cattle, rump, lean and fat, raw
+11027	Beef, Japanese beef cattle, rump, without subcutaneous fat, raw
+11028	Beef, Japanese beef cattle, rump, lean, raw
+11029	Beef, Japanese beef cattle, fillet, lean, raw
+11030	Beef, dairy fattened steer, chuck, lean and fat, raw
+11031	Beef, dairy fattened steer chuck, without subcutaneous fat, raw
+11032	Beef, dairy fattened steer, chuck, lean, raw
+11033	Beef, dairy fattened steer chuck, fat, raw
+11034	Beef, dairy fattened steer, chuck roll, lean and fat, raw
+11035	Beef, dairy fattened steer, chuck roll, without subcutaneous fat, raw
+11036	Beef, dairy fattened steer, chuck roll, lean, raw
+11037	Beef, dairy fattened steer, rib loin, lean and fat, raw
+11038	Beef, dairy fattened steer, rib loin, lean and fat, roasted
+11039	Beef, dairy fattened steer, rib loin, lean and fat, boiled
+11040	Beef, dairy steer, rib loin, without subcutaneous fat, raw
+11041	Beef, dairy fattened steer, rib loin, lean, raw
+11042	Beef, dairy fattened steer, rib loin, fat, raw
+11043	Beef, dairy fattened steer, sirloin, lean and fat, raw
+11044	Beef, dairy fattened steer, sirloin, without subcutaneous fat, raw
+11045	Beef, dairy fattened steer, sirloin, lean, raw
+11046	Beef, dairy fattened steer, flank or short plate, lean and fat, raw
+11252	Beef, dairy fattened steer, flank or short plate, lean and fat, roasted
+11047	Beef, dairy fattened steer, inside round, lean and fat, raw
+11048	Beef, dairy fattened steer, inside round, without subcutaneous fat, raw
+11049	Beef, dairy fattened steer, inside round, without subcutaneous fat, roasted
+11050	Beef, dairy fattened steer, inside round, without subcutaneous fat, boiled
+11051	Beef, dairy fattened steer, inside round, lean, raw
+11052	Beef, dairy fattened steer, inside round, fat, raw
+11053	Beef, dairy fattened steer, silver side, lean and fat, raw
+11054	Beef, dairy fattened steer, silver side, without subcutaneous fat, raw
+11055	Beef, dairy fattened steer, silver side, lean, raw
+11056	Beef, dairy fattened steer, rump, lean and fat, raw
+11057	Beef, dairy fattened steer, rump, without subcutaneous fat, raw
+11058	Beef, dairy fattened steer, rump, lean, raw
+11059	Beef, dairy fattened steer, fillet, lean, raw
+11253	Beef, dairy fattened steer, fillet, lean, roasted
+11254	Beef, crossbred (Holstein×Japanese black) steer, rib loin, lean and fat, raw
+11255	Beef, crossbred (Holstein×Japanese black) steer, rib loin, lean and fat, roasted
+11256	Beef, crossbred (Holstein×Japanese black) steer, rib loin, lean and fat, boiled
+11257	Beef, crossbred (Holstein×Japanese black) steer, rib loin, without subcutaneous fat, raw
+11258	Beef, crossbred (Holstein×Japanese black) steer, rib loin, lean, raw
+11259	Beef, crossbred (Holstein×Japanese black) steer, rib loin, fat, raw
+11260	Beef, crossbred (Holstein×Japanese black) steer, flank or short plate, lean and fat, boiled
+11261	Beef, crossbred (Holstein×Japanese black) steer, inside round, lean and fat, raw
+11262	Beef, crossbred (Holstein×Japanese black) steer, inside round, without subcutaneous fat, raw
+11263	Beef, crossbred (Holstein×Japanese black) steer, inside round, without subcutaneous fat, roasted
+11264	Beef, crossbred (Holstein×Japanese black) steer, inside round, without subcutaneous fat, boiled
+11265	Beef, crossbred (Holstein×Japanese black) steer, inside round, lean, raw
+11266	Beef, crossbred (Holstein×Japanese black) steer, inside round, fat, raw
+11267	Beef, crossbred (Holstein×Japanese black) steer, fillet, without subcutaneous fat, boiled
+11060	Beef, imported beef, chuck, lean and fat, raw
+11061	Beef, imported beef, chuck, without subcutaneous fat, raw
+11062	Beef, imported beef, chuck, lean, raw
+11063	Beef, imported beef, chuck, fat, raw
+11064	Beef, imported beef, chuck roll, lean and fat, raw
+11065	Beef, imported beef, chuck roll, without subcutaneous fat, raw
+11066	Beef, imported beef, chuck roll, lean, raw
+11067	Beef, imported beef, rib loin, lean and fat, raw
+11268	Beef, imported beef, rib loin, lean and fat, roasted
+11269	Beef, imported beef, rib loin, lean and fat, boiled
+11068	Beef, imported beef, rib loin, without subcutaneous fat, raw
+11069	Beef, imported beef, rib loin, lean, raw
+11070	Beef, imported beef, rib loin, fat, raw
+11071	Beef, imported beef, sirloin, lean and fat, raw
+11072	Beef, imported beef, sirloin, without subcutaneous fat, raw
+11073	Beef, imported beef, sirloin, lean, raw
+11074	Beef, imported beef, flank or short plate, lean and fat, raw
+11075	Beef, imported beef, inside round, lean and fat, raw
+11076	Beef, imported beef, inside round, without subcutaneous fat, raw
+11270	Beef, imported beef, inside round, without subcutaneous fat, roasted
+11271	Beef, imported beef, inside round, without subcutaneous fat, boiled
+11077	Beef, imported beef, inside round, lean, raw
+11078	Beef, imported beef, inside round, fat, raw
+11079	Beef, imported beef, silverside, lean and fat, raw
+11080	Beef, imported beef, silverside, without subcutaneous fat, raw
+11081	Beef, imported beef, silverside, lean, raw
+11082	Beef, imported beef, rump, lean and fat, raw
+11083	Beef, imported beef, rump, without subcutaneous fat, raw
+11084	Beef, imported beef, rump, lean, raw
+11085	Beef, imported beef, fillet, lean, raw
+11086	Veal, rib loin, without subcutaneous fat, raw
+11087	Veal, flank or short plate, without subcutaneous fat, raw
+11088	Veal, inside round, without subcutaneous fat, raw
+11089	Beef, ground meat, raw
+11272	Beef, ground meat, stir-fried
+11090	Beef, offal and by-products, tongue, raw
+11273	Beef, offal and by-products, tongue, roasted
+11091	Beef, offal and by-products, heart, raw
+11092	Beef, offal and by-products, liver, raw
+11093	Beef, offal and by-products, kidney, raw
+11094	Beef, offal and by-products, rumen, boiled
+11095	Beef, offal and by-products, reticulum, boiled
+11096	Beef, offal and by-products, omasum, raw
+11097	Beef, offal and by-products, abomasum, boiled
+11098	Beef, offal and by-products, small intestine, raw
+11099	Beef, offal and by-products, large intestine, raw
+11100	Beef, offal and by-products, rectum, raw
+11101	Beef, offal and by-products, sinew, boiled
+11102	Beef, offal and by-products, uterus, boiled
+11103	Beef, offal and by-products, tail, raw
+11274	Beef, offal and by-products, outside skirt, raw
+11104	Beef products, roast beef
+11105	Beef products, corned beef, canned
+11106	Beef products, canned with seasoning
+11107	Beef products, beef jerky
+11108	Beef products, smoked tongue
+11109	Horse, meat, lean, raw
+11110	Whale, meat, lean, raw
+11111	Whale, meat, ventral groove meat, raw
+11112	Whale, blubber, raw
+11113	Whale, "Sarashi-kujira"(salted, sliced and boiled tail fluke)
+11114	Deer, red deer, meat, lean, raw
+11275	Deer, Japanese sika deer, meat, lean, raw
+11115	Pork, large type breed, picnic shoulder, lean and fat, raw
+11116	Pork, large type breed, picnic shoulder, without subcutaneous fat, raw
+11117	Pork, large type breed, picnic shoulder, lean, raw
+11118	Pork, large type breed, picnic shoulder, fat, raw
+11119	Pork, large type breed, Boston butt, lean and fat, raw
+11120	Pork, large type breed, Boston butt, without subcutaneous fat, raw
+11121	Pork, large type breed, Boston butt, lean, raw
+11122	Pork, large type breed, Boston butt, fat, raw
+11123	Pork, large type breed, loin, lean and fat, raw
+11124	Pork, large type breed, loin, lean and fat, roasted
+11125	Pork, large type breed, loin, lean and fat, boiled
+11276	Pork, large type breed, loin, lean and fat, "Tonkatsu"(breaded and fried pork)
+11126	Pork, large type breed, loin, without subcutaneous fat, raw
+11127	Pork, large type breed, loin, lean, raw
+11128	Pork, large type breed, loin, fat, raw
+11129	Pork, large type breed, belly, lean and fat, raw
+11277	Pork, large type breed, belly, lean and fat, roasted
+11130	Pork, large type breed, inside ham, lean and fat, raw
+11131	Pork, large type breed, inside ham, without subcutaneous fat, raw
+11132	Pork, large type breed, inside ham, without subcutaneous fat, roasted
+11133	Pork, large type breed, inside ham, without subcutaneous fat, boiled
+11134	Pork, large type breed, inside ham, lean, raw
+11135	Pork, large type breed, inside ham, fat, raw
+11136	Pork, large type breed, outside ham, lean and fat, raw
+11137	Pork, large type breed, outside ham, without subcutaneous fat, raw
+11138	Pork, large type breed, outside ham, lean, raw
+11139	Pork, large type breed, outside ham, fat, raw
+11140	Pork, large type breed, fillet, lean, raw
+11278	Pork, large type breed, fillet, lean, roasted
+11279	Pork, large type breed, fillet, lean, "Tonkatsu"(breaded and fried pork)
+11141	Pork, medium type breed, picnic shoulder, lean and fat, raw
+11142	Pork, medium type breed, picnic shoulder, without subcutaneous fat, raw
+11143	Pork, medium type breed, picnic shoulder, lean, raw
+11144	Pork, medium type breed, picnic shoulder, fat, raw
+11145	Pork, medium type breed, Boston butt, lean and fat, raw
+11146	Pork, medium type breed, Boston butt, without subcutaneous fat, raw
+11147	Pork, medium type breed, Boston butt, lean, raw
+11148	Pork, medium type breed, Boston butt, fat, raw
+11149	Pork, medium type breed, loin, lean and fat, raw
+11150	Pork, medium type breed, loin, without subcutaneous fat, raw
+11151	Pork, medium type breed, loin, lean, raw
+11152	Pork, medium type breed, loin, fat, raw
+11153	Pork, medium type breed, belly, lean and fat, raw
+11154	Pork, medium type breed, inside ham, lean and fat, raw
+11155	Pork, medium type breed, inside ham, without subcutaneous fat, raw
+11156	Pork, medium type breed, inside ham, lean, raw
+11157	Pork, medium type breed, inside ham, fat, raw
+11158	Pork, medium type breed, outside ham, lean and fat, raw
+11159	Pork, medium type breed, outside ham, without subcutaneous fat, raw
+11160	Pork, medium type breed, outside ham, lean, raw
+11161	Pork, medium type breed, outside ham, fat, raw
+11162	Pork, medium type breed, fillet, lean, raw
+11163	Pork, ground meat, raw
+11280	Pork, ground meat, stir-fried
+11164	Pork, offal and by-products, tongue, raw
+11165	Pork, offal and by-products, heart, raw
+11166	Pork, offal and by-products, liver, raw
+11167	Pork, offal and by-products, kidney, raw
+11168	Pork, offal and by-products, stomach, boiled
+11169	Pork, offal and by-products, small intestine, boiled
+11170	Pork, offal and by-products, large intestine, boiled
+11171	Pork, offal and by-products, uterus, raw
+11172	Pork, offal and by-products, feet, boiled
+11173	Pork, offal and by-products, cartilage, boiled
+11174	Pork, ham, bone-in
+11175	Pork, ham, boneless
+11176	Pork, ham, loin
+11177	Pork, ham, shoulder
+11181	Pork, ham, uncooked ham, fresh
+11182	Pork, ham, uncooked ham, ripened
+11178	Pork, ham, pressed
+11180	Pork, ham, chopped
+11183	Pork, bacon
+11184	Pork, bacon loin
+11185	Pork, shoulder bacon
+11186	Pork, sausage, Vienna
+11187	Pork, sausage, semi-dry
+11188	Pork, sausage, dry
+11189	Pork, sausage, Frankfurter
+11190	Pork, sausage, Bologna
+11191	Pork, sausage, Lyoner
+11192	Pork, sausage, liver
+11193	Pork, sausage, mixed with fish meat
+11194	Pork, sausage, fresh sausage
+11195	Pork, roast pork
+11196	Pork, liver paste
+11197	Pork, smoked liver
+11198	Pork, gelatin
+11199	Mutton, loin, lean and fat, raw
+11281	Mutton, loin, lean and fat, roasted
+11200	Mutton, leg, lean and fat, raw
+11201	Lamb, shoulder, lean and fat, raw
+11202	Lamb, loin, lean and fat, raw
+11282	Lamb, loin, lean and fat, roasted
+11203	Lamb, leg, lean and fat, raw
+11283	Lamb, leg, lean and fat, roasted
+11179	Mutton, ham, pressed, mixed with fish meat
+11204	Goat, meat, lean, raw
+11207	Japanese quail, meat with skin, raw
+11239	Goose, foie gras, boiled
+11208	Duck, wild, meat without skin, raw
+11205	Duck, "Aigamo" (crossbred duck), meat with skin, raw
+11206	Duck, domesticated, meat with skin, raw
+11247	Duck, domesticated, meat without skin, raw
+11284	Duck, domesticated, skin, raw
+11209	Common pheasant, meat without skin, raw
+11210	Turkey, meat without skin, raw
+11211	Sparrow, meat with bones and skin, raw
+11212	Chicken, culled, wing, meat with skin, raw
+11213	Chicken, culled, breast, meat with skin, raw
+11214	Chicken, culled, breast, meat without skin, raw
+11215	Chicken, culled, thigh, meat with skin, raw
+11216	Chicken, culled, thigh, meat without skin, raw
+11217	Chicken, culled, tender, raw
+11218	Chicken, broiler, wing, meat with skin, raw
+11285	Chicken, broiler, wing tip, meat with skin, raw
+11286	Chicken, broiler, wing stick, meat with skin, raw
+11219	Chicken, broiler, breast, meat with skin, raw
+11287	Chicken, broiler, breast, meat with skin, roasted
+11220	Chicken, broiler, breast, meat without skin, raw
+11288	Chicken, broiler, breast, meat without skin, roasted
+11221	Chicken, broiler, thigh, meat with skin, raw
+11222	Chicken, broiler, thigh, meat with skin, roasted
+11223	Chicken, broiler, thigh, meat with skin, boiled
+11289	Chicken, broiler, thigh, meat with skin, "Karaage"(floured and deep-fried chicken)
+11224	Chicken, broiler, thigh, meat without skin, raw
+11225	Chicken, broiler, thigh, meat without skin, roasted
+11226	Chicken, broiler, thigh, meat without skin, boiled
+11290	Chicken, broiler, thigh, meat without skin, "Karaage"(floured and deep-fried chicken)
+11227	Chicken, broiler, tender, raw
+11228	Chicken, broiler, tender, roasted
+11229	Chicken, broiler, tender, boiled
+11230	Chicken, ground meat, raw
+11291	Chicken, ground meat, stir-fried
+11231	Chicken, offal and by-products, heart, raw
+11232	Chicken, offal and by-products, liver, raw
+11233	Chicken, offal and by-products, gizzard, raw
+11234	Chicken, offal and by-products, skin, breast, raw
+11235	Chicken, offal and by-products, skin, thigh, raw
+11236	Chicken, offal and by-products, cartilage bone, raw
+11237	Chicken, canned products, roast meat with seasoning
+11292	Chicken, nuggets
+11293	Chicken, "Tsukune" (Japanese chicken meatball)
+11238	Pigeon, meat without skin, raw
+11240	Guinea fowl, meat without skin, raw
+11241	Rice hopper, Tsukudani (simmered whole without wings and legs in soy sauce and sugar)
+11242	Bullfrog, meat, raw
+11243	Chinese softshell turtle, meat, raw
+11244	Wasp, broods, canned with seasoning
+12020	Eggs, domesticated duck, century egg (Pidan)
+12001	Eggs, silky fowl, whole, raw
+12002	Eggs, Japanese quail, whole, raw
+12003	Eggs, Japanese quail, boiled, canned in brine
+12004	Eggs, hen, whole, raw
+12005	Eggs, hen, whole, boiled
+12006	Eggs, hen, whole, poached egg
+12007	Eggs, hen, boiled and canned in brine
+12008	Eggs, hen, whole, sugared
+12009	Eggs, hen, whole, dried
+12010	Eggs, hen, yolk, raw
+12011	Eggs, hen, yolk, boiled
+12012	Eggs, hen, yolk, sugared
+12013	Eggs, hen, yolk, dried
+12014	Eggs, hen, white, raw
+12015	Eggs, hen, white, boiled
+12016	Eggs, hen, white, dried
+12017	Eggs, hen, Tamago-dofu (cold savory egg custard)
+12018	Eggs, hen, Tamago-yaki (Rolled omelet), Atsuyaki-tamago (sweet rolled omelet with Katsuo-bushi and kombu dashi)
+12019	Eggs, hen, Tamago-yaki (Rolled omelet), Dashimaki-tamago (rolled omelet with Katsuo-bushi and kombu dashi)
+13001	Liquid milk, raw milk, Jersey
+13002	Liquid milk, raw milk, Holstein
+13003	Liquid milk, whole milk
+13004	Liquid milk, containing recombined milk, high fat
+13005	Liquid milk, containing recombined milk, low fat
+13006	Liquid milk, skimmed milk
+13007	Milk beverages, coffee flavored
+13008	Milk beverages, fruit flavored
+13009	Milk powder, whole milk powder
+13010	Milk powder, skimmed milk powder
+13011	Milk powder, infant formula
+13012	Evaporated whole milk
+13013	Condensed whole milk, sweetened
+13014	Cream, milk fat
+13015	Cream substitute, milk and vegetable fats
+13016	Cream substitute, vegetable fat
+13017	Whipping cream, milk fat, with added sugar
+13018	Whipping cream substitute, milk and vegetable fats, with added sugar
+13019	Whipping cream substitute, vegetable fat, with added sugar
+13020	Coffee whitener, liquid, milk fat
+13021	Coffee whitener, liquid, milk and vegetable fats
+13022	Coffee whitener, liquid, vegetable fat
+13023	Coffee whitener, powder, milk fat
+13024	Coffee whitener, powder, vegetable fat
+13025	Yogurt, whole milk, unsweetened
+13053	Yogurt, low fat, unsweetened
+13054	Yogurt, fat free, unsweetened
+13026	Yogurt, skimmed, sweetened
+13027	Yogurt, liquid, sweetened
+13028	Lactic acid bacteria beverages, not pasteurized after fermentation, milk solids-nonfat ≥ 3.0%
+13029	Lactic acid bacteria beverages, pasteurized after fermentation, milk solids-nonfat ≥ 3.0%
+13030	Lactic acid bacteria beverages, milk solids-nonfat < 3.0%
+13031	Cheese, Edam
+13032	Cheese, Emmental
+13033	Cheese, cottage
+13034	Cheese, Camembert
+13035	Cheese, cream
+13036	Cheese, Gouda
+13037	Cheese, Cheddar
+13038	Cheese, Parmesan
+13039	Cheese, blue
+13055	Cheese, Mascarpone
+13056	Cheese, mozzarella
+13057	Cheese, goat milk
+13058	Cheese, Ricotta
+13040	Cheeses, processed
+13041	Cheeses, spreadable
+13042	Ice cream, high fat (milk solids ≥ 15%, milk fat ≥12%)
+13043	Ice cream, regular (milk solids ≥ 15%, milk fat =8%)
+13044	Ice cream, ice milk (milk solids ≥ 10%, milk fat≥ 3%, including vegetable fat)
+13045	Ice cream, lacto-ice, regular (milk solids ≥ 3%, main lipid : vegetable fat)
+13046	Ice cream, lacto-ice, low fat (milk solids ≥ 3% main lipid : vegetable fat)
+13047	Ice cream, soft-serve
+13048	Casein
+13049	Sherbet ［*Syn. Sorbet］
+13050	Cheese whey powder
+13051	Other milk, human milk, mature
+13052	Other milk, goat milk
+14023	Linseed oil ［*Syn. Flaxseed oil］
+14024	Perilla oil
+14001	Olive oil
+14002	Sesame oil
+14003	Rice bran oil
+14004	Safflower oil, high oleic
+14025	Safflower oil, high linoleic
+14005	Soybean oil
+14006	Vegetable oil, blend
+14007	Corn oil
+14008	Rapeseed oil
+14009	Palm oil
+14010	Palm kernel oil
+14011	Sunflower oil, high linoleic
+14026	Sunflower oil, mid-oleic
+14027	Sunflower oil, high oleic
+14028	Grape seed oil
+14012	Cottonseed oil
+14013	Coconut oil
+14014	Peanut oil
+14015	Beef tallow
+14016	Lard
+14017	Butter, salted butter
+14018	Butter, unsalted butter
+14019	Butter, cultured butter
+14020	Margarine, soft type, home use
+14029	Margarine, soft type, commercial use
+14021	Fat spread
+14022	Shortening, home use
+14030	Shortening, commercial use for confectionery
+14031	Shortening, commercial use for frying
+15001	Traditional confectionery, "Amanatto, Adzuki beans" (candied Adzuki beans)
+15002	Traditional confectionery, "Amanatto, kidney beans" (candied kidney beans)
+15003	Traditional confectionery, "Amanatto, peas" (candied green peas)
+15005	Traditional confectionery, "Imagawayaki" (Japanese waffle stuffed with red bean paste)
+15006	Traditional confectionery, "Uiro" (steamed sweet rice dough)
+15007	Traditional confectionery, "Uguisu-mochi" (sweet rice cake, filled with red bean paste, coated by roasted green soy flour)
+15008	Traditional confectionery, "Kashiwa-mochi" (Leaf-wrapped rice cake with red bean paste filling)
+15009	Traditional confectionery, "Kasutera" (rectangle sponge cake)
+15010	Traditional confectionery, "Kanoko" (red bean jelly wrapped with red bean paste, red bean compote and agar)
+15011	Traditional confectionery, "Karukan" (white steamed cake made from rice flour, grated yam and sugar)
+15012	Traditional confectionery, "Kibi-dango" (sweet dumpling made from rice and proso millet flour)
+15013	Traditional confectionery, "Gyuhi" (kneaded glutinous rice flour with sugar, steamed)
+15014	Traditional confectionery, "Kirizansho" (Sweet rice cake flavored by Japanese pepper "Sansho")
+15015	Traditional confectionery, "Kingyokuto" (Sweet agar jelly)
+15016	Traditional confectionery, "Kintsuba" (red bean paste covered with dough, baked)
+15017	Traditional confectionery, "Kusa-mochi" (green rice cake, stuffed with red bean paste, flavored by Japanese wormwood "Yomogi")
+15018	Traditional confectionery, "Kushi-dango, An" (skewered rice dumplings, steamed, coated by red bean paste)
+15019	Traditional confectionery, "Kushi-dango, mitarashi" (skewered rice dumplings, steamed, seasoned with sweet soy glaze)
+15121	Traditional confectionery, "Kudzu-mochi" (sweetened gelatin made from Kuszu starch, with roasted soybean flour and brown sugar syrup)
+15122	Traditional confectionery, "Kudzu-mochi" (sweetened gelatin made from Wheat starch, with roasted soybean flour and brown sugar syrup)
+15020	Traditional confectionery, Moon cake (Yue bing), stuffed with red bean paste
+15123	"Gohei-mochi" (rice cake, grilled with soy sauce, miso, sugar and sesame paste)
+15021	Traditional confectionery, "Sakura-mochi, Kanto style" (pink small pancake roll with red bean paste filling, wrapped by a salted cherry leaf. Dough is made from wheat and rice flour.)
+15022	Traditional confectionery, "Sakura-mochi, Kansai style" (pink rice cake stuffed with red bean paste, wrapped with a salted cherry leaf. Dough is made from glutinous rice flour.)
+15124	Traditional confectionery, "Sasa-dango" (sweet rice cake stuffed with red bean paste, wrapped in sasa-bamboo leaves)
+15023	Traditional confectionery, "Daifuku-mochi" (sweet rice cake stuffed with red bean paste)
+15024	Traditional confectionery, "Taruto" (Swiss roll with red bean paste filling)
+15025	Traditional confectionery, "Chimaki" (bamboo-leaf-wrapped sweet rice dough, steamed)
+15026	Traditional confectionery, "Chatsu" (red bean paste covered with green tea flavored dough, baked)
+15027	Traditional confectionery, "Dorayaki" (Japanese pancake sandwich with red bean paste filling)
+15004	Traditional confectionery, "Aniri-nama-yatsuhashi" (Cinnamon-flavored sweet rice dough, steamed, with red bean paste filling)
+15028	Traditional confectionery, "Nerikiri" ("Gyuhi" kneaded with colored bean paste, molded) (cf. 15013 "Gyuhi")
+15029	Traditional confectionery, "Kasutera-manju" (sponge cake stuffed with red bean paste)
+15030	Traditional confectionery, "Kudzu-manju" (sweetened gelatin made from kudzu starch, stuffed with red bean paste)
+15031	Traditional confectionery, "Kuri-manju" (baked sweet dough stuffed with red bean paste and candied chestnuts)
+15032	Traditional confectionery, "To-manju" (baked sweet dough stuffed with red bean paste)
+15033	Traditional confectionery, "Mushi-manju" (steamed sweet dough stuffed with red bean paste)
+15034	Chinese style steamed bun, stuffed with red bean paste
+15035	Chinese style steamed bun, stuffed with meat and vegetable
+15036	Traditional confectionery, "Monaka" (glutinous rice wafers with red bean paste filling)
+15037	Traditional confectionery, "Yubeshi" (steamed sweet dough made from rice flour, walnuts, soy sauce and citrus "Yuzu" juice)
+15038	Traditional confectionery, "Neri-yokan" (hardened red bean agar bar)
+15039	Traditional confectionery, "Mizu-yokan" (soft red bean jelly)
+15040	Traditional confectionery, "Mushi-yokan" (steamed red bean paste bar)
+15041	Traditional confectionery, "Amedama" (sugar candy)
+15042	Traditional confectionery, "Imo-karinto" (deep fried sweet potato chips, coated with sugar syrup)
+15043	Traditional confectionery, "Okoshi" (puffed sweet rice cake)
+15044	Traditional confectionery, "Onoroke-mame" (roasted peanuts coated with rice dough, baked)
+15045	Traditional confectionery, "Karinto, black" (crunchy deep fried wheat flour dough coated with brown sugar"
+15046	Traditional confectionery, "Karinto, white" (crunchy deep fried wheat flour dough coated with white sugar)
+15047	Traditional confectionery, "Gokabo" (roasted glutinous rice stick covered with roasted soy powder and sugar)
+15048	Traditional confectionery, "Isobe-senbei" (soft wheat flour cracker made using soda water from Isobe hot spring)
+15049	Traditional confectionery, "Kawara senbei" (hard wheat flour cracker shaped like a Japanese traditional roof tile)
+15050	Traditional confectionery, "Maki-senbei" (light wheat cracker roll with sugar confectionary filling)
+15051	Traditional confectionery, "Nanbu-Senbei, Sesame" (round wheat flour cracker, with sesame seeds)
+15052	Traditional confectionery, "Nanbu-Senbei, Peanut" (round wheat flour cracker, with peanuts)
+15053	Traditional confectionery, "Shiogama" (molded confectionary made from sugar, glutinous rice flour and perilla leaf powder)
+15055	Traditional confectionery, "Hina-arare, Kanto style" (roasted and sugared rice dough with candied adzuki beans and roasted soybeans for the Doll's festival)
+15056	Traditional confectionery, "Hina-arare, Kansai style" (roasted rice dough for the Doll's festival)
+15057	Traditional confectionery, "Age-senbei" (fried and salted rice cracker)
+15058	Traditional confectionery, "Amakara-senbei" (rice cracker coated with soy sauce and grain sugar)
+15059	Traditional confectionery, "Arare" (glutinous rice cracker)
+15060	Traditional confectionery, "Shoyu-senbei" (soy sauce flavored rice cracker)
+15061	Traditional confectionery, "Boro, small" (Small balls of baked starch dough)
+15062	Traditional confectionery, "Soba-boro" (Baked sweet dough made from buckwheat and wheat flour)
+15063	Traditional confectionery, "Matsukaze" (Baked sweet dough, topped with poppy seeds)
+15064	Traditional confectionery, "Mishima-mame" (Sugar-coated roasted soybeans)
+15065	Traditional confectionery, "Yatsuhashi" (Cinnamon-flavored sweet rice dough, baked)
+15066	Traditional confectionery, "Rakugan, regular" (molded dry confectionary made from fine roasted glutinous rice flour and sugar)
+15067	Traditional confectionery, "Mugi-rakugan" (molded dry confectionary made from roasted barley flour and sugar)
+15068	Traditional confectionery, "Morokoshi-rakugan" (molded dry confectionary made from powdered adzuki bean paste and sugar)
+15125	Bun with filling, fried bun
+15069	Bun with filling, baked bun with red bean paste filling, regular
+15126	Bun with filling, baked bun with red bean paste filling, thin dough type
+15127	Bun with filling, fried bun with curry filling
+15128	Bun with filling, fried bun with curry filling, fried bun only
+15129	Bun with filling, fried bun with curry filling, curry filling only
+15070	Bun with filling, baked bun with custard cream filling, regular
+15130	Bun with filling, baked bun with custard cream filling, thin dough type
+15071	Bun with filling, baked bun with strawberry jam filling
+15072	Bun with filling, "Korone" (horn-shaped bread), with chocolate cream filling
+15131	Bun with filling, baked bun with chocolate cream filling, thin dough type
+15132	Bun with filling, "Melon-pan" (sweet bun covered in a thin layer of crisp cookie dough)
+15073	Cake and pastry, custard cream puff
+15074	Cake and pastry, sponge cake
+15075	Cake and pastry, layered cream cake
+15133	Cake and pastry, tart
+15134	Cake and pastry, cheesecake, baked
+15135	Cake and pastry, cheesecake, unbaked
+15076	Cake and pastry, Danish pastry
+15077	Cake and pastry, doughnuts, yeast-leavened
+15078	Cake and pastry, doughnuts, cake-type
+15079	Cake and pastry, pie pastry
+15080	Cake and pastry, apple pie
+15081	Cake and pastry, meat pie
+15082	Cake and pastry, butter cake
+15083	Cake and pastry, thick pancake
+15084	Cake and pastry, waffles, with custard cream filling
+15085	Cake and pastry, waffles, with strawberry jam filling
+15086	Pudding and chilled dessert, caramel custard
+15136	Pudding and chilled dessert, Milk pudding
+15087	Pudding and chilled dessert, orange jelly
+15088	Pudding and chilled dessert, coffee jelly
+15089	Pudding and chilled dessert, milk jelly
+15090	Pudding and chilled dessert, wine flavored jelly
+15091	Pudding and chilled dessert, Bavarian cream
+15092	Biscuits, wafers
+15141	Biscuits, wafers with cream
+15093	Biscuits, crackers, oil-sprayed
+15094	Biscuits, crackers, soda
+15095	Biscuits, Sablé shortbread
+15054	Biscuits, Chinese cookies containing lard
+15097	Biscuits, hard biscuits
+15098	Biscuits, soft biscuits
+15099	Biscuits, hard pretzel
+15096	Biscuits, puff pastry biscuits
+15100	Biscuits, biscuits with jam topping
+15101	Snacks, wheat flour snack, extruded
+15102	Snacks, corn snack, extruded
+15103	Snacks, potato chips, regular
+15104	Snacks, potato chips, fabricated
+15109	Candy, color changing candy
+15105	Candy, caramel soft candy
+15107	Candy, jelly candy
+15108	Candy, jelly beans
+15110	Candy, sugar candy
+15111	Candy, butterscotch hard candy
+15112	Candy, brittles
+15113	Candy, marshmallows
+15106	Candy, compressed tablet candy
+15137	Chocolate, chocolate with almonds
+15114	Chocolate, chocolate-covered biscuit
+15115	Chocolate, white chocolate
+15116	Chocolate, milk chocolate
+15117	Candied fruits, Marron glacé (candied chestnuts)
+15118	Chewing gum, stick
+15119	Chewing gum, sugar-coated
+15120	Chewing gum, bubble gum
+15138	Pastry cream
+15139	Sweet red bean soup made from strained bean paste
+15140	Sweet red bean soup made from mushed bean paste
+16001	Fermented alcoholic beverage, "Sake", regular
+16002	Fermented alcoholic beverage, "Sake", "Junmai" (made with only rice, water and koji)
+16003	Fermented alcoholic beverage, "Sake", "Honjozo" (made with rice, water, koji and distilled alcohol. The rice used must be polished to at least 70%)
+16004	Fermented alcoholic beverage, "Sake", "Ginjo" (brewed with labor-intensive steps, using highly polished rice)
+16005	Fermented alcoholic beverage, "Sake", "Junmai-ginjo" (made with only rice, water and koji, brewed with labor-intensive steps, using highly polished rice)
+16006	Fermented alcoholic beverage, beer, pale
+16007	Fermented alcoholic beverage, beer, black
+16008	Fermented alcoholic beverage, beer, stout
+16009	Fermented alcoholic beverage, "Happoshu" (beer-like beverage with less than 67% malt content)
+16010	Fermented alcoholic beverage, wine, white
+16011	Fermented alcoholic beverage, wine, red
+16012	Fermented alcoholic beverage, wine, rose
+16013	Fermented alcoholic beverage, Shaoxing wine
+16014	Distilled alcoholic beverage, "Shochu", distilled through a continuous still
+16015	Distilled alcoholic beverage, "Shochu", distilled through a pot still
+16016	Distilled alcoholic beverage, whisky
+16017	Distilled alcoholic beverage, brandy
+16018	Distilled alcoholic beverage, vodka
+16019	Distilled alcoholic beverage, gin
+16020	Distilled alcoholic beverage, rum
+16021	Distilled alcoholic beverage, Maotai
+16022	Compound alcoholic beverage, "Umeshu" (plum liquor made from Japanese apricots)
+16023	Compound alcoholic beverage, synthetic "Sake"
+16024	Compound alcoholic beverage, "Shiro-zake" (white Sake-like liquor made from steamed rice, rice koji and "Shochu")
+16025	Compound alcoholic beverage, "Mirin" (sweet liquor made from rice, rice koji and Shochu or distilled alcohol), regular
+16026	Compound alcoholic beverage, "Honnaoshi" (sweet liquor made of "Shochu" and "Mirin")
+16027	Compound alcoholic beverage, medicinal liqueur
+16028	Compound alcoholic beverage, curacao
+16029	Compound alcoholic beverage, fortified wine, sweet type
+16030	Compound alcoholic beverage, peppermint liqueur
+16031	Compound alcoholic beverage, vermouth, sweet type
+16032	Compound alcoholic beverage, vermouth, dry type
+16033	Green tea, "Gyokuro" (high grade tea made from shade-grown leaves), tea
+16034	Green tea, "Gyokuro" (high grade tea made from shade-grown leaves), infusion
+16035	Green tea, "Maccha" (finely ground tea)
+16036	Green tea, "Sencha" (common grade tea), tea
+16037	Green tea, "Sencha" (common grade tea), infusion
+16038	Green tea, "Kamairi-cha" (pan-fried tea), infusion
+16039	Green tea, "Ban-cha" (coarse grade tea), infusion
+16040	Green tea, "Hoji-cha" (roasted tea), infusion
+16041	Green tea, "Genmai-cha" (mixture of tea and roasted brown rice), infusion
+16042	Fermented tea, Oolong tea, infusion
+16043	Fermented tea, black tea, tea
+16044	Fermented tea, black tea, infusion
+16045	Coffee, infusion
+16046	Coffee, instant coffee, granules
+16047	Coffee, ready-to-drink coffee with milk and sugar, canned
+16048	Cocoa, pure powder
+16049	Cocoa, chocolate milk powder
+16056	Kale juice, powder
+16050	"Ama-zake" (sweet beverage made from rice koji)
+16051	"Kobu-cha" (kombu powder for drink)
+16057	Sports drink
+16052	Carbonated beverage, fruit flavored and colored drink
+16053	Carbonated beverage, cola
+16054	Carbonated beverage, clear soda
+16058	Carbonated beverage, beer-flavored drink, alcohol free
+16055	"Mugi-cha" (roasted barley tea), infusion
+17001	Japanese Worcester sauce, common type
+17002	Japanese Worcester sauce, semi-thick type
+17003	Japanese Worcester sauce, thick type
+17085	Japanese Worcester sauce, sweet thick type for "Okonomiyaki" (Japanese-style savory pancake with various ingredients)
+17004	Hot seasoning, Doubanjiang
+17005	Hot seasoning, hot pepper sauce
+17006	Hot seasoning, Chinese chili oil
+17007	Soy sauce, "Koikuchi-shoyu" (common soy sauce)
+17008	Soy sauce, "Usukuchi-shoyu" (light color soy sauce)
+17009	Soy sauce, "Tamari-shoyu" (full-bodied soy sauce)
+17010	Soy sauce, "Saishikomi-shoyu" (refermented soy sauce)
+17011	Soy sauce, "Shiro-shoyu" (extra light color soy sauce)
+17086	Soy sauce, salt reduced
+17087	Soy sauce, pre-seasoned with soup stock
+17088	Soy sauce, soy glazed
+17012	Edible salt, common salt, sodium chloride ≥ 99%
+17013	Edible salt, common salt, sodium chloride ≥ 95%
+17014	Edible salt, refined salt, sodium chloride ≥ 99.5%, containing magnesium carbonate
+17089	Edible salt, refined salt, sodium chloride ≥ 99.5%, not containing magnesium carbonate
+17090	Vinegar, black rice vinegar
+17015	Vinegar, grain vinegar
+17016	Vinegar, rice vinegar
+17091	Vinegar, fruit vinegar, Balsamic vinegar
+17017	Vinegar, fruit vinegar, wine vinegar
+17018	Vinegar, fruit vinegar, cider vinegar
+17019	Soup stock, "Katsuo-bushi dashi" (stock of "Katsuo-bushi") (cf. 10091 "Katsuo-bushi")
+17020	Soup stock, "kombu dashi" (stock of dried kombu)
+17021	Soup stock, "Katsuo-bushi and kombu dashi" (stock of "Katsuo-bushi" and dried kombu) (cf. 10091 "Katsuo-bushi")
+17022	Soup stock, "Shiitake dashi" (stock of dried Shiitake mushroom)
+17023	Soup stock, "Niboshi dashi" (stock of small dried sardine)
+17024	Soup stock, chicken bone stock
+17025	Soup stock, chicken, pork and vegetable stock
+17026	Soup stock, beef and vegetable stock
+17027	Stock cubes, meat and vegetable
+17092	Stock powder, for "Oden" (Japanese winter hodgepodge)
+17093	Stock powder, chicken, pork and vegetable
+17028	Stock powder, "Katsuo-bushi" (cf. 10091 "Katsuo-bushi")
+17029	Japanese noodle soup, non-concentrated (soy sauce base)
+17030	Japanese noodle soup, triple-concentrated (soy sauce base)
+17094	Seasoning sauce, sweet vinegar
+17095	Seasoning sauce, sauce for "Ebichiri" (shrimp with chili sauce)
+17031	Seasoning sauce, oyster sauce
+17096	Seasoning sauce, "Kimizu" (seasoning containing vinegar and egg yolk)
+17097	Seasoning sauce, "Gomasu" (vinegar mixture containing sesami, soy sauce and sugar)
+17098	Seasoning sauce, sesame sauce
+17099	Seasoning sauce, "Sanbaizu" (vinegar mixture containing sesami, soy sauce and mirin)
+17100	Seasoning sauce "Nihaizu" (vinegar mixture containing soy sauce)
+17101	Seasoning sauce, sweetened vinegar for "Inarizushi" (fried tofu pouch filled with sushi rice)
+17102	Seasoning sauce, sweetened vinegar for "Nigirizushi" (hand-pressed sushi)
+17103	Seasoning sauce, sweetened vinegar for "Makizushi" (rolled sushi) and "Hakozushi"(pressed sushi)
+17104	Seasoning sauce, Chinese style vinegar
+17105	Seasoning sauce, demi-glace sauce
+17106	Seasoning sauce, Tian Mian Jiang (sweet soybean paste)
+17107	Seasoning sauce, Nam pla (fish sauce)
+17108	Seasoning sauce, for "Hiyashi-chuka" (ramen noodles in a cold sweet soy sauce broth topped with meat and vegetables)
+17109	Seasoning sauce, white sauce
+17110	Seasoning sauce, ponzu vinegar with soy sauce
+17032	Seasoning sauce, Mapo tofu sauce
+17111	Seasoning sauce, marinade
+17033	Seasoning sauce, meat sauce
+17112	Seasoning sauce, for "Yakitori" (grilled chicken skewers)
+17113	Seasoning sauce, barbecue sauce, soy sauce based
+17114	Seasoning sauce, for "Mitarashi" (skewed rice dumplings in a sweet soy glaze)
+17115	Seasoning sauce, "Yuzu kosho" (spicy paste made from chili, yuzu zest and salt)
+17034	Tomato products, puree
+17035	Tomato products, paste
+17036	Tomato products, ketchup
+17037	Tomato products, tomato sauce
+17038	Tomato products, chili sauce
+17039	Dressing, soy sauce based, fat-free
+17040	Dressing, French dressing
+17116	Dressing, soy sauce based, with oil
+17117	Dressing, sesame dressing
+17041	Dressing, thousand island dressing
+17042	Dressing, mayonnaise, whole egg type
+17043	Dressing, mayonnaise, egg yolk type
+17118	Dressing, mayonnaise-type, low calorie type
+17044	Miso, rice-koji miso, sweet type
+17045	Miso, rice-koji miso, light yellow type
+17046	Miso, rice-koji miso, red type
+17047	Miso, barley-koji miso
+17048	Miso, soybean-koji miso
+17119	Miso, salt reduced
+17120	Miso, pre-seasoned with soup stock
+17049	Miso, instant miso soup, powdered type
+17050	Miso, instant miso soup, Paste type
+17121	Miso, "Karashi-miso" (miso sauce containing mustard, vinegar and sugar)
+17122	Miso, "Goma-miso" (miso sauce containing sesami)
+17123	Miso, "Su-miso" (miso sauce containing vinegar and mustard)
+17124	Miso, "Neri-miso" (miso sauce containing egg and mirin)
+17051	Roux, Japanese curry roux, instant
+17052	Roux, hash and rice roux, instant
+17125	Seasoning mix for "Ochazuke" (bowl of rice soaked in dashi broth)
+17053	"Sakekasu" (sake lees)
+17126	Instant soup mix, "Sumashi-jiru" (Japanese traditional clear-soup)
+17127	"Furikake" (Seasoning mix for rice, containing dried seaweed and egg)
+17054	Mirin-like sweet cooking seasoning
+17055	Spices, allspice, ground
+17056	Spices, onion powder
+17057	Spices, mustard, powder
+17058	Spices, mustard, paste
+17059	Spices, mustard, yellow mustard
+17060	Spices, mustard, whole grain mustard
+17061	Spices, curry powder
+17062	Spices, clove, ground
+17063	Spices, pepper, black, ground
+17064	Spices, pepper, white, ground
+17065	Spices, pepper, black and white pepper mix, ground
+17066	Spices, "Sansho" (Japanese pepper), ground
+17067	Spices, cinnamon, ground
+17068	Spices, ginger, dried, ground
+17069	Spices, ginger, paste
+17070	Spice, sage, dried, ground
+17071	Spice, thyme, dried, ground
+17072	Spice, chili powder
+17073	Spice, red hot pepper, ground
+17074	Spice, nutmeg, ground
+17075	Spice, garlic, powder, without salt
+17128	Spice, garlic, powder, with salt
+17076	Spice, garlic, paste
+17077	Spice, basil, dried, ground
+17078	Spices, parsley, dried
+17079	Spices, paprika
+17080	Spices, "Wasabi", powder, mixed with mustard powder
+17081	Spices, "Wasabi", paste
+17082	Yeast, baker's yeast, compressed
+17083	Yeast, baker's yeast, dried
+17129	Tempura batter
+17084	Baking powder
+18001	Japanese curry, beef, retort-pouch
+18002	Jiaozi (Chinese dumpling), frozen
+18003	Gratin, prawn, frozen
+18004	Cream of corn soup, powdered
+18005	Cream of corn soup, retort-pouched
+18006	Croquettes, white sauce-based, pre-fried, frozen
+18017	Croquettes, white sauce-based, fried, frozen
+18007	Croquettes, potato-based, pre-fried, frozen
+18018	Croquettes, potato-based, fried, frozen
+18008	Breaded seafood, cuttlefish, pre-fried, frozen
+18019	Breaded seafood, cuttlefish, fried, frozen
+18009	Breaded seafood, prawn, pre-fried, frozen
+18020	Breaded seafood, prawn, fried, frozen
+18010	Breaded seafood, white fish, pre-fried, frozen
+18021	Breaded seafood, white fish, fried, frozen
+18011	Stew, beef, retort-pouch
+18012	"Shumai" (pork dumpling), frozen
+18013	Hamburger steak, frozen
+18014	Pilaf, frozen
+18015	Meatball, frozen
+18016	"Menchi-katsu" (breaded ground meat cutlet), pre-fried, frozen
+18022	"Menchi-katsu" (breaded ground meat cutlet), fried, frozen
