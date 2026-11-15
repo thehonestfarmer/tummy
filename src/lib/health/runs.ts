@@ -18,7 +18,10 @@ export type RunView = {
   date: string;
   km: number;
   seconds: number | null;
+  /** What the run burned: Strava's figure, or the estimate. */
   kcal: number;
+  /** What it adds to the day's target: `RUN_SHARE` of that. */
+  added: number;
   /** Whether the calories are Strava's own or worked out from weight and distance. */
   kcalFrom: "strava" | "estimate";
   name: string | null;
@@ -28,14 +31,27 @@ export type RunView = {
 const KCAL_PER_KG_KM = 1;
 
 /**
- * How much of a run's calories goes back onto the day's target. All of it,
- * until we decide otherwise: the one number to change.
+ * How much of a run's calories goes back onto the day's target (settled
+ * 2026-11-15). Not all of it, for two reasons: about a tenth of the figure
+ * is resting metabolism the base target already covers, and across people
+ * about 28% of what activity burns is offset elsewhere in the day (Careau et
+ * al., Current Biology 2021). 0.9 × 0.72 ≈ 0.65. The one number to change
+ * once our own weight trend says otherwise.
  */
-export const RUN_SHARE = 1;
+export const RUN_SHARE = 0.65;
 
 type Row = { id: number; date: string; distance_km: number; seconds: number | null; kcal: number; kcal_from: "strava" | "estimate"; name: string | null };
 
-const toRun = (r: Row): RunView => ({ id: r.id, date: r.date, km: r.distance_km, seconds: r.seconds, kcal: r.kcal, kcalFrom: r.kcal_from, name: r.name });
+const toRun = (r: Row): RunView => ({
+  id: r.id,
+  date: r.date,
+  km: r.distance_km,
+  seconds: r.seconds,
+  kcal: r.kcal,
+  added: Math.round(r.kcal * RUN_SHARE),
+  kcalFrom: r.kcal_from,
+  name: r.name,
+});
 
 export async function runsOn(userId: number, date: string): Promise<RunView[]> {
   const rows = await sql<Row[]>`
@@ -54,7 +70,7 @@ export async function recentRuns(userId: number, sinceDate: string | null = null
 }
 
 /** What a day's runs add to its target, in kcal. */
-export const runAllowance = (runs: RunView[]) => Math.round(runs.reduce((n, r) => n + r.kcal, 0) * RUN_SHARE);
+export const runAllowance = (runs: RunView[]) => runs.reduce((n, r) => n + r.added, 0);
 
 export const RunInput = z.object({
   date: z.string().refine(isDate),

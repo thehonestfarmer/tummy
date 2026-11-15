@@ -45,7 +45,7 @@ export function MacroDisplay() {
   const { totals, target, slug, runs } = day.me;
   const color = colorOf(slug);
   const kcal = remaining(totals.kcal, target?.kcal ?? null);
-  const ran = runs.reduce((n, r) => n + r.kcal, 0);
+  const ran = runs.reduce((n, r) => n + r.added, 0);
   return (
     <section aria-label="Your macros" className="flex flex-col gap-3.5 border-b border-hairline px-5 pt-1.5 pb-4">
       <div className="flex items-baseline justify-between gap-3">

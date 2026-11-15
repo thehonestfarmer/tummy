@@ -102,7 +102,7 @@ export function AddRunSheet({ onClose, onLogged }: { onClose: () => void; onLogg
       if (day.date === shown.date) setDay(day);
       onLogged?.();
       onClose();
-      toast({ text: `Run logged · ${whole(run.kcal)} kcal added to ${run.date === phoneToday() ? "today's" : `${formatDay(run.date)}'s`} target` });
+      toast({ text: `Run logged · ${whole(run.added)} kcal added to ${run.date === phoneToday() ? "today's" : `${formatDay(run.date)}'s`} target` });
     } catch (err) {
       setNote(err instanceof Error ? err.message : "That didn't work");
       setBusy(false);
@@ -113,7 +113,7 @@ export function AddRunSheet({ onClose, onLogged }: { onClose: () => void; onLogg
     <Sheet onClose={onClose}>
       <input ref={picker} type="file" accept="image/*" onChange={onShot} className="hidden" />
       <p className="text-[1.15rem]">Add a run</p>
-      <p className="pb-3 text-[0.85rem] leading-relaxed text-ink-dim">Its calories are added to that day&rsquo;s target.</p>
+      <p className="pb-3 text-[0.85rem] leading-relaxed text-ink-dim">65% of its calories are added to that day&rsquo;s target.</p>
       <button
         onClick={() => picker.current?.click()}
         disabled={reading}
@@ -178,7 +178,7 @@ export function RunLines() {
         <button key={r.id} onClick={() => setOpen(r)} className="flex h-11 w-full items-baseline gap-2 border-b border-hairline text-left">
           <span className="w-11 shrink-0 text-[0.8rem] text-ink-dim">Run</span>
           <span className="min-w-0 flex-1 truncate text-[1rem] tabular-nums">{runLine(r)}</span>
-          <span className="shrink-0 text-[0.85rem] tabular-nums text-ink-dim">+{whole(r.kcal)} kcal</span>
+          <span className="shrink-0 text-[0.85rem] tabular-nums text-ink-dim">+{whole(r.added)} kcal</span>
         </button>
       ))}
       {open ? (
@@ -188,8 +188,11 @@ export function RunLines() {
             {formatDay(open.date)} · {runLine(open)}
           </p>
           <p className="pt-3 text-[0.95rem] leading-relaxed">
-            {whole(open.kcal)} kcal added to this day&rsquo;s target, as carbohydrate.{" "}
-            <span className="text-ink-dim">{open.kcalFrom === "strava" ? "Strava's figure." : "Worked out from your weight and the distance."}</span>
+            {whole(open.added)} kcal added to this day&rsquo;s target, as carbohydrate.{" "}
+            <span className="text-ink-dim">
+              That is 65% of the {whole(open.kcal)} kcal {open.kcalFrom === "strava" ? "Strava shows" : "worked out from your weight and the distance"}: some of a run&rsquo;s burn is
+              rest you&rsquo;d have burned anyway, and the body makes up some of the rest.
+            </span>
           </p>
           <button onClick={() => remove(open)} disabled={busy} className="mt-5 h-12 w-full rounded-xl border border-hairline text-[1rem] text-danger">
             {busy ? "…" : "Remove this run"}

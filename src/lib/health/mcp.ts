@@ -1153,8 +1153,9 @@ export function mcpHandlerFor(user: User, client: Client) {
         date: r.date,
         distance_km: r.km,
         moving_time_seconds: r.seconds,
-        kcal: r.kcal,
+        kcal_burned: r.kcal,
         kcal_from: r.kcalFrom === "strava" ? "Strava's figure" : "estimated from body weight and distance",
+        kcal_added_to_target: r.added,
         name: r.name,
       });
 
@@ -1163,8 +1164,8 @@ export function mcpHandlerFor(user: User, client: Client) {
         {
           title: "Log a run",
           description:
-            "Records one run, usually read off a Strava screenshot the person shared. Its calories are added to " +
-            "that day's calorie target (as carbohydrate). Give the calories only if Strava printed them; without " +
+            "Records one run, usually read off a Strava screenshot the person shared. 65% of its calories are added to " +
+            "that day's calorie target (as carbohydrate); the rest is rest and compensation, so don't tell the person to eat back the full figure. Give the calories only if Strava printed them; without " +
             "them the server estimates from the person's latest weigh-in and the distance. Only runs: not walks, " +
             "rides or lifting. Sending the same run twice does not double it. Returns the day's new target.",
           inputSchema: z.object({
@@ -1188,7 +1189,7 @@ export function mcpHandlerFor(user: User, client: Client) {
               { source: "mcp", client, enteredBy: user },
             );
             return {
-              message: `Logged ${person.displayName}'s run. ${run.kcal} kcal is added to the target for ${run.date}.`,
+              message: `Logged ${person.displayName}'s run. ${run.added} kcal (65% of the ${run.kcal} burned) is added to the target for ${run.date}.`,
               run: runOut(run),
               target_for_that_day: await targetFor(person.id, run.date),
             };
@@ -1199,7 +1200,7 @@ export function mcpHandlerFor(user: User, client: Client) {
         "list_runs",
         {
           title: "Runs",
-          description: "A person's runs, newest first, with the calories each added to its day's target.",
+          description: "A person's runs, newest first, with what each burned and the 65% of that added to its day's target.",
           inputSchema: z.object({ whose, since: z.string().refine(isDate, "YYYY-MM-DD").optional().describe("Only runs on or after this date.") }),
           annotations: { readOnlyHint: true, openWorldHint: false },
         },

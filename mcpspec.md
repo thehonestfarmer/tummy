@@ -174,7 +174,7 @@ Every workout tool takes `whose: "me" | "partner"`, default `me`: either person 
 | `edit_set` / `delete_set` | Any set. |
 | `finish_workout` | Session rating out of 10 and an optional note. |
 | `get_exercise_history` | Sets for one exercise over a date range. |
-| `log_run` | One run, read off a Strava screenshot by the chat's own model: `whose`, date, distance, moving time, and Strava's calories if printed (estimated from weight and distance if not). Adds the calories to that day's target and returns it. A repeat of the same run changes nothing. *(Built.)* |
+| `log_run` | One run, read off a Strava screenshot by the chat's own model: `whose`, date, distance, moving time, and Strava's calories if printed (estimated from weight and distance if not). Adds 65% of the calories to that day's target and returns it. A repeat of the same run changes nothing. *(Built.)* |
 | `list_runs` | A person's runs, newest first. *(Built.)* |
 | `delete_run` | Removes a run and takes its calories back off the target. *(Built.)* |
 

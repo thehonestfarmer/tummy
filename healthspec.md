@@ -554,7 +554,7 @@ The app suggests the load; the person decides. The rule is double progression, p
 - **In the app:** *Add a run* on Home takes a screenshot from the phone's photos. Claude reads it, the numbers land in four boxes to check (day, distance, moving time, calories), and Log saves them. The boxes can be typed into with no screenshot. Each of us adds our own.
 - **Only runs.** A walk, a ride or a lifting session is turned away.
 - **Calories.** Strava's figure when the screenshot prints one. Otherwise an estimate: the person's latest weigh-in × the distance × 1 kcal per kg per km, marked as an estimate. With neither, the run is refused with the reason.
-- **The day's target rises by the run's calories**, all of them (`RUN_SHARE` in `runs.ts` is the one number to change if that proves too generous), added as carbohydrate. `targetFor` does this, so the display, the week's total, guidance and every chat tool follow. Home shows the run as a line in the day and "run +612" beside the target. Removing the run takes it back.
+- **The day's target rises by 65% of the run's calories** (`RUN_SHARE` in `runs.ts`; settled 2026-11-15), added as carbohydrate. Not all of it, because about a tenth of the figure is resting metabolism the base target already covers, and across people about 28% of what activity burns is offset elsewhere in the day (Careau et al., *Current Biology* 2021): 0.9 × 0.72 ≈ 0.65. It is a population average; our own weight trend against intake (§6.3) is what should replace it. `targetFor` does this, so the display, the week's total, guidance and every chat tool follow. Home shows the run as a line in the day and "run +612" beside the target. Removing the run takes it back.
 - The same run sent twice (same day, distance and time) is one run.
 - A real connection (Strava's API, or Apple Health through a Shortcut) can replace the screenshot later; `runs` and the target rule stay as they are.
 
@@ -759,7 +759,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Who logs shared meals | Either person, into both days |
 | Partner visibility | Each sees the other's day: food, targets, whether they've trained. Nothing beyond seeing: no streaks, scores or nudges. |
 | Targets | Static for now (§13). Propose-and-approve from the weight trend is designed (§6) and deferred. |
-| Calories and training | Lifting never changes the day's target. A run adds its calories to that day's target, as carbohydrate (§7.6). |
+| Calories and training | Lifting never changes the day's target. A run adds 65% of its calories to that day's target, as carbohydrate (§7.6). |
 | Logging frequency | 10–20 logs per person per day; snacks included |
 | Quick log | One utterance; auto-commit with undo on a clear match, confirm only the uncertain item |
 | Quick-log entry points | In-app mic (or typed), and Claude or ChatGPT via MCP — one server function. No Siri Shortcut. |
