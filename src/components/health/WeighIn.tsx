@@ -17,39 +17,42 @@ const numeric = (raw: string) => raw.replace(/[^\d.,]/g, "").replace(",", ".");
 const stepButton =
   "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-hairline-strong text-[1.4rem] leading-none text-ink disabled:text-ink-faint";
 
-async function send(method: "POST" | "DELETE", date: string, weight?: number): Promise<HealthDayView> {
-  const res = await fetch(method === "POST" ? "/api/weight" : `/api/weight?date=${date}`, {
+async function send(method: "POST" | "DELETE", date: string, amount?: number, what: "weight" | "waist" = "weight"): Promise<HealthDayView> {
+  const res = await fetch(method === "POST" ? `/api/${what}` : `/api/${what}?date=${date}`, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: method === "POST" ? JSON.stringify({ kg: weight, date }) : undefined,
+    body: method === "POST" ? JSON.stringify(what === "weight" ? { kg: amount, date } : { cm: amount, date }) : undefined,
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { error?: string }).error ?? "That didn't work");
   return json as HealthDayView;
 }
 
-/** A weight with 0.1 kg either side: most mornings it starts within a tap or two of right. */
-function Scale({ text, onText }: { text: string; onText: (t: string) => void }) {
+/**
+ * A weight with 0.1 kg either side: most mornings it starts within a tap or
+ * two of right. The same for a waist, in half centimetres.
+ */
+function Scale({ text, onText, unit = "kg", by = 0.1 }: { text: string; onText: (t: string) => void; unit?: "kg" | "cm"; by?: number }) {
   const n = Number(text);
   const ok = text !== "" && Number.isFinite(n);
-  const move = (by: number) => onText(kg(Math.round((n + by) * 10) / 10));
+  const move = (d: number) => onText(kg(Math.round((n + d) * 10) / 10));
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
-      <button aria-label="0.1 kg less" disabled={!ok} onClick={() => move(-0.1)} className={stepButton}>
+      <button aria-label={`${by} ${unit} less`} disabled={!ok} onClick={() => move(-by)} className={stepButton}>
         −
       </button>
       <label className="flex min-w-0 flex-1 items-baseline justify-center gap-1.5 rounded-[10px] border border-hairline bg-ground-sunk px-2 py-1.5">
         <input
-          aria-label="Weight in kilograms"
+          aria-label={unit === "kg" ? "Weight in kilograms" : "Waist in centimetres"}
           inputMode="decimal"
           value={text}
           placeholder="0.0"
           onChange={(e) => onText(numeric(e.target.value))}
           className="w-16 min-w-0 bg-transparent text-right text-[1.4rem] font-bold tabular-nums text-ink placeholder:text-ink-faint focus:outline-none"
         />
-        <span className="text-[0.9rem] text-ink-dim">kg</span>
+        <span className="text-[0.9rem] text-ink-dim">{unit}</span>
       </label>
-      <button aria-label="0.1 kg more" disabled={!ok} onClick={() => move(0.1)} className={stepButton}>
+      <button aria-label={`${by} ${unit} more`} disabled={!ok} onClick={() => move(by)} className={stepButton}>
         +
       </button>
     </div>
@@ -68,6 +71,9 @@ const valid = (text: string) => {
  * 7-day average and how that has moved in a week. The line opens the trend.
  * A past day shows the same card for that day, so a missed morning can be
  * filled in. Each of us sees and logs only our own.
+ *
+ * Once a week a second, smaller card asks for the waist (§6.2): the tape
+ * shows fat loss on weeks when new muscle keeps the scale still.
  */
 export function WeighIn() {
   const { day, date, setDay, toast } = useHealthDay();
@@ -88,10 +94,116 @@ export function WeighIn() {
           </span>
         </button>
       )}
+      {date === null && day.waist.due ? (
+        <WaistCard key={`${day.date}-waist`} day={day.date} last={day.waist.last} onDay={setDay} toast={toast} />
+      ) : day.waist.cm !== null ? (
+        <button onClick={() => setTrend(true)} className="flex h-11 w-full items-baseline gap-2 border-b border-hairline text-left">
+          <span className="w-11 shrink-0 text-[0.8rem] text-ink-dim">Waist</span>
+          <span className="text-[1rem] tabular-nums">{kg(day.waist.cm)} cm</span>
+          <span className="min-w-0 flex-1 truncate text-right text-[0.85rem] tabular-nums text-ink-dim">
+            {day.waist.last ? `${moved(day.waist.cm - day.waist.last.cm)} since ${formatDay(day.waist.last.date)}` : "first one"}
+          </span>
+        </button>
+      ) : null}
       {trend ? <TrendSheet day={day.date} w={w} onDay={setDay} onClose={() => setTrend(false)} /> : null}
     </>
   );
 }
+
+function WaistCard({
+  day,
+  last,
+  onDay,
+  toast,
+}: {
+  day: string;
+  last: { date: string; cm: number } | null;
+  onDay: (d: HealthDayView) => void;
+  toast: ReturnType<typeof useHealthDay>["toast"];
+}) {
+  const [text, setText] = useState(last ? kg(last.cm) : "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const n = Number(text);
+  const ok = text !== "" && Number.isFinite(n) && n >= 40 && n <= 200;
+
+  async function log() {
+    if (!ok) return;
+    setBusy(true);
+    setError(null);
+    try {
+      onDay(await send("POST", day, n, "waist"));
+      toast({ text: `Waist ${kg(n)} cm`, undo: async () => onDay(await send("DELETE", day, undefined, "waist")) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't work");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-label="Waist" className="mt-2 rounded-xl border border-hairline px-3.5 py-3">
+      <h2 className="text-[1rem]">Waist this week</h2>
+      <p className="pb-2.5 text-[0.8rem] text-ink-dim">
+        {last ? `Last: ${kg(last.cm)} cm on ${formatDay(last.date)}. ` : ""}At the navel, relaxed, before eating.
+      </p>
+      <div className="flex items-center gap-2">
+        <Scale text={text} onText={setText} unit="cm" by={0.5} />
+        <button onClick={log} disabled={busy || !ok} className="h-11 shrink-0 rounded-xl border border-hairline-strong px-5 text-[1rem] text-ink disabled:text-ink-faint">
+          {busy ? "…" : "Log"}
+        </button>
+      </div>
+      {error ? <p className="pt-2 text-[0.85rem] text-ink-dim">{error}</p> : null}
+    </section>
+  );
+}
+
+/** Waist over six months: a plain line, since there is one point a week, with the measurements listed underneath. */
+function WaistTrend({ points, color, onRemove }: { points: { date: string; cm: number }[]; color: string; onRemove: (date: string) => void }) {
+  if (!points.length) return null;
+  const first = points[0];
+  const latest = points[points.length - 1];
+  const lo = Math.min(...points.map((p) => p.cm)) - 1;
+  const hi = Math.max(...points.map((p) => p.cm)) + 1;
+  const dayNo = (d: string) => Date.parse(`${d}T00:00:00Z`) / 86_400_000;
+  const span = Math.max(1, dayNo(latest.date) - dayNo(first.date));
+  const x = (d: string) => 8 + ((dayNo(d) - dayNo(first.date)) / span) * 304;
+  const y = (v: number) => 8 + ((hi - v) / (hi - lo)) * 44;
+  return (
+    <>
+      <p className="pt-5 text-[0.8rem] text-ink-faint">Waist</p>
+      <p className="text-[0.95rem] tabular-nums">
+        {kg(latest.cm)} cm
+        {points.length > 1 ? (
+          <span className="text-ink-dim">
+            {" "}
+            · {moved(latest.cm - first.cm)}
+            {Math.abs(latest.cm - first.cm) < 0.05 ? "" : " cm"} since {formatDay(first.date)}
+          </span>
+        ) : null}
+      </p>
+      {points.length > 1 ? (
+        <svg viewBox="0 0 320 60" role="img" aria-label={`Waist from ${kg(first.cm)} to ${kg(latest.cm)} centimetres`} className="mt-1 w-full">
+          <polyline points={points.map((p) => `${x(p.date).toFixed(1)},${y(p.cm).toFixed(1)}`).join(" ")} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          {points.map((p) => (
+            <circle key={p.date} cx={x(p.date)} cy={y(p.cm)} r="3" fill="var(--ink-dim)" stroke="var(--ground-raised)" strokeWidth="1.5" />
+          ))}
+        </svg>
+      ) : null}
+      <ul>
+        {[...points].reverse().map((p) => (
+          <li key={p.date} className="flex items-center gap-2 border-b border-hairline text-[0.95rem] tabular-nums">
+            <span className="w-28 shrink-0 py-2 text-ink-dim">{formatDay(p.date)}</span>
+            <span className="flex-1">{kg(p.cm)} cm</span>
+            <button aria-label={`Remove the ${formatDay(p.date)} measurement`} onClick={() => onRemove(p.date)} className="-mr-2 flex h-10 w-10 items-center justify-center text-[1.1rem] text-ink-dim">
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 
 function Card({
   day,
@@ -265,6 +377,8 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
   const { day: view } = useHealthDay();
   const [trend, setTrend] = useState<WeightTrend | null>(null);
   const [m, setM] = useState<MaintenanceView | null>(null);
+  // Bumped when a waist measurement is removed, to read the lists again.
+  const [tick, setTick] = useState(0);
   const [text, setText] = useState(w.kg === null ? "" : kg(w.kg));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -283,7 +397,7 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
     return () => {
       live = false;
     };
-  }, [w.kg]);
+  }, [w.kg, view.waist.cm, tick]);
 
   async function run(method: "POST" | "DELETE") {
     setBusy(true);
@@ -330,6 +444,16 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
         {error ? <p className="pt-2 text-[0.85rem] text-ink-dim">{error}</p> : null}
 
         {m ? <MaintenanceBlock m={m} onChange={setM} /> : null}
+
+        <WaistTrend
+          points={trend?.waist ?? []}
+          color={colorOf(view.me.slug)}
+          onRemove={async (date) => {
+            const next = await send("DELETE", date, undefined, "waist").catch(() => null);
+            if (next && date === day) onDay(next);
+            setTick((t) => t + 1);
+          }}
+        />
 
         {points.length ? (
           <>

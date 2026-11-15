@@ -23,6 +23,45 @@ export type WeightView = {
 
 export const NO_WEIGHT: WeightView = { kg: null, last: null, avg: null, change: null };
 
+export type WaistView = {
+  /** The measurement on the day on show, if there is one. */
+  cm: number | null;
+  /** The latest one before that day. */
+  last: { date: string; cm: number } | null;
+  /** Whether a week has gone by since the last one, or there has never been one. */
+  due: boolean;
+};
+
+export const NO_WAIST: WaistView = { cm: null, last: null, due: false };
+
+export async function getWaist(userId: number, date: string): Promise<WaistView> {
+  const rows = await sql<{ date: string; cm: number }[]>`
+    select to_char(local_date, 'YYYY-MM-DD') as date, waist_cm as cm from waist_measures
+    where user_id = ${userId} and local_date <= ${date} order by local_date desc limit 2`;
+  const on = rows.find((r) => r.date === date);
+  const last = rows.find((r) => r.date !== date) ?? null;
+  const days = last ? Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${last.date}T00:00:00Z`)) / 86_400_000) : null;
+  return { cm: on?.cm ?? null, last, due: !on && (days === null || days >= 7) };
+}
+
+const Waist = z.object({ date: z.string().refine(isDate), cm: z.number().min(40).max(200) });
+
+/** This week's waist, to the half centimetre. Measuring again the same day replaces it. */
+export async function setWaist(me: User, today: string, raw: unknown): Promise<string> {
+  const parsed = Waist.safeParse(raw);
+  if (!parsed.success) throw new Error("A waist measurement is a number of centimetres.");
+  const { date, cm } = parsed.data;
+  if (date > today) throw new Error("That day hasn't happened yet.");
+  await sql`
+    insert into waist_measures (user_id, local_date, waist_cm) values (${me.id}, ${date}, ${Math.round(cm * 2) / 2})
+    on conflict (user_id, local_date) do update set waist_cm = excluded.waist_cm`;
+  return date;
+}
+
+export async function clearWaist(me: User, date: string): Promise<void> {
+  await sql`delete from waist_measures where user_id = ${me.id} and local_date = ${date}`;
+}
+
 const tenth = (n: number) => Math.round(n * 10) / 10;
 
 export async function getWeight(userId: number, date: string): Promise<WeightView> {
@@ -70,6 +109,8 @@ export type WeightTrend = {
   today: string;
   /** Each weigh-in in the window with the 7-day average as it stood that day, oldest first. */
   points: WeightPoint[];
+  /** Waist measurements over the last six months, oldest first. */
+  waist: { date: string; cm: number }[];
 };
 
 /** The last eight weeks of weigh-ins, for the trend (§8). */
@@ -81,5 +122,8 @@ export async function getWeightTrend(me: User, today: string, days = 56): Promis
     from weigh_ins w
     where w.user_id = ${me.id} and w.local_date > ${today}::date - ${days}::int and w.local_date <= ${today}
     order by w.local_date`;
-  return { today, points: points.map((p) => ({ date: p.date, kg: p.kg, avg: tenth(p.avg) })) };
+  const waist = await sql<{ date: string; cm: number }[]>`
+    select to_char(local_date, 'YYYY-MM-DD') as date, waist_cm as cm from waist_measures
+    where user_id = ${me.id} and local_date > ${today}::date - 183 and local_date <= ${today} order by local_date`;
+  return { today, points: points.map((p) => ({ date: p.date, kg: p.kg, avg: tenth(p.avg) })), waist: [...waist] };
 }

@@ -32,6 +32,8 @@ export type Profile = {
   sex: "male" | "female" | null;
   activity: number;
   goalKgWeek: number;
+  /** The weight to use until there is a weigh-in. */
+  weightKg: number | null;
 };
 
 export type MaintenanceView = {
@@ -70,11 +72,11 @@ export type MaintenanceView = {
 const round25 = (n: number) => Math.round(n / 25) * 25;
 
 export async function getProfile(userId: number): Promise<Profile> {
-  const [row] = await sql<{ height_cm: number | null; birth_year: number | null; sex: Profile["sex"]; activity: number; goal_kg_week: number }[]>`
-    select height_cm, birth_year, sex, activity, goal_kg_week from profiles where user_id = ${userId}`;
+  const [row] = await sql<{ height_cm: number | null; birth_year: number | null; sex: Profile["sex"]; activity: number; goal_kg_week: number; weight_kg: number | null }[]>`
+    select height_cm, birth_year, sex, activity, goal_kg_week, weight_kg from profiles where user_id = ${userId}`;
   return row
-    ? { heightCm: row.height_cm, birthYear: row.birth_year, sex: row.sex, activity: row.activity, goalKgWeek: row.goal_kg_week }
-    : { heightCm: null, birthYear: null, sex: null, activity: 1.5, goalKgWeek: 0 };
+    ? { heightCm: row.height_cm, birthYear: row.birth_year, sex: row.sex, activity: row.activity, goalKgWeek: row.goal_kg_week, weightKg: row.weight_kg }
+    : { heightCm: null, birthYear: null, sex: null, activity: 1.5, goalKgWeek: 0, weightKg: null };
 }
 
 const ProfileInput = z.object({
@@ -83,6 +85,7 @@ const ProfileInput = z.object({
   sex: z.enum(["male", "female"]).nullable(),
   activity: z.number().min(1.2).max(2.2),
   goalKgWeek: z.number().min(-1).max(1),
+  weightKg: z.number().min(20).max(400).nullable().optional(),
 });
 
 export async function setProfile(me: User, raw: unknown): Promise<void> {
@@ -90,10 +93,10 @@ export async function setProfile(me: User, raw: unknown): Promise<void> {
   if (!parsed.success) throw new Error("Some of those don't look right.");
   const p = parsed.data;
   await sql`
-    insert into profiles (user_id, height_cm, birth_year, sex, activity, goal_kg_week)
-    values (${me.id}, ${p.heightCm}, ${p.birthYear}, ${p.sex}, ${p.activity}, ${p.goalKgWeek})
+    insert into profiles (user_id, height_cm, birth_year, sex, activity, goal_kg_week, weight_kg)
+    values (${me.id}, ${p.heightCm}, ${p.birthYear}, ${p.sex}, ${p.activity}, ${p.goalKgWeek}, ${p.weightKg ?? null})
     on conflict (user_id) do update set height_cm = excluded.height_cm, birth_year = excluded.birth_year, sex = excluded.sex,
-      activity = excluded.activity, goal_kg_week = excluded.goal_kg_week, updated_at = now()`;
+      activity = excluded.activity, goal_kg_week = excluded.goal_kg_week, weight_kg = excluded.weight_kg, updated_at = now()`;
 }
 
 const TargetInput = z.object({
@@ -128,7 +131,8 @@ export async function getMaintenance(me: User, today: string): Promise<Maintenan
       select avg(weight_kg)::float8 as kg from (
         select weight_kg from weigh_ins where user_id = ${me.id} and local_date <= ${today} order by local_date desc limit 7) w`,
   ]);
-  const weightKg = recent?.kg ?? null;
+  // The scale's word once there is one; the weight given in Settings until then.
+  const weightKg = recent?.kg ?? profile.weightKg;
 
   const age = profile.birthYear ? Number(today.slice(0, 4)) - profile.birthYear : null;
   const resting =

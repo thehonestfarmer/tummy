@@ -1,6 +1,6 @@
 import { withUser } from "@/lib/api";
 import { getHealthDay, partnerOf } from "@/lib/health/entries";
-import { NO_WEIGHT } from "@/lib/health/weight";
+import { NO_WAIST, NO_WEIGHT } from "@/lib/health/weight";
 import { requestZone } from "@/lib/health/requestZone";
 import { dateIn, isDate } from "@/lib/health/zone";
 
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   return withUser(async (user) => {
     const date = isDate(asked) ? asked : dateIn(tz);
     if (params.get("who") !== "partner") return getHealthDay(user, date);
-    // Their food is ours to look at; their weight is their own (§6.2).
-    return { ...(await getHealthDay(await partnerOf(user), date)), weight: NO_WEIGHT };
+    // Their food is ours to look at; their weight and waist are their own (§6.2).
+    return { ...(await getHealthDay(await partnerOf(user), date)), weight: NO_WEIGHT, waist: NO_WAIST };
   });
 }

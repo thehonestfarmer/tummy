@@ -433,7 +433,8 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 - **On Home** (§8): until the day on show has a weigh-in, a card sits at the top of the list, starting from the last weight with 0.1 kg steppers, so a morning is a tap or two and Log. After that it is one line: the weight, the 7-day average, and the change. A past day shows the same card for that day, so a missed morning is filled in by stepping back to it.
 - **In the week strip**, a dash under each day weighed in, and the week's change in the average beside the calorie total.
 - **The trend** opens from that line: eight weeks, each morning a dot and the 7-day average as the line, the weigh-ins listed underneath, and the day's weigh-in to correct or remove.
-- Not built: waist, the `raw` / `trend_only` display setting (there is nothing of the partner's to hide while each sees only their own), weigh-ins over MCP, and a morning reminder, which waits for web push.
+- **Waist, once a week** (built 2026-11-15). When a week has gone by since the last measurement, or there has never been one, a second, smaller card on today's Home asks for it: centimetres to the half, at the navel, relaxed, before eating, starting from last time. Once logged it is a line for that day with the change since the last one. The trend sheet shows the measurements as a line over six months and lists them, each removable. It matters most for Bunny: a beginner gaining muscle while losing fat can hold the same weight for weeks, and the tape is what shows the fat going. Like weight, each person's own.
+- Not built: the `raw` / `trend_only` display setting (there is nothing of the partner's to hide while each sees only their own), weigh-ins and waist over MCP, and a morning reminder, which waits for web push.
 
 ### 6.3 Maintenance
 
@@ -441,10 +442,11 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 
 Maintenance is what a person burns on a day without a run. It is an estimate made of two parts, worked out on read and never stored:
 
-- **The formula's guess.** Mifflin-St Jeor resting burn (10 × kg + 6.25 × cm − 5 × age + 5 for a man, − 161 for a woman) × an activity factor (1.35 mostly sitting, 1.5 lifting and some walking, 1.7 on your feet). Height, birth year, sex, the factor and the goal live in `profiles`, set in Settings; weight is the latest 7-day average. For one person this is usually within about 10%.
+- **The formula's guess.** Mifflin-St Jeor resting burn (10 × kg + 6.25 × cm − 5 × age + 5 for a man, − 161 for a woman) × an activity factor (1.35 mostly sitting, 1.5 lifting and some walking, 1.7 on your feet). Height, birth year, sex, the factor and the goal live in `profiles`, set in Settings; weight is the latest 7-day average, or until there is a weigh-in the weight given in Settings. For one person this is usually within about 10%.
 - **What the log and the scale show.** Over up to 56 days, from the first weigh-in to yesterday: average intake on fully logged days, less the slope of a line through the weigh-ins × 7,700 kcal per kg, less the runs' share (65% of their calories, spread over the days), since a run is paid for on its own day (§7.6). A day's food counts only if it reaches 60% of resting burn; less is a gap in the record. It needs five weigh-ins spanning a week and five such days before it says anything, and the screen says which is missing.
 - **The blend.** The data's share is n ÷ (n + 21), where n is the smaller of the counted food days and the weigh-ins: a quarter after a week, 40% after a fortnight, 57% after four weeks, 73% after eight. The estimate is rounded to 25 kcal and shown with a rough band, from ±250 on the formula alone to about ±170 at eight weeks. The curve and the band are our own choices, not published figures.
 - 7,700 kcal per kg is the figure for fat. Weight gained on a slow bulk holds a little less, so on a bulk the estimate reads slightly low. Small next to the band; noted, not corrected.
+- **Recomposition bends it the other way.** When fat is lost and muscle gained at once, the scale moves less than the fat lost, so the measured part reads maintenance low and the forecast overstates the weight loss to expect. For Bunny the waist (§6.2), not the scale, is the measure of progress, and a suggested lower target should be weighed against it before it is accepted.
 
 It sits under the weight trend (§6.2): the number, what it is made of, and a dotted line on the chart for where the 7-day average is headed in four weeks at the standing target.
 
@@ -452,7 +454,7 @@ It sits under the weight trend (§6.2): the number, what it is made of, and a do
 
 **Built 2026-11-15**, simpler than first designed: derived on read, shown under the trend, with no card on Home and no stored proposals.
 
-- **The goal** is a rate, signed, in kg a week (Bear: +0.15, a slow bulk). It asks for rate × 7,700 ÷ 7 kcal a day against maintenance.
+- **The goal** is a rate, signed, in kg a week. Bear: +0.15, a slow bulk. Bunny: −0.25, a small deficit, because as a beginner she can gain muscle while losing fat; her 1,700 kcal with 125g of protein (2 g per kg) already fits it. It asks for rate × 7,700 ÷ 7 kcal a day against maintenance.
 - When the estimate plus the goal differs from the standing target by more than 100 kcal, the screen says so and offers the new one: **Set target to 2,550**. Protein and fat stay as they are and carbs take up the change. Nothing changes without that tap. Tapping it writes an active `targets` row from today with the reason.
 - **Settings** has the same things to set by hand: body and goal, and the target's four numbers. This replaces editing the database.
 - Each of us sets our own. Neither sees the other's estimate.

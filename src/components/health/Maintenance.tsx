@@ -90,7 +90,7 @@ export function MaintenanceBlock({ m, onChange }: { m: MaintenanceView; onChange
           {missing
             ? "Add your height, birth year and sex in Settings for a first guess."
             : m.weightKg === null
-              ? "Weigh in once for a first guess."
+              ? "Weigh in once, or give your weight in Settings, for a first guess."
               : (m.waiting ?? "Not enough to go on yet.")}
         </p>
       )}
@@ -113,6 +113,7 @@ export function BodySettings({ initial }: { initial: MaintenanceView }) {
   const [p, setP] = useState<Profile>(initial.profile);
   const [height, setHeight] = useState(initial.profile.heightCm ? String(initial.profile.heightCm) : "");
   const [born, setBorn] = useState(initial.profile.birthYear ? String(initial.profile.birthYear) : "");
+  const [weight, setWeight] = useState(initial.profile.weightKg ? String(initial.profile.weightKg) : "");
   const [t, setT] = useState<Record<keyof Macros, string>>({
     kcal: initial.target ? String(initial.target.kcal) : "",
     protein_g: initial.target ? String(initial.target.protein_g) : "",
@@ -144,8 +145,8 @@ export function BodySettings({ initial }: { initial: MaintenanceView }) {
     <>
       <section className="pt-7">
         <h2 className="text-[1rem]">Body and goal</h2>
-        <p className="pb-3 text-[0.85rem] text-ink-dim">What the maintenance estimate starts from. Your weight comes from your weigh-ins.</p>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="pb-3 text-[0.85rem] text-ink-dim">What the maintenance estimate starts from. The weight here is only used until you&rsquo;ve weighed in.</p>
+        <div className="grid grid-cols-3 gap-2">
           <label className="flex flex-col">
             <span className="pb-1 text-[0.8rem] text-ink-faint">Height, cm</span>
             <input aria-label="Height in centimetres" inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value.replace(/[^\d.]/g, ""))} className={field} />
@@ -153,6 +154,10 @@ export function BodySettings({ initial }: { initial: MaintenanceView }) {
           <label className="flex flex-col">
             <span className="pb-1 text-[0.8rem] text-ink-faint">Born in</span>
             <input aria-label="Birth year" inputMode="numeric" value={born} onChange={(e) => setBorn(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="1990" className={field} />
+          </label>
+          <label className="flex flex-col">
+            <span className="pb-1 text-[0.8rem] text-ink-faint">Weight, kg</span>
+            <input aria-label="Weight in kilograms" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.]/g, ""))} className={field} />
           </label>
         </div>
         <div className="flex gap-1.5 pt-2.5">
@@ -192,7 +197,7 @@ export function BodySettings({ initial }: { initial: MaintenanceView }) {
           </button>
         </div>
         <button
-          onClick={() => save("profile", { action: "profile", ...p, heightCm: num(height), birthYear: num(born) }, "Saved.")}
+          onClick={() => save("profile", { action: "profile", ...p, heightCm: num(height), birthYear: num(born), weightKg: num(weight) }, "Saved.")}
           disabled={busy !== null}
           className="mt-3 h-11 w-full rounded-xl border border-hairline-strong text-[0.95rem] text-ink disabled:text-ink-faint"
         >
