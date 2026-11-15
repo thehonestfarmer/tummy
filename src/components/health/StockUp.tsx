@@ -171,7 +171,7 @@ export function StockUp() {
       const n = normalize(reading);
       const label = reading.kind === "nutrition_label";
       const off = n.per100 ? implausibility(n.per100) : null;
-      const gap = label && draft.reference && n.per100 ? crossCheckGap(n.per100, draft.reference) : null;
+      const gap = label && draft.reference && n.per100 && !n.countedBy ? crossCheckGap(n.per100, draft.reference) : null;
       const warn =
         n.problems[0] ??
         (gap !== null && gap > CROSS_CHECK_TOLERANCE

@@ -198,6 +198,7 @@ One **shared** library for both users. Each food stores:
 | weight_basis | `raw` (default), `cooked`, or `as_packaged` |
 | servings | Named servings with a unit word and grams: "1 piece = 9g", "1 pack = 180g", "1 egg = 55g". Counted snacks need a piece serving for "1 senbei" to resolve. |
 | default_grams | Pre-fills the log sheet |
+| counted_only | Set when a label gives its numbers for one pack, piece or serving and prints no weight (a frozen smoothie cup: "1食"). Nothing is known per 100g, so the one unit is stored as a nominal 100g, and the food is logged, shown and corrected by the unit ("2 packs"), never in grams. Confirming such a label needs no weight (settled 2026-11-15); the cross-check against the food table is skipped, since there is no per-100g figure to compare. |
 | source | `label_ocr`, `pack_read`, `reference_table`, `llm_estimate`, `manual` |
 | client | Where it was submitted from: `pwa`, `claude`, or `chatgpt` |
 | reference_food_id | The reference-table row the values came from or were checked against (§5.8), nullable |

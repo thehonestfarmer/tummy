@@ -67,7 +67,8 @@ function warningsFor(reading: Reading, per100: Macros, reference: ReferenceRow |
         "Check the numbers against the label.",
     );
   }
-  if (reading.kind === "nutrition_label" && reference) {
+  // A counted-only food has no per-100g figures to compare: its "100g" is one pack.
+  if (reading.kind === "nutrition_label" && reference && !normalize(reading).countedBy) {
     const gap = crossCheckGap(per100, reference);
     if (gap !== null && gap > CROSS_CHECK_TOLERANCE) {
       out.push(

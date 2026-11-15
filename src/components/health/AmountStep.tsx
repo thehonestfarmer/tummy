@@ -163,13 +163,14 @@ export function AmountStep({
       </button>
       <p className="pt-1 text-[1.15rem] leading-snug">{food.name}</p>
       <p className="text-[0.85rem] text-ink-dim">
-        {fmt(food.per100.kcal, 0)} kcal per 100g
-        {left ? ` · ${fmt(left, 0)}g in the fridge` : ""}
+        {food.countedOnly ? `${fmt(food.per100.kcal, 0)} kcal a ${food.servings[0]?.label ?? "pack"}` : `${fmt(food.per100.kcal, 0)} kcal per 100g`}
+        {left ? (food.countedOnly ? ` · ${fmt(left / (food.servings[0]?.grams ?? 100))} in the fridge` : ` · ${fmt(left, 0)}g in the fridge`) : ""}
         {food.nameJa ? ` · ${food.nameJa}` : ""}
       </p>
 
       <div className="flex flex-wrap gap-1.5 pt-4">
-        {food.servings.length
+        {/* A food counted only by the pack has no grams to offer, and no other unit to add. */}
+        {food.servings.length && !food.countedOnly
           ? [...food.servings.map((s) => `${plural(s.label, 2)} · ${fmt(s.grams)}g each`), "grams"].map((name, i) => (
               <button
                 key={name}
@@ -186,7 +187,7 @@ export function AmountStep({
               </button>
             ))
           : null}
-        {piece ? null : (
+        {piece || food.countedOnly ? null : (
           <button
             onClick={() => setPiece({ label: "", grams: "", error: null })}
             className="h-10 rounded-full border border-dashed border-hairline-strong px-3.5 text-[0.9rem] text-ink-dim"
@@ -261,7 +262,9 @@ export function AmountStep({
       </div>
       <p className="h-6 pt-2 text-center text-[0.9rem] tabular-nums text-ink-dim">
         {grams
-          ? `${serving ? `${fmt(grams)}g · ` : ""}${kcal(total)} kcal${left ? ` · leaves ${fmt(Math.max(0, left - grams), 0)}g in the fridge` : ""}`
+          ? food.countedOnly
+            ? `${kcal(total)} kcal`
+            : `${serving ? `${fmt(grams)}g · ` : ""}${kcal(total)} kcal${left ? ` · leaves ${fmt(Math.max(0, left - grams), 0)}g in the fridge` : ""}`
           : ""}
       </p>
 

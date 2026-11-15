@@ -22,6 +22,8 @@ export type EntryView = {
   foodId: number | null;
   name: string;
   grams: number;
+  /** For a food with no real weight (§5.1): how many of its unit this was, to show in place of grams. */
+  count: { n: number; label: string } | null;
   macros: Macros;
   /** "14:32" in the zone it was logged in. */
   clock: string;
@@ -70,6 +72,9 @@ type EntryRow = {
   source: EntrySource;
   created_by: number | null;
   shared_meal_id: number | null;
+  /** Only read with a day's entries: the unit of a counted-only food. */
+  unit_label?: string | null;
+  unit_grams?: number | null;
 };
 
 const ZERO: Macros = { kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0 };
@@ -127,8 +132,12 @@ export async function targetFor(userId: number, date: string, runs?: RunView[]):
 
 async function entriesFor(userId: number, date: string): Promise<EntryRow[]> {
   return sql<EntryRow[]>`
-    select e.*, to_char(e.local_date, 'YYYY-MM-DD') as local_date
+    select e.*, to_char(e.local_date, 'YYYY-MM-DD') as local_date, u.label as unit_label, u.grams as unit_grams
     from food_entries e
+    left join lateral (
+      select s.label, s.grams from foods f join food_servings s on s.food_id = f.id
+      where f.id = e.food_id and f.counted_only order by s.id limit 1
+    ) u on true
     where e.user_id = ${userId} and e.local_date = ${date}
     order by e.logged_at desc, e.id desc`;
 }
@@ -140,6 +149,7 @@ function toEntry(r: EntryRow, names: Map<number, string>): EntryView {
     foodId: r.food_id,
     name: r.name,
     grams: r.grams,
+    count: r.unit_label && r.unit_grams ? { n: round1(r.grams / r.unit_grams), label: r.unit_label } : null,
     macros: macrosFor(r.grams, per100Of(r)),
     clock: hourText,
     hour: Number(hourText.slice(0, 2)),

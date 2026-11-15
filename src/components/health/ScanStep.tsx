@@ -120,7 +120,7 @@ export function ScanStep({
   const n = normalize(reading);
   const label = reading.kind === "nutrition_label";
   const off = n.per100 ? implausibility(n.per100) : null;
-  const gap = label && draft.reference && n.per100 ? crossCheckGap(n.per100, draft.reference) : null;
+  const gap = label && draft.reference && n.per100 && !n.countedBy ? crossCheckGap(n.per100, draft.reference) : null;
 
   return (
     <div>
@@ -165,6 +165,11 @@ export function ScanStep({
       {off !== null && off > PLAUSIBILITY_TOLERANCE ? (
         <p className="pt-2 text-[0.9rem] leading-relaxed">
           The calories are {Math.round(off * 100)}% off what the macros add up to. Worth a second look at the label.
+        </p>
+      ) : null}
+      {n.countedBy && !n.problems.length ? (
+        <p className="pt-2 text-[0.9rem] leading-relaxed text-ink-dim">
+          No weight on the label, so this is counted by the {n.countedBy}: one {n.countedBy} is these numbers. Add the grams if you ever weigh one.
         </p>
       ) : null}
       {n.problems.map((p) => (

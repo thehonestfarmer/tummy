@@ -71,7 +71,15 @@ export type Normalized = {
   source: "label_ocr" | "pack_read" | "llm_estimate";
   /** What stops this reading becoming a food, in words for the reviewer. */
   problems: string[];
+  /**
+   * Set when the label gives its numbers for one pack, piece or serving and
+   * no weight: the food is counted in that unit, which stands as 100g.
+   */
+  countedBy: "pack" | "piece" | "serving" | null;
 };
+
+/** The weight one unit of a counted-only food is stored as. Nobody measured it; it only makes the sums work. */
+export const NOMINAL_GRAMS = 100;
 
 const round = (n: number, places = 1) => Math.round(n * 10 ** places) / 10 ** places;
 const positive = (n: number | null | undefined): n is number =>
@@ -123,6 +131,7 @@ export function normalize(r: Reading): Normalized {
   if (!r.name.trim()) problems.push("Needs a name.");
 
   let per100: Macros | null = null;
+  let countedBy: Normalized["countedBy"] = null;
   if (r.kind === "meat_fish_pack" || r.kind === "named_food") {
     const e = r.estimate_per_100g;
     if (e && present(e.kcal) && present(e.protein_g) && present(e.fat_g) && present(e.carbs_g)) {
@@ -131,9 +140,14 @@ export function normalize(r: Reading): Normalized {
       problems.push("Needs per-100g values.");
     }
   } else if (r.kind === "nutrition_label") {
-    const grams = basisGrams(r);
     const carbs = totalCarbs(r);
-    if (!grams) problems.push("Needs the grams the label's numbers are for.");
+    let grams = basisGrams(r);
+    // A label for "1 pack" with no weight on it still says everything needed to log a pack.
+    if (!grams && r.basis && r.basis !== "per_100g") {
+      countedBy = r.basis === "per_package" ? "pack" : r.basis === "per_piece" ? "piece" : "serving";
+      grams = NOMINAL_GRAMS;
+    }
+    if (!grams) problems.push("Say what the label's numbers are per.");
     if (!present(r.kcal) || !present(r.protein_g) || !present(r.fat_g) || carbs === null) {
       problems.push("Needs calories, protein, fat and carbs.");
     }
@@ -146,6 +160,10 @@ export function normalize(r: Reading): Normalized {
         carbs_g: round(carbs * k),
       };
     }
+  }
+
+  if (countedBy) {
+    return { per100, servings: [{ label: countedBy, grams: NOMINAL_GRAMS }], defaultGrams: NOMINAL_GRAMS, source, problems, countedBy };
   }
 
   const servings: Serving[] = [];
@@ -164,7 +182,7 @@ export function normalize(r: Reading): Normalized {
     (positive(r.net_weight_g) && r.net_weight_g <= 250 ? round(r.net_weight_g) : null) ??
     100;
 
-  return { per100, servings, defaultGrams, source, problems };
+  return { per100, servings, defaultGrams, source, problems, countedBy: null };
 }
 
 /**

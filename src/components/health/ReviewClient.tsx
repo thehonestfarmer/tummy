@@ -270,7 +270,7 @@ function DraftForm({
 
   // A label is compared with its nearest generic row: wildly different
   // calories usually mean a misread the macros can't reveal.
-  const gap = r.kind === "nutrition_label" && draft.reference && n.per100 ? crossCheckGap(n.per100, draft.reference) : null;
+  const gap = r.kind === "nutrition_label" && draft.reference && n.per100 && !n.countedBy ? crossCheckGap(n.per100, draft.reference) : null;
 
   return (
     <div className="pt-4">
@@ -358,7 +358,7 @@ function DraftForm({
           {r.basis && r.basis !== "per_100g" ? (
             <div className="pt-3">
               <NumberField
-                label={r.basis === "per_package" ? "Grams in that pack, if different from net weight" : "Grams that covers"}
+                label={r.basis === "per_package" ? "Grams in that pack, if the label says" : "Grams that covers, if the label says"}
                 value={r.basis_grams}
                 onChange={(v) => set("basis_grams", v)}
                 hint={hint("basis_grams")}
@@ -417,6 +417,11 @@ function DraftForm({
         {off !== null && off > PLAUSIBILITY_TOLERANCE ? (
           <p className="pt-1 text-ink-dim">
             The calories are {Math.round(off * 100)}% off what the macros add up to. Worth a second look at the label.
+          </p>
+        ) : null}
+        {n.countedBy && !n.problems.length ? (
+          <p className="pt-1 text-ink-dim">
+            No weight on the label, so this is counted by the {n.countedBy}: one {n.countedBy} is these numbers. Add the grams if you ever weigh one.
           </p>
         ) : null}
         {n.problems.map((p) => (

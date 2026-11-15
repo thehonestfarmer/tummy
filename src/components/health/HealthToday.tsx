@@ -42,7 +42,7 @@ function EntryLine({ entry, picked }: { entry: EntryView; picked?: boolean }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[1rem]">{entry.name}</span>
         <span className="block truncate text-[0.8rem] text-ink-dim">
-          {fmt(entry.grams, 0)}g
+          {entry.count ? `${fmt(entry.count.n)} ${entry.count.n === 1 ? entry.count.label : `${entry.count.label}s`}` : `${fmt(entry.grams, 0)}g`}
           {entry.addedBy ? ` · added by ${entry.addedBy}` : entry.sharedMealId !== null ? " · shared" : ""}
         </span>
       </span>

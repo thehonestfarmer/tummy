@@ -77,6 +77,8 @@ export type FoodView = {
   weightBasis: WeightBasis;
   defaultGrams: number | null;
   servings: Serving[];
+  /** Counted in its one unit, with no real weight behind it (§5.1). */
+  countedOnly: boolean;
   source: string;
   images: string[];
   /** The reference-table row the values came from, or a label was checked against. */
@@ -97,6 +99,7 @@ type FoodRow = {
   carbs_g: number | null;
   weight_basis: WeightBasis;
   default_grams: number | null;
+  counted_only: boolean;
   source: string | null;
   status: "draft" | "confirmed";
   image_url: string | null;
@@ -440,8 +443,8 @@ export async function confirmDraft(
         name = ${name}, name_ja = ${nameJa}, brand = ${reading.brand?.trim() || null},
         aliases = ${aliases},
         kcal = ${per100.kcal}, protein_g = ${per100.protein_g}, fat_g = ${per100.fat_g}, carbs_g = ${per100.carbs_g},
-        weight_basis = ${reading.weight_basis}, default_grams = ${n.defaultGrams},
-        source = ${source}, reference_food_id = ${refId},
+        weight_basis = ${reading.weight_basis}, default_grams = ${n.defaultGrams}, counted_only = ${n.countedBy !== null},
+        source = ${source}, reference_food_id = ${n.countedBy ? null : refId},
         status = 'confirmed', reading = ${tx.json(reading as never)},
         image_url = null, image2_url = null,
         confirmed_by = ${me.id}, confirmed_via = ${via}, confirmed_at = now(), updated_at = now()
@@ -511,6 +514,7 @@ function toView(row: LibraryRow, servings: Serving[]): FoodView {
     weightBasis: row.weight_basis,
     defaultGrams: row.default_grams,
     servings,
+    countedOnly: row.counted_only,
     source: row.source ?? "",
     images: images(row),
     reference: row.ref_number ? { foodNumber: row.ref_number, name: row.ref_name! } : null,

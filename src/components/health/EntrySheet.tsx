@@ -15,7 +15,10 @@ function shift(date: string, days: number): string {
 /** Correcting one entry (§5.4): the amount, the day it belongs to, or removing it. */
 export function EntrySheet({ entry, onClose }: { entry: EntryView; onClose: () => void }) {
   const { setDay } = useHealthDay();
-  const [grams, setGrams] = useState<number | null>(entry.grams);
+  // A food with no real weight is corrected in its own unit: "2 packs", not 200g nobody measured.
+  const each = entry.count ? entry.grams / entry.count.n : 1;
+  const [amount, setAmount] = useState<number | null>(entry.count ? entry.count.n : entry.grams);
+  const grams = amount ? Math.round(amount * each * 10) / 10 : null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const per100 = entry.grams > 0 ? entry.macros.kcal / entry.grams : 0;
@@ -48,7 +51,7 @@ export function EntrySheet({ entry, onClose }: { entry: EntryView; onClose: () =
       </p>
       <div className="flex items-end gap-3 pt-4">
         <div className="w-32">
-          <NumberField label="Grams" value={grams} onChange={setGrams} />
+          <NumberField label={entry.count ? `How many ${entry.count.label}s` : "Grams"} value={amount} onChange={setAmount} />
         </div>
         <p className="pb-2 text-[0.95rem] tabular-nums text-ink-dim">
           {grams ? `${fmt(per100 * grams, 0)} kcal` : ""}
