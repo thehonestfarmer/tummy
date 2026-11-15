@@ -16,7 +16,8 @@ import { StartChooser } from "./Workout";
  * Home's actions, docked at the bottom edge where a thumb reaches (§8): a
  * large Add food and the quick-log mic beside it, and a smaller Start workout
  * above them until you've trained today (§7.4). With a session open it is the
- * way back in; after it, a quiet line saying what you did.
+ * way back in; after it, a quiet line saying what you did. Beside it,
+ * Workouts leads to the routines and the history.
  *
  * On a past day Add food logs into that day, and the mic steps aside: a
  * spoken log is about now.
@@ -30,7 +31,7 @@ export function Dock() {
   const { data: workout } = usePoll<WorkoutView | null>("/api/workout", 20_000, null);
   const session = workout?.session;
   const inIt = Boolean(session?.open && !session.finished);
-  const workoutButton = "flex h-12 w-full items-center justify-center rounded-xl border border-hairline-strong bg-ground-raised text-[1rem] text-ink";
+  const workoutButton = "flex h-12 min-w-0 flex-1 items-center justify-center rounded-xl border border-hairline-strong bg-ground-raised text-[1rem] text-ink";
 
   // Off Home there is nothing to dock, only the phone's own bottom edge to clear.
   if (!home) return <div style={{ height: "var(--safe-bottom)" }} />;
@@ -40,22 +41,30 @@ export function Dock() {
       className="border-t border-hairline bg-ground/95 px-4 pt-3 backdrop-blur-sm"
       style={{ paddingBottom: "max(var(--safe-bottom), 0.75rem)" }}
     >
-      {date !== null || !workout ? null : inIt ? (
-        <Link href="/workout" className={`${workoutButton} mb-2.5`}>
-          Back to workout{session?.planName ? ` · ${session.planName}` : ""}
-        </Link>
-      ) : workout.joinable ? (
-        <button onClick={() => setStarting(true)} className={`${workoutButton} mb-2.5`}>
-          Join {workout.joinable.by}&rsquo;s workout
-        </button>
-      ) : workout.trained ? (
-        <Link href="/workout" className="mb-2 flex h-8 items-center justify-center text-[0.9rem] text-ink-dim">
-          Trained{session?.planName ? ` · ${session.planName}` : ""}
-        </Link>
-      ) : (
-        <button onClick={() => setStarting(true)} className={`${workoutButton} mb-2.5`}>
-          Start workout
-        </button>
+      {date !== null || !workout ? null : (
+        <div className="mb-2.5 flex items-center gap-2">
+          {inIt ? (
+            <Link href="/workout" className={workoutButton}>
+              Back to workout{session?.planName ? ` · ${session.planName}` : ""}
+            </Link>
+          ) : workout.joinable ? (
+            <button onClick={() => setStarting(true)} className={workoutButton}>
+              Join {workout.joinable.by}&rsquo;s workout
+            </button>
+          ) : workout.trained ? (
+            <Link href="/workout" className="flex h-12 min-w-0 flex-1 items-center justify-center text-[0.9rem] text-ink-dim">
+              Trained{session?.planName ? ` · ${session.planName}` : ""}
+            </Link>
+          ) : (
+            <button onClick={() => setStarting(true)} className={workoutButton}>
+              Start workout
+            </button>
+          )}
+          {/* Routines, history, and the other person's workout (§8). */}
+          <Link href="/workouts" className="flex h-12 shrink-0 items-center rounded-xl border border-hairline px-4 text-[0.95rem] text-ink-dim">
+            Workouts
+          </Link>
+        </div>
       )}
       <div className="flex gap-2.5">
         <button

@@ -1,14 +1,15 @@
 import { withUser } from "@/lib/api";
 import { logSet } from "@/lib/health/workout";
-import { workoutFor } from "../shared";
+import { personIn, workoutFor } from "../shared";
 
 export const dynamic = "force-dynamic";
 
-/** Logs one set by touch into the open session. `id` is what an undo should remove. */
+/** Logs one set by touch into the open session, for yourself or with `?who=` your partner. `id` is what an undo should remove. */
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   return withUser(async (user) => {
-    const id = await logSet(user, body, { source: "touch" });
-    return { id, workout: await workoutFor(user, req) };
+    const person = await personIn(user, req);
+    const id = await logSet(person, body, { source: "touch", enteredBy: user });
+    return { id, workout: await workoutFor(person, req) };
   });
 }

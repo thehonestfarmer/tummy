@@ -2,9 +2,10 @@ import "server-only";
 import { z } from "zod";
 import { sql } from "../db";
 import type { User } from "../auth";
+import type { Slug } from "../config";
 import type { Client } from "./client";
 import { fold } from "./fold";
-import { EQUIPMENT, EXERCISE_KINDS, getRoutines, listExercises, plansById, type ExerciseView, type PlanView } from "./plans";
+import { EQUIPMENT, EXERCISE_KINDS, getRoutines, listExercises, plansById, type ExerciseView, type PlanExerciseView, type PlanView } from "./plans";
 
 /*
  * The session (healthspec.md §7.4) and progression (§7.5). A session belongs
@@ -75,6 +76,8 @@ export type SessionView = {
 };
 
 export type WorkoutView = {
+  /** Whose workout this is: the person at the phone, or their partner when one logs for the other. */
+  who: { slug: Slug; displayName: string };
   today: string;
   /** The open session you are in, or failing that the one you did today. */
   session: SessionView | null;
@@ -237,12 +240,13 @@ export async function getWorkout(me: User, today: string, extra: number[] = []):
     }))
     .sort((a, b) => Number(b.next) - Number(a.next));
 
-  if (!shown) return { today, session: null, trained, joinable, choices };
+  const who = { slug: me.slug, displayName: me.displayName };
+  if (!shown) return { who, today, session: null, trained, joinable, choices };
 
   const person = mine(shown)!;
   const [plan] = person.plan_id ? await plansById([person.plan_id]) : [];
   const session = await sessionView(me, shown, person, plan ?? null, shown.ended_at === null ? extra : []);
-  return { today, session, trained, joinable, choices };
+  return { who, today, session, trained, joinable, choices };
 }
 
 async function sessionView(me: User, s: SessionRow, person: PersonRow, plan: PlanView | null, extra: number[]): Promise<SessionView> {
@@ -470,4 +474,122 @@ export async function exerciseHistory(owner: User, exerciseId: number, sinceDate
     days[days.length - 1].sets.push(toSet(r));
   }
   return days;
+}
+
+/** One line of a routine as it stands today: what the plan asks, the load to try, and what was done last. */
+export type RoutineLine = PlanExerciseView & { suggestion: Suggestion; last: SetView[]; lastDate: string | null };
+
+export type RoutineCard = {
+  id: number;
+  name: string;
+  notes: string | null;
+  /** Set on the dated plan for today. */
+  date: string | null;
+  /** What the rotation, or today's dated plan, says to do now. */
+  next: boolean;
+  /** The last day it was trained. */
+  lastDone: string | null;
+  blocks: { label: string | null; kind: string; exercises: RoutineLine[] }[];
+};
+
+export type PastSession = {
+  id: number;
+  date: string;
+  open: boolean;
+  planName: string | null;
+  rating: number | null;
+  note: string | null;
+  exercises: { exercise: ExerciseView; sets: SetView[] }[];
+};
+
+export type WorkoutsView = {
+  workout: WorkoutView;
+  routines: RoutineCard[];
+  /** Sessions with at least one set, newest first. */
+  history: PastSession[];
+};
+
+const HISTORY_SESSIONS = 40;
+
+/**
+ * The Workouts screen for one person (§8): where they are today, their
+ * routines with the load each exercise would start at, and what they have
+ * done. All of it read from the plans and the sets; nothing here is stored.
+ */
+export async function getWorkouts(me: User, today: string): Promise<WorkoutsView> {
+  const [workout, routines, exercises] = await Promise.all([getWorkout(me, today), getRoutines(me, today), listExercises()]);
+  const plans = routines.dated ? [routines.dated, ...routines.routines] : routines.routines;
+  const ids = [...new Set(plans.flatMap((p) => p.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.id))))];
+
+  const [lastSets, lastDone, sessions] = await Promise.all([
+    // The working sets of the latest session that had each exercise.
+    ids.length
+      ? sql<SetRow[]>`
+          select t.*, to_char(s.date, 'YYYY-MM-DD') as date from sets t join sessions s on s.id = t.session_id
+          where t.user_id = ${me.id} and t.exercise_id = any(${ids}) and not t.warmup
+            and t.session_id = (
+              select t2.session_id from sets t2
+              where t2.user_id = ${me.id} and t2.exercise_id = t.exercise_id and not t2.warmup
+              order by t2.logged_at desc limit 1)
+          order by t.set_order, t.id`
+      : Promise.resolve([] as SetRow[]),
+    plans.length
+      ? sql<{ plan_id: number; date: string }[]>`
+          select sp.plan_id, to_char(max(s.date), 'YYYY-MM-DD') as date
+          from session_people sp join sessions s on s.id = sp.session_id
+          where sp.user_id = ${me.id} and sp.plan_id = any(${plans.map((p) => p.id)})
+            and exists (select 1 from sets t where t.session_id = sp.session_id and t.user_id = sp.user_id)
+          group by sp.plan_id`
+      : Promise.resolve([] as { plan_id: number; date: string }[]),
+    sql<{ id: number; date: string; ended_at: Date | null; plan_name: string | null; rating: number | null; note: string | null }[]>`
+      select s.id, to_char(s.date, 'YYYY-MM-DD') as date, s.ended_at, p.name as plan_name, sp.rating, sp.note
+      from session_people sp join sessions s on s.id = sp.session_id left join plans p on p.id = sp.plan_id
+      where sp.user_id = ${me.id}
+        and exists (select 1 from sets t where t.session_id = sp.session_id and t.user_id = sp.user_id)
+      order by s.date desc, s.started_at desc limit ${HISTORY_SESSIONS}`,
+  ]);
+
+  const cards: RoutineCard[] = plans.map((p) => ({
+    id: p.id,
+    name: p.name,
+    notes: p.notes,
+    date: p.date,
+    next: routines.dated ? p.date !== null : p.name === routines.next,
+    lastDone: lastDone.find((d) => d.plan_id === p.id)?.date ?? null,
+    blocks: p.blocks.map((b) => ({
+      label: b.label,
+      kind: b.kind,
+      exercises: b.exercises.map((e) => {
+        const rows = lastSets.filter((r) => r.exercise_id === e.exercise.id);
+        const last = rows.map(toSet);
+        return { ...e, suggestion: suggest(e.exercise, e, [], last), last, lastDate: rows[0]?.date ?? null };
+      }),
+    })),
+  }));
+
+  const sets = sessions.length
+    ? await sql<SetRow[]>`
+        select t.*, to_char(s.date, 'YYYY-MM-DD') as date from sets t join sessions s on s.id = t.session_id
+        where t.user_id = ${me.id} and t.session_id = any(${sessions.map((x) => x.id)}) order by t.set_order, t.id`
+    : [];
+  const byId = new Map(exercises.map((e) => [e.id, e]));
+  const history: PastSession[] = sessions.map((x) => {
+    const mine = sets.filter((t) => t.session_id === x.id);
+    // In the order each exercise was first done.
+    const order = [...new Set(mine.map((t) => t.exercise_id))];
+    return {
+      id: x.id,
+      date: x.date,
+      open: x.ended_at === null,
+      planName: x.plan_name,
+      rating: x.rating,
+      note: x.note,
+      exercises: order.flatMap((id) => {
+        const exercise = byId.get(id);
+        return exercise ? [{ exercise, sets: mine.filter((t) => t.exercise_id === id).map(toSet) }] : [];
+      }),
+    };
+  });
+
+  return { workout, routines: cards, history };
 }

@@ -7,17 +7,17 @@ import type { SetView, WorkoutExercise, WorkoutView } from "@/lib/health/workout
 import { fold } from "@/lib/health/fold";
 import { usePoll } from "@/lib/usePoll";
 import { useHealthDay } from "./HealthDay";
+import { colorOf } from "./MacroBar";
 import { Sheet } from "./Sheet";
 import { fmt } from "./fields";
 
-const ADDED = "tummy-workout-added";
 const stepButton =
   "flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-hairline-strong text-[1.6rem] leading-none text-ink disabled:text-ink-faint";
 const chip = "h-10 rounded-full border px-3.5 text-[0.9rem]";
 const primary = "h-16 w-full rounded-xl bg-ink text-[1.15rem] font-bold text-ground disabled:opacity-50";
 const numeric = (raw: string) => raw.replace(/[^\d.,]/g, "").replace(",", ".");
 
-async function send(url: string, method: string, body?: unknown) {
+export async function send(url: string, method: string, body?: unknown) {
   const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { error?: string }).error ?? "That didn't work");
@@ -25,14 +25,14 @@ async function send(url: string, method: string, body?: unknown) {
 }
 
 /** A load as it is said in the gym: "40 kg", "12.5 kg each", "+5 kg", or nothing added. */
-function loadText(kg: number | null, e: ExerciseView): string {
+export function loadText(kg: number | null, e: ExerciseView): string {
   if (e.equipment === "bodyweight") return kg ? `+${fmt(kg, 2)} kg` : "bodyweight";
   if (kg === null) return "";
   return `${fmt(kg, 2)} kg${e.perHand ? " each" : ""}`;
 }
 
 /** One set in a few characters: "40 × 8", "45s", "20m", "6 rounds". */
-function setText(s: SetView, e: ExerciseView, withLoad = true): string {
+export function setText(s: SetView, e: ExerciseView, withLoad = true): string {
   if (s.kind === "time") return `${fmt(s.seconds ?? 0)}s`;
   if (s.kind === "distance") return `${fmt(s.meters ?? 0)}m${s.loadKg ? ` · ${fmt(s.loadKg, 2)} kg` : ""}`;
   if (s.kind === "rounds") return `${fmt(s.rounds ?? 0)} rounds`;
@@ -71,12 +71,47 @@ function Since({ at }: { at: string }) {
   );
 }
 
+/** The workout urls for one person: plain for yourself, `?who=` for your partner (§7.4). */
+export function useWho(slug: string) {
+  const { day } = useHealthDay();
+  const other = slug !== day.me.slug;
+  return { other, query: other ? `?who=${slug}` : "", people: [day.me, day.partner] };
+}
+
+/**
+ * Whose workout is on screen. Either of us can look at, start and log the
+ * other's from our own phone; the sets remember who entered them.
+ */
+export function WhoSwitch({ slug, path }: { slug: string; path: string }) {
+  const { day } = useHealthDay();
+  return (
+    <div className="flex gap-1.5" role="group" aria-label="Whose workout">
+      {[day.me, day.partner].map((p) => {
+        const on = p.slug === slug;
+        return (
+          <Link
+            key={p.slug}
+            href={p.slug === day.me.slug ? path : `${path}?who=${p.slug}`}
+            aria-current={on ? "true" : undefined}
+            className="flex h-9 items-center gap-1.5 rounded-full border px-3 text-[0.9rem]"
+            style={{ borderColor: on ? "var(--ink-dim)" : "var(--hairline)", color: on ? "var(--ink)" : "var(--ink-dim)", background: on ? "var(--ground-raised)" : "transparent" }}
+          >
+            <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: colorOf(p.slug) }} />
+            {p.displayName}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * What Start workout asks (§7.4): what are you doing today? Already
  * answered with today's dated plan or the next routine in the rotation; the
  * others, and No plan, are one tap away.
  */
 export function StartChooser({ view, onStarted }: { view: WorkoutView; onStarted: (next: WorkoutView) => void }) {
+  const { other, query } = useWho(view.who.slug);
   const [picked, setPicked] = useState<number | null>(view.choices[0]?.id ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,9 +122,13 @@ export function StartChooser({ view, onStarted }: { view: WorkoutView; onStarted
   return (
     <div>
       <p className="text-[1.15rem] leading-snug">
-        {view.joinable ? `${view.joinable.by} is training${view.joinable.planName ? `: ${view.joinable.planName}` : ""}.` : "What are you doing today?"}
+        {view.joinable
+          ? `${view.joinable.by} is training${view.joinable.planName ? `: ${view.joinable.planName}` : ""}.`
+          : other
+            ? `What is ${view.who.displayName} doing today?`
+            : "What are you doing today?"}
       </p>
-      {view.joinable ? <p className="pt-1 text-[0.9rem] text-ink-dim">Join with your own plan.</p> : null}
+      {view.joinable ? <p className="pt-1 text-[0.9rem] text-ink-dim">{other ? `${view.who.displayName} joins with their own plan.` : "Join with your own plan."}</p> : null}
       <div className="flex flex-col gap-2 pt-4">
         {view.choices.map((c) => (
           <button key={c.id} aria-pressed={picked === c.id} onClick={() => setPicked(c.id)} className={row(picked === c.id)}>
@@ -115,7 +154,7 @@ export function StartChooser({ view, onStarted }: { view: WorkoutView; onStarted
           setBusy(true);
           setError(null);
           try {
-            onStarted((await send("/api/workout", "POST", { action: "start", planId: picked })) as WorkoutView);
+            onStarted((await send(`/api/workout${query}`, "POST", { action: "start", planId: picked })) as WorkoutView);
           } catch (err) {
             setError(err instanceof Error ? err.message : "That didn't work");
             setBusy(false);
@@ -238,7 +277,7 @@ function LogPanel({ ex, url, onLogged }: { ex: WorkoutExercise; url: string; onL
 }
 
 /** Correcting a set already logged: its numbers, reps in reserve, warm-up or not, or removing it. */
-function SetSheet({ set, ex, url, onDone, onClose }: { set: SetView; ex: ExerciseView; url: string; onDone: (w: WorkoutView) => void; onClose: () => void }) {
+export function SetSheet({ set, ex, url, onDone, onClose }: { set: SetView; ex: ExerciseView; url: string; onDone: (w: WorkoutView) => void; onClose: () => void }) {
   const [load, setLoad] = useState(set.loadKg === null ? "" : String(set.loadKg));
   const mainOf = set.kind === "load_reps" ? set.reps : set.kind === "time" ? set.seconds : set.kind === "distance" ? set.meters : set.rounds;
   const [main, setMain] = useState(String(mainOf ?? 0));
@@ -402,7 +441,7 @@ function AddExerciseSheet({ have, onPick, onClose }: { have: Set<number>; onPick
   );
 }
 
-function FinishSheet({ exercises, onDone, onClose }: { exercises: WorkoutExercise[]; onDone: (w: WorkoutView) => void; onClose: () => void }) {
+function FinishSheet({ exercises, url, onDone, onClose }: { exercises: WorkoutExercise[]; url: string; onDone: (w: WorkoutView) => void; onClose: () => void }) {
   const [rating, setRating] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -441,7 +480,7 @@ function FinishSheet({ exercises, onDone, onClose }: { exercises: WorkoutExercis
           setBusy(true);
           setError(null);
           try {
-            onDone((await send("/api/workout", "POST", { action: "finish", rating, note })) as WorkoutView);
+            onDone((await send(url, "POST", { action: "finish", rating, note })) as WorkoutView);
           } catch (err) {
             setError(err instanceof Error ? err.message : "That didn't work");
             setBusy(false);
@@ -484,16 +523,18 @@ const lastLine = (ex: WorkoutExercise) => {
 };
 
 /**
- * Workout mode (healthspec.md §7.4, §8). Your own session and nobody else's:
- * the day's exercises in order, the active one large with today's suggested
+ * Workout mode (healthspec.md §7.4, §8). One person's session: your own, or
+ * your partner's when you are logging for them. The day's exercises in order, the active one large with today's suggested
  * load and last time's sets, and one button that logs the set as it stands.
  * It re-reads itself every few seconds, so a set logged from a chat shows up
  * here without a reload.
  */
 export function Workout({ initial }: { initial: WorkoutView }) {
   const { toast } = useHealthDay();
+  const { other, query } = useWho(initial.who.slug);
+  const ADDED = `tummy-workout-added${other ? `-${initial.who.slug}` : ""}`;
   const [added, setAdded] = useState<number[]>([]);
-  const url = `/api/workout${added.length ? `?add=${added.join(",")}` : ""}`;
+  const url = `/api/workout${query}${added.length ? `${query ? "&" : "?"}add=${added.join(",")}` : ""}`;
   const { data, setData } = usePoll<WorkoutView>(url, 8_000, initial);
   const [pinned, setPinned] = useState<number | null>(null);
   const [editing, setEditing] = useState<{ set: SetView; ex: ExerciseView } | null>(null);
@@ -511,7 +552,7 @@ export function Workout({ initial }: { initial: WorkoutView }) {
       }
     }, 0);
     return () => clearTimeout(t);
-  }, []);
+  }, [ADDED]);
   const keep = (ids: number[]) => {
     setAdded(ids);
     try {
@@ -525,7 +566,13 @@ export function Workout({ initial }: { initial: WorkoutView }) {
 
   if (!session || (!session.open && !data.trained)) {
     return (
-      <div className="px-5 pt-4 pb-6">
+      <div className="px-5 pt-3 pb-6">
+        <div className="flex items-center justify-between pb-4">
+          <WhoSwitch slug={data.who.slug} path="/workout" />
+          <Link href={`/workouts${query}`} className="text-[0.9rem] text-ink-dim underline decoration-hairline-strong underline-offset-4">
+            Routines and history
+          </Link>
+        </div>
         <StartChooser view={data} onStarted={setData} />
       </div>
     );
@@ -558,9 +605,18 @@ export function Workout({ initial }: { initial: WorkoutView }) {
 
   return (
     <div className="px-5 pt-3 pb-8">
+      <div className="flex items-center justify-between pb-3">
+        <WhoSwitch slug={data.who.slug} path="/workout" />
+        <Link href={`/workouts${query}`} className="text-[0.9rem] text-ink-dim underline decoration-hairline-strong underline-offset-4">
+          Routines and history
+        </Link>
+      </div>
       <header className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[1.15rem] leading-tight">{live ? (session.planName ?? "Workout") : `Trained · ${session.planName ?? "no plan"}`}</h1>
+          <h1 className="truncate text-[1.15rem] leading-tight">
+            {other ? `${data.who.displayName} · ` : ""}
+            {live ? (session.planName ?? "Workout") : `Trained · ${session.planName ?? "no plan"}`}
+          </h1>
           <p className="text-[0.85rem] text-ink-dim">
             {live ? (
               session.lastSetAt ? (
@@ -584,7 +640,7 @@ export function Workout({ initial }: { initial: WorkoutView }) {
           </button>
         ) : session.open ? (
           <button
-            onClick={async () => setData((await send("/api/workout", "POST", { action: "start", planId: null })) as WorkoutView)}
+            onClick={async () => setData((await send(`/api/workout${query}`, "POST", { action: "start", planId: null })) as WorkoutView)}
             className="h-11 shrink-0 rounded-full border border-hairline-strong px-4 text-[0.95rem] text-ink"
           >
             Back to it
@@ -680,9 +736,14 @@ export function Workout({ initial }: { initial: WorkoutView }) {
           Add an exercise
         </button>
       ) : (
-        <Link href="/today" className="mt-5 flex h-12 w-full items-center justify-center rounded-xl border border-hairline-strong text-[1rem] text-ink">
-          Home
-        </Link>
+        <div className="mt-5 flex gap-2">
+          <Link href={`/workouts${query}`} className="flex h-12 flex-1 items-center justify-center rounded-xl border border-hairline-strong text-[1rem] text-ink">
+            Workouts
+          </Link>
+          <Link href="/today" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-hairline-strong text-[1rem] text-ink">
+            Home
+          </Link>
+        </div>
       )}
 
       {editing ? (
@@ -712,6 +773,7 @@ export function Workout({ initial }: { initial: WorkoutView }) {
       {finishing ? (
         <FinishSheet
           exercises={session.exercises}
+          url={`/api/workout${query}`}
           onClose={() => setFinishing(false)}
           onDone={(w) => {
             keep([]);

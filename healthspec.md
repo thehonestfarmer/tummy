@@ -505,8 +505,8 @@ One more tap starts it. On a rest day the button simply sits there; nothing coun
 - **Warm-up sets are logged.** A **Warm-up** toggle beside the log button marks the set; by voice, "warm-up, 20 for 10". They show in the session and in history, smaller, and count toward neither the planned sets nor progression (§7.5).
 - In a superset the active exercise alternates between the block's exercises after each set.
 - **Time since the last logged set** is shown (derived, no timer state). There is no rest countdown.
-- Only your own workout is on your screen. Nothing there shows what your partner is doing. *(This drops "the partner's progress alongside" from the 2026-11-10 draft.)*
-- **Logging for each other is done by chat** (settled 2026-11-15, because ChatGPT's mobile app can't be relied on to write through a custom connector, so one of us may be the only one with a working chat). From Claude, either of us can start, log, correct and finish the other's workout: "Bunny did 10 for 12". The set is hers; `entered_by` records who typed it. The app's own screens still log only for the person holding the phone.
+- One person's workout is on the screen at a time, yours unless you choose otherwise. Nothing shows the two side by side. *(This drops "the partner's progress alongside" from the 2026-11-10 draft.)*
+- **Either of us can run the other's workout** (settled 2026-11-15, because ChatGPT's mobile app can't be relied on to write through a custom connector, and one phone in the gym is often enough). A Bear / Bunny switch at the top of the workout screens puts the other person's workout on your phone: look at it, start it with their routine, log and correct their sets, finish it. From Claude the same is said in words: "Bunny did 10 for 12". Either way the set is theirs, counts toward their progression, and `entered_by` records who entered it. The address carries the choice (`?who=bunny`), so it survives a reload.
 
 **4. Going off-plan.** **Add an exercise** finds one in the exercise list by name, or creates it after a confirmation, and makes it active. It belongs to this session only: the routine is not changed. A No plan session is nothing but these. An added exercise exists once it has a set; before that it is only on the screen.
 
@@ -586,9 +586,18 @@ Reached from the header and from Add food. Everything in the house with what's l
 
 Opened from Add food, and in workout mode. A plain conversation with the app (§10): log food or sets, ask what's left today, ask what to cook from the fridge. What it logs appears on Home with the same undo as anything else.
 
+### Workouts
+
+Reached from **Workouts** beside Start workout on Home (added 2026-11-15). One person's training, read rather than written: routines still come from a chat (§7.1).
+
+- **Today**, in a line: not trained, trained (and what), or a way back into the open session.
+- **Routines**, in rotation order, today's dated plan first. Each opens to its exercises with the plan's own words, the load it would start at today (§7.5, with "up from 40" when a step was earned) and what was done last time. Any of them can be started from here, as can a session with no plan, including a second session on a day already trained.
+- **History**: every session with a set in it, newest first, opening to its sets. Tapping a set corrects or removes it, however old; progression follows from the sets as they now stand.
+- The Bear / Bunny switch shows all of this for the other person (§7.4).
+
 ### Workout mode
 
-Takes over the screen while a session is open (§7.4): the day's exercises in block order, the active exercise large with today's suggested load and last time's sets, one button to log the set, the mic and chat for logging by words, and **Add an exercise**. Only your own workout; your partner's is not shown. The macro display stays at the top; leaving workout mode returns to Home with the session still open.
+Takes over the screen while a session is open (§7.4): the day's exercises in block order, the active exercise large with today's suggested load and last time's sets, one button to log the set, the mic and chat for logging by words, and **Add an exercise**. One person's workout at a time: yours, or your partner's with the switch at the top (§7.4). The macro display stays at the top; leaving workout mode returns to Home with the session still open.
 
 ### Settings
 
@@ -669,7 +678,7 @@ The same conversation can happen in two places: in Claude or ChatGPT through the
 3. **Scan and eat in one flow; shared by default.** *(Built: camera straight from Add food, confirm in place, amounts in servings, the two-person amount step, who-ate-it parsing with the Split / Only me question.)* Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
 4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
 5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
-6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back *(built 2026-11-15: every training table, and `list_exercises`, `list_routines`, `push_routine`, `push_session_plan` and `remove_routine` over MCP; no screens yet)*; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line *(built 2026-11-15, with joining an open session but no push or prompt yet; and over MCP `get_workout`, `start_workout`, `log_sets` with structured sets, `edit_set`, `delete_set`, `finish_workout` and `get_exercise_history`. Workout mode re-reads itself every 8 seconds, so sets logged from a chat appear on the phone)*; (c) web push and joining; (d) sets by voice and chat.
+6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back *(built 2026-11-15: every training table, and `list_exercises`, `list_routines`, `push_routine`, `push_session_plan` and `remove_routine` over MCP; no screens yet)*; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line *(built 2026-11-15, with joining an open session but no push or prompt yet; and over MCP `get_workout`, `start_workout`, `log_sets` with structured sets, `edit_set`, `delete_set`, `finish_workout` and `get_exercise_history`. Workout mode re-reads itself every 8 seconds, so sets logged from a chat appear on the phone. Later the same day: the Workouts screen with routines and history, and the Bear / Bunny switch, §8)*; (c) web push and joining; (d) sets by voice and chat. Writing routines in the app is not planned yet: they come from a chat.
 7. **Later:** weigh-ins and the trend, adaptive expenditure and proposals (§6), Trends, runs from Strava.
 
 **Ship points:** each of steps 1 to 5 is usable on its own. Step 1 changes how the app feels without changing what it stores.
@@ -758,7 +767,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Eating out | Counts toward totals, as a low–high range that stays visible. A photo estimate is the last resort. Saved per dish and reused. |
 | Ways to add food | From the fridge, by voice, by scanning, by chat |
 | Chat | In the app and in Claude or ChatGPT, through one tool list and the same state. In-app costs API credits; the connector is free. |
-| Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. Each phone shows only its owner's workout. |
+| Workouts | Lifting only. Done together: one starts, the other is prompted (push, and 30 seconds in-app) and can join while the session is open. A phone shows one person's workout at a time, its owner's by default; either can run the other's. |
 | Plans | Reusable routines in a rotation, pushed from Claude; a dated plan overrides the rotation for one day. A session can also start with no plan, and any session can take extra exercises. |
 | Progression | The app suggests the load by double progression, derived from logged sets; it never suggests going down. Deloads come from Claude. Warm-up sets are logged but don't count. RIR is optional, recorded after the set, and gates nothing. Steps: 2.5 kg barbell, 1.25 kg weighted calisthenics, 2.5 kg per hand dumbbells. |
 | Set logging | Voice, chat or touch, matched to an exercise in a plan that exists beforehand |
