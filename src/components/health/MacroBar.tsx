@@ -42,9 +42,10 @@ function remaining(have: number, want: number | null): { amount: string; word: s
  */
 export function MacroDisplay() {
   const { day } = useHealthDay();
-  const { totals, target, slug } = day.me;
+  const { totals, target, slug, runs } = day.me;
   const color = colorOf(slug);
   const kcal = remaining(totals.kcal, target?.kcal ?? null);
+  const ran = runs.reduce((n, r) => n + r.kcal, 0);
   return (
     <section aria-label="Your macros" className="flex flex-col gap-3.5 border-b border-hairline px-5 pt-1.5 pb-4">
       <div className="flex items-baseline justify-between gap-3">
@@ -55,6 +56,8 @@ export function MacroDisplay() {
         {target ? (
           <span className="text-[0.8rem] tabular-nums text-ink-dim">
             {whole(totals.kcal)} of {whole(target.kcal)}
+            {/* The target already holds the run; this says why it is higher today (§7.6). */}
+            {ran ? ` · run +${whole(ran)}` : ""}
           </span>
         ) : null}
       </div>

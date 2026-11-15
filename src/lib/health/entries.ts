@@ -5,6 +5,7 @@ import { bothUsers, type User } from "../auth";
 import { PAIR_ORDER, type Slug } from "../config";
 import type { Client } from "./client";
 import type { Macros } from "./reading";
+import { runAllowance, runsOn, type RunView } from "./runs";
 import { getWeight, type WeightView } from "./weight";
 import { clockIn, dateIn } from "./zone";
 
@@ -37,7 +38,10 @@ export type DaySide = {
   slug: Slug;
   displayName: string;
   totals: Macros;
+  /** For the day, runs included. */
   target: Macros | null;
+  /** The day's runs, whose calories are already in `target`. */
+  runs: RunView[];
 };
 
 export type HealthDayView = {
@@ -100,12 +104,23 @@ function sum(entries: Macros[]): Macros {
   return { kcal: Math.round(t.kcal), protein_g: round1(t.protein_g), fat_g: round1(t.fat_g), carbs_g: round1(t.carbs_g) };
 }
 
-export async function targetFor(userId: number, date: string): Promise<Macros | null> {
-  const [row] = await sql<Macros[]>`
-    select kcal, protein_g, fat_g, carbs_g from targets
-    where user_id = ${userId} and status = 'active' and effective_date <= ${date}
-    order by effective_date desc, id desc limit 1`;
-  return row ?? null;
+/**
+ * The day's target: the standing one, plus what that day's runs burned
+ * (§7.6). The extra is all carbohydrate, since that is what a run spends.
+ * Everything that reads a target reads it here, so the display, the week
+ * and the chat tools all move together.
+ */
+export async function targetFor(userId: number, date: string, runs?: RunView[]): Promise<Macros | null> {
+  const [[row], ran] = await Promise.all([
+    sql<Macros[]>`
+      select kcal, protein_g, fat_g, carbs_g from targets
+      where user_id = ${userId} and status = 'active' and effective_date <= ${date}
+      order by effective_date desc, id desc limit 1`,
+    runs ?? runsOn(userId, date),
+  ]);
+  if (!row) return null;
+  const extra = runAllowance(ran);
+  return extra ? { ...row, kcal: row.kcal + extra, carbs_g: round1(row.carbs_g + extra / 4) } : row;
 }
 
 async function entriesFor(userId: number, date: string): Promise<EntryRow[]> {
@@ -142,13 +157,14 @@ export async function getHealthDay(me: User, date: string): Promise<HealthDayVie
   const partner = PAIR_ORDER.map((s) => users[s]).find((u) => u.id !== me.id)!;
   const names = new Map(PAIR_ORDER.map((s) => [users[s].id, users[s].displayName]));
 
-  const [weight, mine, theirs, myTarget, theirTarget] = await Promise.all([
+  const [weight, mine, theirs, myRuns, theirRuns] = await Promise.all([
     getWeight(me.id, date),
     entriesFor(me.id, date),
     entriesFor(partner.id, date),
-    targetFor(me.id, date),
-    targetFor(partner.id, date),
+    runsOn(me.id, date),
+    runsOn(partner.id, date),
   ]);
+  const [myTarget, theirTarget] = await Promise.all([targetFor(me.id, date, myRuns), targetFor(partner.id, date, theirRuns)]);
   const entries = mine.map((r) => toEntry(r, names));
 
   return {
@@ -159,6 +175,7 @@ export async function getHealthDay(me: User, date: string): Promise<HealthDayVie
       displayName: me.displayName,
       totals: sum(entries.map((e) => e.macros)),
       target: myTarget,
+      runs: myRuns,
       entries,
     },
     partner: {
@@ -166,6 +183,7 @@ export async function getHealthDay(me: User, date: string): Promise<HealthDayVie
       displayName: partner.displayName,
       totals: sum(theirs.map((r) => macrosFor(r.grams, per100Of(r)))),
       target: theirTarget,
+      runs: theirRuns,
     },
   };
 }

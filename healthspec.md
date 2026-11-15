@@ -548,7 +548,15 @@ The app suggests the load; the person decides. The rule is double progression, p
 
 ### 7.6 Runs
 
-Not in v1. Runs will come from Strava later, as their own feature. Nothing here logs a run by voice or screenshot.
+**Built 2026-11-15**, without a Strava connection: since June 2026 Strava's API needs a paid subscription on the developer's account, so a run arrives as a **screenshot of the activity** from the Strava phone app.
+
+- **In a chat:** share the screenshot with Claude. It reads the date, distance, moving time and calories and calls `log_run`, for the caller or (`whose: partner`) for the other person.
+- **In the app:** *Add a run* on Home takes a screenshot from the phone's photos. Claude reads it, the numbers land in four boxes to check (day, distance, moving time, calories), and Log saves them. The boxes can be typed into with no screenshot. Each of us adds our own.
+- **Only runs.** A walk, a ride or a lifting session is turned away.
+- **Calories.** Strava's figure when the screenshot prints one. Otherwise an estimate: the person's latest weigh-in × the distance × 1 kcal per kg per km, marked as an estimate. With neither, the run is refused with the reason.
+- **The day's target rises by the run's calories**, all of them (`RUN_SHARE` in `runs.ts` is the one number to change if that proves too generous), added as carbohydrate. `targetFor` does this, so the display, the week's total, guidance and every chat tool follow. Home shows the run as a line in the day and "run +612" beside the target. Removing the run takes it back.
+- The same run sent twice (same day, distance and time) is one run.
+- A real connection (Strava's API, or Apple Health through a Shortcut) can replace the screenshot later; `runs` and the target rule stay as they are.
 
 ---
 
@@ -751,14 +759,14 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Who logs shared meals | Either person, into both days |
 | Partner visibility | Each sees the other's day: food, targets, whether they've trained. Nothing beyond seeing: no streaks, scores or nudges. |
 | Targets | Static for now (§13). Propose-and-approve from the weight trend is designed (§6) and deferred. |
-| Calories and training | Training never changes the day's target |
+| Calories and training | Lifting never changes the day's target. A run adds its calories to that day's target, as carbohydrate (§7.6). |
 | Logging frequency | 10–20 logs per person per day; snacks included |
 | Quick log | One utterance; auto-commit with undo on a clear match, confirm only the uncertain item |
 | Quick-log entry points | In-app mic (or typed), and Claude or ChatGPT via MCP — one server function. No Siri Shortcut. |
 | Voice | Push-to-talk, Groq Whisper. iOS mic re-prompts accepted for now. |
 | Transcription and parsing | Groq |
 | DB and KB loads | Stored per hand, flagged |
-| Runs | Not in v1. From Strava later. |
+| Runs | From a Strava screenshot, read by Claude in a chat or in the app; no API connection (§7.6). |
 | Steps / Apple Health | Out of v1 |
 | Weigh-ins | Manual, once a day from a card on Home; each person's own, never shown to the other. Judged on the 7-day average. |
 | Security | Lax; two private users |

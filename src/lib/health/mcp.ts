@@ -17,6 +17,7 @@ import {
   recentFoods,
   updateEntry,
   partnerOf,
+  targetFor,
   type HealthDayView,
 } from "./entries";
 import { changeFridge, getFridge } from "./fridge";
@@ -27,6 +28,7 @@ import { getRoutines, listExercises, PlanInput, pushPlan, removeRoutine, type Pl
 import { CorrectionSchema, PrintedSchema, type Printed } from "./printed";
 import { learnAlias, quickLog, resolvePending, undoLast, type PendingItem } from "./quicklog";
 import { lastZoneOf } from "./tokens";
+import { deleteRun, logRun, recentRuns } from "./runs";
 import { deleteSet, exerciseHistory, finishWorkout, getWorkout, logSet, startWorkout, updateSet, type SetView, type WorkoutView } from "./workout";
 import { dateIn, isDate } from "./zone";
 
@@ -60,7 +62,9 @@ Call get_context first for anything about today. Call get_guidelines before givi
 training advice, and follow it. Never state calories or macros from memory or from earlier in the \
 conversation: look them up every time. Log with log_food in the person's own words. When a tool returns \
 needs_choice, ask the person and answer with resolve_choice; never guess an amount or a food. Weigh raw \
-unless the person says cooked. Training never changes the day's calorie target. Never state a daily \
+unless the person says cooked. Lifting never changes the day's calorie target; a run does, by the \
+calories it burned, once it is logged with log_run. When the person shares a Strava screenshot of a run, read \
+the date, distance, moving time and calories off it, say what you read, and call log_run. Never state a daily \
 weight for someone whose weight is trend-only.`;
 
 const ok = (value: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(value, null, 1) }] });
@@ -1139,6 +1143,87 @@ export function mcpHandlerFor(user: User, client: Client) {
             if (!found) throw new Error(`No exercise is called exactly "${input.exercise}". Check list_exercises.`);
             const days = await exerciseHistory(await owner(input.whose), found.id, input.since ?? null);
             return { exercise: found.name, equipment: found.equipment, days: days.map((d) => ({ date: d.date, sets: d.sets.map(setOut) })) };
+          }),
+      );
+
+      /* ─── Runs (healthspec.md §7.6) ────────────────────────────────────── */
+
+      const runOut = (r: Awaited<ReturnType<typeof recentRuns>>[number]) => ({
+        run_id: r.id,
+        date: r.date,
+        distance_km: r.km,
+        moving_time_seconds: r.seconds,
+        kcal: r.kcal,
+        kcal_from: r.kcalFrom === "strava" ? "Strava's figure" : "estimated from body weight and distance",
+        name: r.name,
+      });
+
+      server.registerTool(
+        "log_run",
+        {
+          title: "Log a run",
+          description:
+            "Records one run, usually read off a Strava screenshot the person shared. Its calories are added to " +
+            "that day's calorie target (as carbohydrate). Give the calories only if Strava printed them; without " +
+            "them the server estimates from the person's latest weigh-in and the distance. Only runs: not walks, " +
+            "rides or lifting. Sending the same run twice does not double it. Returns the day's new target.",
+          inputSchema: z.object({
+            whose: whose.describe("Whose run. 'partner' when the caller shares their partner's screenshot."),
+            date: z.string().refine(isDate, "YYYY-MM-DD").describe("The day it was run, YYYY-MM-DD. Work out 'Today' and 'Yesterday' on the screenshot from today's date."),
+            distance_km: z.number().positive().max(500).describe("Kilometres. Convert miles."),
+            moving_time_seconds: z.number().int().positive().max(200_000).optional(),
+            kcal: z.number().min(0).max(20_000).optional().describe("Calories as Strava shows them. Leave out if not shown; never estimate."),
+            name: z.string().max(120).optional().describe("The activity's title, e.g. 'Morning Run'."),
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        },
+        (input) =>
+          write("log_run", input, async () => {
+            const person = await owner(input.whose);
+            const run = await logRun(
+              person,
+              await today(),
+              { date: input.date, km: input.distance_km, seconds: input.moving_time_seconds, kcal: input.kcal, name: input.name },
+              { source: "mcp", client, enteredBy: user },
+            );
+            return {
+              message: `Logged ${person.displayName}'s run. ${run.kcal} kcal is added to the target for ${run.date}.`,
+              run: runOut(run),
+              target_for_that_day: await targetFor(person.id, run.date),
+            };
+          }),
+      );
+
+      server.registerTool(
+        "list_runs",
+        {
+          title: "Runs",
+          description: "A person's runs, newest first, with the calories each added to its day's target.",
+          inputSchema: z.object({ whose, since: z.string().refine(isDate, "YYYY-MM-DD").optional().describe("Only runs on or after this date.") }),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        (input) =>
+          run(async () => {
+            const person = await owner(input.whose);
+            return { whose: person.displayName, runs: (await recentRuns(person.id, input.since ?? null, 60)).map(runOut) };
+          }),
+      );
+
+      server.registerTool(
+        "delete_run",
+        {
+          title: "Remove a run",
+          description: "Removes a run by run_id from list_runs or log_run, and takes its calories back off that day's target.",
+          inputSchema: z.object({ whose, run_id: z.number().int(), request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("delete_run", input, async () => {
+            const person = await owner(input.whose);
+            const date = await deleteRun(person, input.run_id);
+            if (!date) throw new Error("That run is already gone.");
+            return { message: `Removed. The target for ${date} is back to what it was.`, target_for_that_day: await targetFor(person.id, date) };
           }),
       );
     },

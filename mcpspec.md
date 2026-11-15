@@ -174,7 +174,9 @@ Every workout tool takes `whose: "me" | "partner"`, default `me`: either person 
 | `edit_set` / `delete_set` | Any set. |
 | `finish_workout` | Session rating out of 10 and an optional note. |
 | `get_exercise_history` | Sets for one exercise over a date range. |
-| `log_run` | Free text, or structured fields read from a screenshot by the app's model (duration, distance, pace, average HR). |
+| `log_run` | One run, read off a Strava screenshot by the chat's own model: `whose`, date, distance, moving time, and Strava's calories if printed (estimated from weight and distance if not). Adds the calories to that day's target and returns it. A repeat of the same run changes nothing. *(Built.)* |
+| `list_runs` | A person's runs, newest first. *(Built.)* |
+| `delete_run` | Removes a run and takes its calories back off the target. *(Built.)* |
 
 ---
 
@@ -187,7 +189,7 @@ These go in the relevant tool descriptions and in the server's instructions:
 - Don't save anything as confirmed unless the person saw the values and said yes. Show any warnings and any reference row with the values.
 - Never state calories or macros from memory or from earlier in the conversation. Look them up.
 - Don't estimate macros for a food already in the library. Search first.
-- Training never changes the day's calorie target.
+- Lifting never changes the day's calorie target. A run does, once logged with `log_run`.
 - Weight is judged on the 7-day trend. Never show a trend-only user's daily weights.
 - Never approve a target proposal unprompted.
 - For any advice, call `get_guidelines` first and follow it.

@@ -6,6 +6,7 @@ import { formatDay } from "@/lib/health/zone";
 import { useHealthDay } from "./HealthDay";
 import { SideLine } from "./MacroBar";
 import { EntrySheet } from "./EntrySheet";
+import { AddRunSheet, RunLines } from "./Runs";
 import { SaveMealSheet } from "./SaveMealSheet";
 import { Sheet } from "./Sheet";
 import { SwipeRow } from "./SwipeRow";
@@ -68,6 +69,7 @@ export function HealthToday() {
   const [picking, setPicking] = useState<Set<number> | null>(null);
   const [saving, setSaving] = useState(false);
   const [partner, setPartner] = useState(false);
+  const [running, setRunning] = useState(false);
   const groups = groupByHour(day.me.entries);
 
   /** Swiped away (§5.4). The swipe and the tap on the bin are the two steps; there is no third. */
@@ -110,7 +112,10 @@ export function HealthToday() {
           </button>
         </div>
       ) : (
-        <WeighIn />
+        <>
+          <WeighIn />
+          <RunLines />
+        </>
       )}
 
       {day.me.entries.length ? (
@@ -165,11 +170,19 @@ export function HealthToday() {
         <SideLine side={day.partner} />
       </button>
 
-      {day.me.entries.length && !picking ? (
-        <button onClick={() => setPicking(new Set())} className="mt-1 h-11 text-[0.85rem] text-ink-dim">
-          Save some of these as a meal
-        </button>
-      ) : null}
+      {picking ? null : (
+        <div className="mt-1 flex gap-5">
+          {day.me.entries.length ? (
+            <button onClick={() => setPicking(new Set())} className="h-11 text-[0.85rem] text-ink-dim">
+              Save some of these as a meal
+            </button>
+          ) : null}
+          <button onClick={() => setRunning(true)} className="h-11 text-[0.85rem] text-ink-dim">
+            Add a run
+          </button>
+        </div>
+      )}
+      {running ? <AddRunSheet onClose={() => setRunning(false)} /> : null}
 
       {editing ? <EntrySheet entry={editing} onClose={() => setEditing(null)} /> : null}
       {partner ? <PartnerSheet date={day.date} onClose={() => setPartner(false)} /> : null}
