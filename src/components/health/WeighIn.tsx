@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { HealthDayView } from "@/lib/health/entries";
+import type { MaintenanceView } from "@/lib/health/maintenance";
 import type { WeightPoint, WeightTrend, WeightView } from "@/lib/health/weight";
 import { formatDay } from "@/lib/health/zone";
 import { useHealthDay } from "./HealthDay";
 import { colorOf } from "./MacroBar";
+import { MaintenanceBlock } from "./Maintenance";
 import { Sheet } from "./Sheet";
 
 const kg = (n: number) => n.toFixed(1);
@@ -155,16 +157,21 @@ const PAD = { l: 34, r: 10, t: 10, b: 20 };
  * as the line to read. One scale, in kilograms, fitted to the data, because
  * the changes that matter are tenths. Touching the chart reads out a day.
  */
-function Chart({ points, today, color }: { points: WeightPoint[]; today: string; color: string }) {
+function Chart({ points, today, color, perWeek }: { points: WeightPoint[]; today: string; color: string; /** Where the average is headed, kg a week, if known. */ perWeek: number | null }) {
   const [at, setAt] = useState<number | null>(null);
   const svg = useRef<SVGSVGElement>(null);
   const dayNo = (d: string) => Math.round(new Date(`${d}T00:00:00Z`).getTime() / 86_400_000);
-  const end = dayNo(today);
-  const start = Math.min(end - 13, dayNo(points[0].date));
-  const all = points.flatMap((p) => [p.kg, p.avg]);
+  const now = dayNo(today);
+  const latest = points[points.length - 1];
+  // Four weeks ahead at the current target, by the maintenance estimate (§6.3).
+  const ahead = perWeek === null ? null : { day: now + 28, kg: latest.avg + perWeek * 4 };
+  const end = ahead ? ahead.day : now;
+  const start = Math.min(now - 13, dayNo(points[0].date));
+  const all = [...points.flatMap((p) => [p.kg, p.avg]), ...(ahead ? [ahead.kg] : [])];
   const lo = Math.floor(Math.min(...all) - 0.3);
   const hi = Math.ceil(Math.max(...all) + 0.3);
-  const x = (d: string) => PAD.l + ((dayNo(d) - start) / (end - start)) * (W - PAD.l - PAD.r);
+  const xAt = (n: number) => PAD.l + ((n - start) / (end - start)) * (W - PAD.l - PAD.r);
+  const x = (d: string) => xAt(dayNo(d));
   const y = (v: number) => PAD.t + ((hi - v) / (hi - lo)) * (H - PAD.t - PAD.b);
   const ticks = hi - lo <= 4 ? Array.from({ length: hi - lo + 1 }, (_, i) => lo + i) : [lo, Math.round((lo + hi) / 2), hi];
   const shown = points[at ?? points.length - 1];
@@ -205,9 +212,20 @@ function Chart({ points, today, color }: { points: WeightPoint[]; today: string;
         <text x={PAD.l} y={H - 5} fontSize="10" fill="var(--ink-faint)">
           {formatDay(points[0].date).slice(4)}
         </text>
-        <text x={W - PAD.r} y={H - 5} textAnchor="end" fontSize="10" fill="var(--ink-faint)">
+        <text x={xAt(now)} y={H - 5} textAnchor={ahead ? "middle" : "end"} fontSize="10" fill="var(--ink-faint)">
           today
         </text>
+        {ahead ? (
+          <>
+            <text x={W - PAD.r} y={H - 5} textAnchor="end" fontSize="10" fill="var(--ink-faint)">
+              +4 weeks
+            </text>
+            <line x1={x(latest.date)} y1={y(latest.avg)} x2={xAt(ahead.day)} y2={y(ahead.kg)} stroke={color} strokeWidth="2" strokeDasharray="2 5" strokeLinecap="round" />
+            <text x={W - PAD.r} y={y(ahead.kg) - 6} textAnchor="end" fontSize="10" fill="var(--ink-dim)">
+              {kg(ahead.kg)}
+            </text>
+          </>
+        ) : null}
         <line x1={x(shown.date)} x2={x(shown.date)} y1={PAD.t} y2={H - PAD.b} stroke="var(--hairline-strong)" strokeWidth="1" />
         <polyline
           points={points.map((p) => `${x(p.date).toFixed(1)},${y(p.avg).toFixed(1)}`).join(" ")}
@@ -231,6 +249,12 @@ function Chart({ points, today, color }: { points: WeightPoint[]; today: string;
           <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ink-dim" />
           each morning
         </span>
+        {ahead ? (
+          <span className="flex items-center gap-1.5">
+            <span aria-hidden className="w-4 border-t-2 border-dotted" style={{ borderColor: color }} />
+            at this target
+          </span>
+        ) : null}
       </p>
     </div>
   );
@@ -240,6 +264,7 @@ function Chart({ points, today, color }: { points: WeightPoint[]; today: string;
 function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; onDay: (d: HealthDayView) => void; onClose: () => void }) {
   const { day: view } = useHealthDay();
   const [trend, setTrend] = useState<WeightTrend | null>(null);
+  const [m, setM] = useState<MaintenanceView | null>(null);
   const [text, setText] = useState(w.kg === null ? "" : kg(w.kg));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -251,6 +276,10 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((json: WeightTrend) => live && setTrend(json))
       .catch(() => live && setError("Couldn't load the trend."));
+    fetch("/api/maintenance", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((json: MaintenanceView) => live && setM(json))
+      .catch(() => {});
     return () => {
       live = false;
     };
@@ -279,7 +308,7 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
           {w.change !== null ? ` · ${moved(w.change)}${Math.abs(w.change) < 0.05 ? "" : " kg"} on the week before` : ""}
         </p>
         {points.length >= 2 ? (
-          <Chart points={points} today={trend!.today} color={colorOf(view.me.slug)} />
+          <Chart points={points} today={trend!.today} color={colorOf(view.me.slug)} perWeek={m?.forecastKgWeek ?? null} />
         ) : trend ? (
           <p className="text-[0.95rem] leading-relaxed text-ink-dim">The trend line starts once there are two weigh-ins.</p>
         ) : null}
@@ -299,6 +328,8 @@ function TrendSheet({ day, w, onDay, onClose }: { day: string; w: WeightView; on
           </>
         ) : null}
         {error ? <p className="pt-2 text-[0.85rem] text-ink-dim">{error}</p> : null}
+
+        {m ? <MaintenanceBlock m={m} onChange={setM} /> : null}
 
         {points.length ? (
           <>

@@ -3,7 +3,11 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { sessionToolsEnabled } from "@/lib/devtools";
 import { tokenFor } from "@/lib/health/tokens";
+import { getMaintenance } from "@/lib/health/maintenance";
+import { requestZone } from "@/lib/health/requestZone";
+import { dateIn } from "@/lib/health/zone";
 import { ConnectSettings } from "@/components/health/ConnectSettings";
+import { BodySettings } from "@/components/health/Maintenance";
 import { DevBarToggle } from "@/components/DevSessionBar";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -11,7 +15,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * The things set once and rarely touched (healthspec.md §8): whose session
- * this is, and the connector for Claude and ChatGPT.
+ * this is, your body, goal and target (§6), and the connector for Claude and
+ * ChatGPT.
  */
 export default async function SettingsPage() {
   const user = await getUser();
@@ -29,6 +34,7 @@ export default async function SettingsPage() {
         </p>
         <SignOutButton />
       </section>
+      <BodySettings initial={await getMaintenance(user, dateIn(await requestZone()))} />
       <ConnectSettings origin={`${proto}://${host}`} initialToken={await tokenFor(user)} name={user.displayName} />
       {sessionToolsEnabled() ? <DevBarToggle /> : null}
     </div>

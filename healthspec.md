@@ -421,7 +421,7 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 
 - `targets` rows: user, `effective_date`, kcal, protein_g, fat_g, carbs_g, `status` (`active`, `proposed`, `dismissed`), reason text.
 - The active target for a day is the latest `active` row with `effective_date <= local_date`. Changing targets never rewrites past days.
-- Same target every day; no per-day adjustment for training.
+- Same target every day, except that a run adds to its own day (§7.6). Lifting changes nothing.
 - **Seed values** are in §13.
 
 ### 6.2 Weigh-ins
@@ -435,21 +435,27 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 - **The trend** opens from that line: eight weeks, each morning a dot and the 7-day average as the line, the weigh-ins listed underneath, and the day's weigh-in to correct or remove.
 - Not built: waist, the `raw` / `trend_only` display setting (there is nothing of the partner's to hide while each sees only their own), weigh-ins over MCP, and a morning reminder, which waits for web push.
 
-### 6.3 Adaptive expenditure
+### 6.3 Maintenance
 
-Computed per user, once at least 14 days of data exist:
+**Built 2026-11-15**, reworked from the first design so there is a number from the first weigh-in rather than after a fortnight.
 
-- **Expenditure ≈ average daily intake − (trend weight change per day × 7,700 kcal/kg)** over the window, using the 7-day averages at each end.
-- Require logging on at least 12 of the 14 days; otherwise skip and say why on Trends ("Need 2 more logged days to estimate").
-- Store each estimate with its window, intake average, trend change, and days used.
+Maintenance is what a person burns on a day without a run. It is an estimate made of two parts, worked out on read and never stored:
 
-### 6.4 Proposals (propose and approve)
+- **The formula's guess.** Mifflin-St Jeor resting burn (10 × kg + 6.25 × cm − 5 × age + 5 for a man, − 161 for a woman) × an activity factor (1.35 mostly sitting, 1.5 lifting and some walking, 1.7 on your feet). Height, birth year, sex, the factor and the goal live in `profiles`, set in Settings; weight is the latest 7-day average. For one person this is usually within about 10%.
+- **What the log and the scale show.** Over up to 56 days, from the first weigh-in to yesterday: average intake on fully logged days, less the slope of a line through the weigh-ins × 7,700 kcal per kg, less the runs' share (65% of their calories, spread over the days), since a run is paid for on its own day (§7.6). A day's food counts only if it reaches 60% of resting burn; less is a gap in the record. It needs five weigh-ins spanning a week and five such days before it says anything, and the screen says which is missing.
+- **The blend.** The data's share is n ÷ (n + 21), where n is the smaller of the counted food days and the weigh-ins: a quarter after a week, 40% after a fortnight, 57% after four weeks, 73% after eight. The estimate is rounded to 25 kcal and shown with a rough band, from ±250 on the formula alone to about ±170 at eight weeks. The curve and the band are our own choices, not published figures.
+- 7,700 kcal per kg is the figure for fat. Weight gained on a slow bulk holds a little less, so on a bulk the estimate reads slightly low. Small next to the band; noted, not corrected.
 
-- When Today or Trends opens and 14 days have passed since the last proposal (or on demand from Trends), compute a proposed target: estimated expenditure **plus** the person's energy balance. The balance is signed: positive for a surplus, negative for a deficit.
-- Only propose if it differs from the active target by more than 100 kcal.
-- **Macro redistribution:** protein stays at its g/kg setting, fat stays at or above its floor, carbs absorb the change.
-- The proposal appears as a card on Today: "New target proposed: 1,850 kcal (was 1,925). Based on 14 days." **Approve** creates an active row effective today; **Dismiss** marks it dismissed.
-- Per-user settings this needs: energy balance (signed kcal/day), protein g/kg, fat floor g. Seeded in §13.
+It sits under the weight trend (§6.2): the number, what it is made of, and a dotted line on the chart for where the 7-day average is headed in four weeks at the standing target.
+
+### 6.4 Targets from the estimate
+
+**Built 2026-11-15**, simpler than first designed: derived on read, shown under the trend, with no card on Home and no stored proposals.
+
+- **The goal** is a rate, signed, in kg a week (Bear: +0.15, a slow bulk). It asks for rate × 7,700 ÷ 7 kcal a day against maintenance.
+- When the estimate plus the goal differs from the standing target by more than 100 kcal, the screen says so and offers the new one: **Set target to 2,550**. Protein and fat stay as they are and carbs take up the change. Nothing changes without that tap. Tapping it writes an active `targets` row from today with the reason.
+- **Settings** has the same things to set by hand: body and goal, and the target's four numbers. This replaces editing the database.
+- Each of us sets our own. Neither sees the other's estimate.
 
 ---
 
@@ -758,7 +764,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | Shared meals | The default when eating from the fridge. Even split, each person's amount adjustable in grams or pieces. One-off snacks and eating out default to just me. |
 | Who logs shared meals | Either person, into both days |
 | Partner visibility | Each sees the other's day: food, targets, whether they've trained. Nothing beyond seeing: no streaks, scores or nudges. |
-| Targets | Static for now (§13). Propose-and-approve from the weight trend is designed (§6) and deferred. |
+| Targets | Set by hand in Settings, or from the maintenance estimate with one tap; never changed without one (§6.3, §6.4). |
 | Calories and training | Lifting never changes the day's target. A run adds 65% of its calories to that day's target, as carbohydrate (§7.6). |
 | Logging frequency | 10–20 logs per person per day; snacks included |
 | Quick log | One utterance; auto-commit with undo on a clear match, confirm only the uncertain item |
