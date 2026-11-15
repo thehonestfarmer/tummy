@@ -27,6 +27,7 @@ import { getRoutines, listExercises, PlanInput, pushPlan, removeRoutine, type Pl
 import { CorrectionSchema, PrintedSchema, type Printed } from "./printed";
 import { learnAlias, quickLog, resolvePending, undoLast, type PendingItem } from "./quicklog";
 import { lastZoneOf } from "./tokens";
+import { deleteSet, exerciseHistory, finishWorkout, getWorkout, logSet, startWorkout, updateSet, type SetView, type WorkoutView } from "./workout";
 import { dateIn, isDate } from "./zone";
 
 /**
@@ -164,6 +165,49 @@ function planOut(p: PlanView) {
         step_kg: e.stepKg,
       })),
     })),
+  };
+}
+
+const setOut = (s: SetView) => ({
+  set_id: s.id,
+  ...(s.warmup ? { warmup: true } : {}),
+  ...(s.loadKg !== null ? { load_kg: s.loadKg, ...(s.perHand ? { per_hand: true } : {}) } : {}),
+  ...(s.reps !== null ? { reps: s.reps } : {}),
+  ...(s.rir !== null ? { rir: s.rir } : {}),
+  ...(s.seconds !== null ? { seconds: s.seconds } : {}),
+  ...(s.meters !== null ? { meters: s.meters } : {}),
+  ...(s.rounds !== null ? { rounds: s.rounds } : {}),
+});
+
+/** A workout as an assistant should read it: what was planned, what was done, and what the app would try next. */
+function workoutOut(w: WorkoutView) {
+  const s = w.session;
+  return {
+    today: w.today,
+    trained_today: w.trained,
+    ...(w.joinable ? { partner_is_training: w.joinable } : {}),
+    session: s
+      ? {
+          date: s.date,
+          open: s.open,
+          finished: s.finished,
+          plan: s.planName,
+          ...(s.rating !== null ? { rating: s.rating } : {}),
+          ...(s.note ? { note: s.note } : {}),
+          exercises: s.exercises.map((e) => ({
+            exercise: e.exercise.name,
+            exercise_id: e.exercise.id,
+            equipment: e.exercise.equipment,
+            ...(e.prescription ? { prescription: e.prescription } : { off_plan: true }),
+            ...(e.targetSets !== null ? { target_sets: e.targetSets } : {}),
+            sets: e.sets.map(setOut),
+            ...(e.last.length ? { last_time: { date: e.lastDate, sets: e.last.map(setOut) } } : {}),
+            ...(s.open && e.suggestion.loadKg !== null ? { app_suggests: { load_kg: e.suggestion.loadKg, reps: e.suggestion.reps, ...(e.suggestion.note ? { why: e.suggestion.note } : {}) } } : {}),
+            ...(e.goesUpTo !== null ? { goes_up_next_time_to_kg: e.goesUpTo } : {}),
+          })),
+        }
+      : null,
+    ...(s?.open ? {} : { start_offers: w.choices.map((c) => ({ name: c.name, ...(c.dated ? { for_today: true } : {}), ...(c.next ? { next: true } : {}) })) }),
   };
 }
 
@@ -918,6 +962,169 @@ export function mcpHandlerFor(user: User, client: Client) {
           write("remove_routine", input, async () => {
             await removeRoutine(await owner(input.whose), input.name);
             return { message: `Removed ${input.name}.`, ...(await routinesOut(input.whose)) };
+          }),
+      );
+
+      /* ─── The workout itself (healthspec.md §7.4) ──────────────────────── */
+
+      const myWorkout = async (extra: number[] = []) => workoutOut(await getWorkout(user, await today(), extra));
+      const setFields = {
+        load_kg: z.number().min(0).max(1000).optional().describe("Barbell or machine: the total including the 20 kg bar. Dumbbell: per hand including the 2.5 kg handle. Bodyweight: the weight added, 0 for none."),
+        reps: z.number().int().min(0).max(1000).optional(),
+        rir: z.number().min(0).max(20).optional().describe("Reps in reserve, only if the person said."),
+        warmup: z.boolean().optional().describe("True for a warm-up set. It is kept but doesn't count toward the plan or progression."),
+        seconds: z.number().min(0).max(36000).optional().describe("For a timed exercise: a hang, a plank."),
+        meters: z.number().min(0).max(100000).optional().describe("For a carry."),
+        rounds: z.number().min(0).max(1000).optional().describe("For an EMOM or a rounds-based finisher."),
+      };
+      const toSetInput = (exerciseId: number, s: { load_kg?: number; reps?: number; rir?: number; warmup?: boolean; seconds?: number; meters?: number; rounds?: number }) => ({
+        exerciseId,
+        loadKg: s.load_kg,
+        reps: s.reps,
+        rir: s.rir,
+        warmup: s.warmup,
+        seconds: s.seconds,
+        meters: s.meters,
+        rounds: s.rounds,
+      });
+
+      server.registerTool(
+        "get_workout",
+        {
+          title: "Today's workout",
+          description:
+            "The caller's workout: the open session, or the one done today, with every exercise, the sets logged, " +
+            "last time's sets and the load the app suggests next. When no session is open it lists what Start " +
+            "workout would offer. Call this before logging sets or talking about how training went.",
+          inputSchema: z.object({}),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        () => run(() => myWorkout()),
+      );
+
+      server.registerTool(
+        "start_workout",
+        {
+          title: "Start or join a workout",
+          description:
+            "Starts the caller's workout, or joins the one their partner has open. `plan` is the name of one of " +
+            "the caller's routines, or omitted to use today's dated plan if there is one and otherwise the next " +
+            "routine in the rotation. no_plan: true starts with no plan. Only when the person asks to start.",
+          inputSchema: z.object({ plan: z.string().max(60).optional(), no_plan: z.boolean().optional(), request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        },
+        (input) =>
+          write("start_workout", input, async () => {
+            const now = await getWorkout(user, await today());
+            const choice = input.no_plan
+              ? null
+              : input.plan
+                ? now.choices.find((c) => c.name.toLowerCase() === input.plan!.toLowerCase())
+                : (now.choices[0] ?? null);
+            if (choice === undefined) throw new Error(`No routine called ${input.plan}. The choices are: ${now.choices.map((c) => c.name).join(", ") || "none"}.`);
+            await startWorkout(user, await today(), choice?.id ?? null);
+            return myWorkout();
+          }),
+      );
+
+      server.registerTool(
+        "log_sets",
+        {
+          title: "Log sets",
+          description:
+            "Logs sets of one exercise into the caller's open workout, in the order given. Name the exercise as " +
+            "get_workout or list_exercises does; an exercise that isn't in today's plan is added to this session " +
+            "only. Log what the person says they did, never the plan's numbers. If no workout is open, " +
+            "start_workout first.",
+          inputSchema: z.object({
+            exercise: z.string().min(1).max(120).describe("The exercise's name or one of its other names."),
+            sets: z.array(z.object(setFields)).min(1).max(20),
+            said: z.string().max(500).optional().describe("The person's own words, kept with the sets."),
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        },
+        (input) =>
+          write("log_sets", input, async () => {
+            const matches = (await listExercises()).filter((e) => [e.name, ...e.aliases].some((n) => n.toLowerCase() === input.exercise.toLowerCase()));
+            if (matches.length !== 1) {
+              const near = await listExercises(input.exercise);
+              throw new Error(
+                `No exercise is called exactly "${input.exercise}". ${near.length ? `Did they mean: ${near.slice(0, 5).map((e) => e.name).join(", ")}?` : "Check list_exercises."} Ask rather than guess.`,
+              );
+            }
+            for (const s of input.sets) await logSet(user, toSetInput(matches[0].id, s), { source: "mcp", client, inputText: input.said });
+            return { message: `Logged ${input.sets.length} set${input.sets.length === 1 ? "" : "s"} of ${matches[0].name}.`, ...(await myWorkout()) };
+          }),
+      );
+
+      server.registerTool(
+        "edit_set",
+        {
+          title: "Correct a set",
+          description: "Changes one of the caller's own sets, by set_id from get_workout. Send only the fields that change.",
+          inputSchema: z.object({ set_id: z.number().int(), ...setFields, request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("edit_set", input, async () => {
+            const { exerciseId: _unused, ...patch } = toSetInput(0, input);
+            void _unused;
+            await updateSet(user, input.set_id, Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)));
+            return myWorkout();
+          }),
+      );
+
+      server.registerTool(
+        "delete_set",
+        {
+          title: "Remove a set",
+          description: "Removes one of the caller's own sets, by set_id from get_workout. Only when the person asks.",
+          inputSchema: z.object({ set_id: z.number().int(), request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("delete_set", input, async () => {
+            await deleteSet(user, input.set_id);
+            return myWorkout();
+          }),
+      );
+
+      server.registerTool(
+        "finish_workout",
+        {
+          title: "Finish the workout",
+          description: "The caller's Finish: an optional rating out of 10 and a note. Only when the person says they're done.",
+          inputSchema: z.object({ rating: z.number().int().min(0).max(10).optional(), note: z.string().max(1000).optional(), request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        },
+        (input) =>
+          write("finish_workout", input, async () => {
+            await finishWorkout(user, { rating: input.rating, note: input.note });
+            return myWorkout();
+          }),
+      );
+
+      server.registerTool(
+        "get_exercise_history",
+        {
+          title: "An exercise over time",
+          description:
+            "Every set of one exercise for one person, newest day first, warm-ups marked. Read this before " +
+            "changing a routine's loads or rep ranges.",
+          inputSchema: z.object({
+            whose,
+            exercise: z.string().min(1).max(120),
+            since: z.string().refine(isDate, "YYYY-MM-DD").optional().describe("Only days on or after this date."),
+          }),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        (input) =>
+          run(async () => {
+            const found = (await listExercises()).find((e) => [e.name, ...e.aliases].some((n) => n.toLowerCase() === input.exercise.toLowerCase()));
+            if (!found) throw new Error(`No exercise is called exactly "${input.exercise}". Check list_exercises.`);
+            const days = await exerciseHistory(await owner(input.whose), found.id, input.since ?? null);
+            return { exercise: found.name, equipment: found.equipment, days: days.map((d) => ({ date: d.date, sets: d.sets.map(setOut) })) };
           }),
       );
     },

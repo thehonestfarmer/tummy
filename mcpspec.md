@@ -165,10 +165,12 @@ About 25 tools. Each description states its rules plainly, because the descripti
 | `list_routines` | A user's routines in rotation order, and which is next. |
 | `list_exercises` | The shared exercise list with aliases and equipment, to be read before writing a plan. |
 | `remove_routine` | Takes a routine out of the rotation; its logged sets stay. |
-| `get_session` | A session's plan and logged sets. |
-| `log_sets` | Free text ("press 7.5 for 12, 12, 10, 9", "bag EMOM, 8 out of 10") parsed on the server against the session plan. Works live or after the session. |
+| `get_workout` | The caller's open session, or today's, with planned and logged sets, last time's sets and the load the app suggests. *(Built; replaces `get_session`.)* |
+| `start_workout` | Starts a session, or joins the open one, with a named routine, the default choice, or no plan. |
+| `log_sets` *(as built)* | One exercise by name and a list of structured sets (load, reps, RIR, warm-up, or seconds, meters, rounds), logged into the open session. Free text parsed on the server comes with voice logging. |
+| `log_sets` (planned) | Free text ("press 7.5 for 12, 12, 10, 9", "bag EMOM, 8 out of 10") parsed on the server against the session plan. Works live or after the session. |
 | `edit_set` / `delete_set` | Any set. |
-| `finish_session` | Session rating out of 10 and an optional note. |
+| `finish_workout` | Session rating out of 10 and an optional note. |
 | `get_exercise_history` | Sets for one exercise over a date range. |
 | `log_run` | Free text, or structured fields read from a screenshot by the app's model (duration, distance, pace, average HR). |
 

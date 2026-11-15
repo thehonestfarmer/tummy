@@ -319,6 +319,7 @@ export async function getRoutines(owner: User, date: string): Promise<RoutinesVi
       select coalesce(p.stands_in_for, case when p.date is null then p.id end) as routine_id
       from session_people sp join plans p on p.id = sp.plan_id
       where sp.user_id = ${owner.id} and coalesce(p.stands_in_for, case when p.date is null then p.id end) is not null
+        and exists (select 1 from sets t where t.session_id = sp.session_id and t.user_id = sp.user_id)
       order by sp.joined_at desc limit 1`,
   ]);
   const plans = await plansById([...rotation.map((r) => r.id), ...(dated ? [dated.id] : [])]);
