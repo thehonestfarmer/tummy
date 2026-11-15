@@ -9,6 +9,7 @@ import { EntrySheet } from "./EntrySheet";
 import { SaveMealSheet } from "./SaveMealSheet";
 import { Sheet } from "./Sheet";
 import { SwipeRow } from "./SwipeRow";
+import { WeighIn } from "./WeighIn";
 import { fmt } from "./fields";
 
 type Group = { key: string; hour: number; entries: EntryView[] };
@@ -108,7 +109,9 @@ export function HealthToday() {
             Save {picking.size || ""}
           </button>
         </div>
-      ) : null}
+      ) : (
+        <WeighIn />
+      )}
 
       {day.me.entries.length ? (
         <ul>

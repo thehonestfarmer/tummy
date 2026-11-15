@@ -426,9 +426,14 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 
 ### 6.2 Weigh-ins
 
-- Manual entry, one per person per `local_date` (upsert). Weight in kg, optional waist in cm.
-- **7-day rolling average** computed in SQL; trends are judged on the average, not single days.
-- **Per-user display setting:** `raw` or `trend_only`. With `trend_only`, that person's daily numbers are hidden everywhere (including the partner's view and every MCP tool); only the trend line and weekly change show. Bunny's default is `trend_only`; Bear's is `raw`.
+**Built 2026-11-15**, ahead of the rest of §6.
+
+- One per person per `local_date`, in kg to 0.1, entered by that person on their own phone. Weighing again the same day replaces it. Neither of us enters or sees the other's weight: it is not on the partner line, not in the partner's day, and there is no switch for it.
+- **The 7-day average** is the weigh-ins in the seven days ending on a day, averaged. **The change** is that average less the same average a week earlier. Both are worked out in SQL on read, and trends are judged on them, not on single mornings.
+- **On Home** (§8): until the day on show has a weigh-in, a card sits at the top of the list, starting from the last weight with 0.1 kg steppers, so a morning is a tap or two and Log. After that it is one line: the weight, the 7-day average, and the change. A past day shows the same card for that day, so a missed morning is filled in by stepping back to it.
+- **In the week strip**, a dash under each day weighed in, and the week's change in the average beside the calorie total.
+- **The trend** opens from that line: eight weeks, each morning a dot and the 7-day average as the line, the weigh-ins listed underneath, and the day's weigh-in to correct or remove.
+- Not built: waist, the `raw` / `trend_only` display setting (there is nothing of the partner's to hide while each sees only their own), weigh-ins over MCP, and a morning reminder, which waits for web push.
 
 ### 6.3 Adaptive expenditure
 
@@ -679,7 +684,7 @@ The same conversation can happen in two places: in Claude or ChatGPT through the
 4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
 5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
 6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back *(built 2026-11-15: every training table, and `list_exercises`, `list_routines`, `push_routine`, `push_session_plan` and `remove_routine` over MCP; no screens yet)*; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line *(built 2026-11-15, with joining an open session but no push or prompt yet; and over MCP `get_workout`, `start_workout`, `log_sets` with structured sets, `edit_set`, `delete_set`, `finish_workout` and `get_exercise_history`. Workout mode re-reads itself every 8 seconds, so sets logged from a chat appear on the phone. Later the same day: the Workouts screen with routines and history, and the Bear / Bunny switch, §8)*; (c) web push and joining; (d) sets by voice and chat. Writing routines in the app is not planned yet: they come from a chat.
-7. **Later:** weigh-ins and the trend, adaptive expenditure and proposals (§6), Trends, runs from Strava.
+7. **Later:** weigh-ins and the trend *(weigh-ins built 2026-11-15, §6.2)*, adaptive expenditure and proposals (§6), Trends, runs from Strava.
 
 **Ship points:** each of steps 1 to 5 is usable on its own. Step 1 changes how the app feels without changing what it stores.
 
@@ -755,7 +760,7 @@ Starting maintenance is taken from the Oct 7 estimates: about **2,575 kcal** for
 | DB and KB loads | Stored per hand, flagged |
 | Runs | Not in v1. From Strava later. |
 | Steps / Apple Health | Out of v1 |
-| Weigh-ins | Manual; deferred with the rest of §6 |
+| Weigh-ins | Manual, once a day from a card on Home; each person's own, never shown to the other. Judged on the 7-day average. |
 | Security | Lax; two private users |
 | Home | One screen, two buttons: Add food, and Start workout until you've trained today. No tab bar. |
 | Macro display | Always visible; progress as a shape, the amount left as the number |

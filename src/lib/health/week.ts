@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "../db";
 import type { User } from "../auth";
 import { partnerOf, targetFor } from "./entries";
+import { getWeight } from "./weight";
 import { shiftDate } from "./zone";
 
 export type WeekDay = {
@@ -12,6 +13,8 @@ export type WeekDay = {
   logged: boolean;
   /** Whether your partner logged anything; how much is theirs to show (§1, idea 8). */
   partnerLogged: boolean;
+  /** Whether you weighed in that day. */
+  weighed: boolean;
 };
 
 export type WeekView = {
@@ -27,6 +30,12 @@ export type WeekView = {
    */
   deficit: number;
   counted: number;
+  /**
+   * How your 7-day average weight has moved over this week: the average at
+   * the week's last day so far, less the same a week before. Null until
+   * there are weigh-ins in both.
+   */
+  weightChange: number | null;
 };
 
 /** The Monday of the calendar week `date` falls in. */
@@ -41,7 +50,12 @@ export async function getWeek(me: User, date: string, today: string): Promise<We
   const monday = mondayOf(date);
   const dates = Array.from({ length: 7 }, (_, i) => shiftDate(monday, i));
 
-  const [rows, targets] = await Promise.all([
+  const last = dates[6] < today ? dates[6] : today;
+  const [weighed, weight, rows, targets] = await Promise.all([
+    sql<{ day: string }[]>`
+      select to_char(local_date, 'YYYY-MM-DD') as day from weigh_ins
+      where user_id = ${me.id} and local_date between ${monday} and ${dates[6]}`,
+    getWeight(me.id, last),
     sql<{ user_id: number; day: string; kcal: number }[]>`
       select user_id, to_char(local_date, 'YYYY-MM-DD') as day, sum(grams * kcal_100g / 100)::float8 as kcal
       from food_entries
@@ -58,6 +72,7 @@ export async function getWeek(me: User, date: string, today: string): Promise<We
       target: targets[i] ? Math.round(targets[i]!.kcal) : null,
       logged: mine !== undefined,
       partnerLogged: rows.some((r) => r.user_id === partner.id && r.day === d),
+      weighed: weighed.some((w) => w.day === d),
     };
   });
 
@@ -67,5 +82,6 @@ export async function getWeek(me: User, date: string, today: string): Promise<We
     days,
     deficit: finished.reduce((n, d) => n + (d.target! - d.kcal), 0),
     counted: finished.length,
+    weightChange: weight.change,
   };
 }

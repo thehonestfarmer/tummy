@@ -10,7 +10,8 @@ const whole = (n: number) => Math.round(n).toLocaleString("en-US");
 
 /**
  * The week on Home (§8): Monday to Sunday, each day a small bar of calories
- * against that day's target, with a dot when your partner logged. Tap a day
+ * against that day's target, with a dash when you weighed in and a dot when
+ * your partner logged. Tap a day
  * to see it. Underneath, how far under target the week's finished days add
  * up to, which is the number a single day can't show.
  *
@@ -32,7 +33,7 @@ export function WeekStrip() {
     return () => {
       live = false;
     };
-  }, [day.date, day.me.totals.kcal, day.partner.totals.kcal]);
+  }, [day.date, day.me.totals.kcal, day.partner.totals.kcal, day.weight.kg]);
 
   // Until the week arrives the strip keeps its height, so nothing below it jumps.
   const days = week?.days.some((d) => d.date === day.date) ? week.days : null;
@@ -50,7 +51,7 @@ export function WeekStrip() {
             <button
               key={i}
               disabled={ahead}
-              aria-label={d ? `${d.date}: ${whole(d.kcal)} kcal${d.target ? ` of ${whole(d.target)}` : ""}` : undefined}
+              aria-label={d ? `${d.date}: ${whole(d.kcal)} kcal${d.target ? ` of ${whole(d.target)}` : ""}${d.weighed ? ", weighed in" : ""}` : undefined}
               aria-current={shown ? "date" : undefined}
               onClick={() => d && setDate(d.date)}
               className="flex h-[4.25rem] flex-col items-center justify-between rounded-[10px] py-1.5"
@@ -67,7 +68,11 @@ export function WeekStrip() {
                 {/* Over target is a full bar with a pale cap: seen, not scolded. */}
                 {over ? <span className="absolute inset-x-0 top-0 h-1 rounded-full bg-ink" /> : null}
               </span>
-              <span aria-hidden className="h-1 w-1 rounded-full" style={{ background: d?.partnerLogged ? theirs : "transparent" }} />
+              {/* A dash for your weigh-in, a dot for your partner's food. */}
+              <span aria-hidden className="flex h-1 items-center gap-1">
+                <span className="h-[3px] w-2 rounded-full" style={{ background: d?.weighed ? "var(--ink-dim)" : "transparent" }} />
+                <span className="h-1 w-1 rounded-full" style={{ background: d?.partnerLogged ? theirs : "transparent" }} />
+              </span>
             </button>
           );
         })}
@@ -77,6 +82,9 @@ export function WeekStrip() {
           ? week.counted
             ? `${whole(Math.abs(week.deficit))} kcal ${week.deficit >= 0 ? "under" : "over"} target this week · ${week.counted} ${week.counted === 1 ? "day" : "days"}`
             : "The week's total starts once a day is finished."
+          : ""}
+        {week && days && week.weightChange !== null
+          ? ` · weight ${Math.abs(week.weightChange) < 0.05 ? "steady" : `${week.weightChange < 0 ? "↓" : "↑"}${Math.abs(week.weightChange).toFixed(1)} kg`}`
           : ""}
       </p>
     </section>

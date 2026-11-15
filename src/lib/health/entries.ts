@@ -5,6 +5,7 @@ import { bothUsers, type User } from "../auth";
 import { PAIR_ORDER, type Slug } from "../config";
 import type { Client } from "./client";
 import type { Macros } from "./reading";
+import { getWeight, type WeightView } from "./weight";
 import { clockIn, dateIn } from "./zone";
 
 /**
@@ -41,6 +42,8 @@ export type DaySide = {
 
 export type HealthDayView = {
   date: string;
+  /** Your own weigh-in for the day and the trend it sits in (§6.2). Never your partner's. */
+  weight: WeightView;
   me: DaySide & { entries: EntryView[] };
   partner: DaySide;
 };
@@ -139,7 +142,8 @@ export async function getHealthDay(me: User, date: string): Promise<HealthDayVie
   const partner = PAIR_ORDER.map((s) => users[s]).find((u) => u.id !== me.id)!;
   const names = new Map(PAIR_ORDER.map((s) => [users[s].id, users[s].displayName]));
 
-  const [mine, theirs, myTarget, theirTarget] = await Promise.all([
+  const [weight, mine, theirs, myTarget, theirTarget] = await Promise.all([
+    getWeight(me.id, date),
     entriesFor(me.id, date),
     entriesFor(partner.id, date),
     targetFor(me.id, date),
@@ -149,6 +153,7 @@ export async function getHealthDay(me: User, date: string): Promise<HealthDayVie
 
   return {
     date,
+    weight,
     me: {
       slug: me.slug,
       displayName: me.displayName,
