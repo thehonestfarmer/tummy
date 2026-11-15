@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { LibraryView } from "@/lib/health/foods";
 import type { FridgeItem, FridgeKind, FridgeView } from "@/lib/health/fridge";
 import { Sheet } from "./Sheet";
-import { NumberField, fmt } from "./fields";
+import { NumberField, amountText, fmt, plural } from "./fields";
 
 const keyOf = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
 
@@ -45,8 +45,7 @@ export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridg
               <button onClick={() => setOpen(item)} className="flex w-full items-baseline gap-2 py-3 text-left">
                 <span className="min-w-0 flex-1 truncate text-[1rem]">{item.food.name}</span>
                 <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">
-                  {item.count ? `${fmt(item.count.n)} left · ` : ""}
-                  {fmt(item.left, 0)}g
+                  {amountText(item.food, item.left, item.count)}
                 </span>
               </button>
             </li>
@@ -85,7 +84,7 @@ export function LibraryClient({ initial, fridge }: { initial: LibraryView; fridg
                     <span className="ml-auto shrink-0 text-[0.9rem] tabular-nums text-ink-dim">{fmt(f.per100.kcal, 0)} kcal</span>
                   </span>
                   <span className="block pt-0.5 text-[0.85rem] tabular-nums text-ink-faint">
-                    per 100g · P {fmt(f.per100.protein_g)} · F {fmt(f.per100.fat_g)} · C {fmt(f.per100.carbs_g)}
+                    {f.countedOnly ? `a ${f.servings[0]?.label ?? "pack"}` : "per 100g"} · P {fmt(f.per100.protein_g)} · F {fmt(f.per100.fat_g)} · C {fmt(f.per100.carbs_g)}
                   </span>
                 </Link>
               </li>
@@ -127,7 +126,11 @@ function FridgeItemSheet({
   onClose: () => void;
   onChanged: (items: FridgeItem[]) => void;
 }) {
-  const [grams, setGrams] = useState<number | null>(Math.round(item.left));
+  // A food counted by the pack is corrected in packs; its grams are only nominal.
+  const unit = item.food.countedOnly ? (item.food.servings[0] ?? null) : null;
+  const each = unit?.grams ?? 1;
+  const was = unit ? Math.round((item.left / each) * 10) / 10 : Math.round(item.left);
+  const [amount, setAmount] = useState<number | null>(was);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -154,16 +157,15 @@ function FridgeItemSheet({
     <Sheet onClose={onClose}>
       <p className="text-[1.1rem]">{item.food.name}</p>
       <p className="text-[0.85rem] text-ink-dim">
-        {item.count ? `${fmt(item.count.n)} left · ` : ""}
-        {fmt(item.left, 0)}g in the fridge
+        {amountText(item.food, item.left, item.count)} in the fridge
       </p>
       <div className="flex items-end gap-2 pt-4">
         <div className="w-32">
-          <NumberField label="Really there, in grams" value={grams} onChange={setGrams} />
+          <NumberField label={`Really there, in ${unit ? plural(unit.label, 2) : "grams"}`} value={amount} onChange={setAmount} />
         </div>
         <button
-          disabled={busy || grams === null || grams === Math.round(item.left)}
-          onClick={() => grams !== null && send("set", grams)}
+          disabled={busy || amount === null || amount === was}
+          onClick={() => amount !== null && send("set", amount * each)}
           className="flex-1 rounded-[10px] border border-hairline-strong bg-ground-raised py-2.5 text-[0.95rem] text-ink disabled:text-ink-faint"
         >
           Set amount

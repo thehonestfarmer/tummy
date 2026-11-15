@@ -13,14 +13,13 @@ import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
 import { TableRows, useTableRows } from "./TableRows";
-import { fmt } from "./fields";
+import { amountText, fmt, plural } from "./fields";
 
 /** One ingredient: a food, and how much of it in one of its servings or in grams. */
 type Line = { foodId: number; /** Null until chosen: the food's first serving, or grams. */ unit: number | null; count: string | null };
 type Kept = { lines: Line[]; name: string; portions: string; cooked: string; step: "pick" | "dish" };
 
 const STORE = "tummy-cook";
-const plural = (label: string, n: number) => (n === 1 || label.endsWith("s") ? label : `${label}s`);
 const round = (n: number) => Math.round(n * 10) / 10;
 const numeric = (raw: string) => raw.replace(/[^\d.,]/g, "").replace(",", ".");
 const stepButton = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-hairline-strong text-[1.3rem] leading-none";
@@ -162,7 +161,14 @@ export function Cook() {
     void fetch("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "discard", id: draftId }) }).catch(() => {});
   }
   const again = (dish: DishView) => {
-    setLines(dish.items.filter((i) => foods?.has(i.foodId)).map((i) => ({ foodId: i.foodId, unit: foods!.get(i.foodId)!.servings.length, count: String(i.grams) })));
+    setLines(dish.items.filter((i) => foods?.has(i.foodId)).map((i) => {
+          const food = foods!.get(i.foodId)!;
+          // Weighed foods come back in grams; one counted by the pack comes back in packs.
+          return food.countedOnly && food.servings.length
+            ? { foodId: i.foodId, unit: 0, count: String(round(i.grams / food.servings[0].grams)) }
+            : { foodId: i.foodId, unit: food.servings.length, count: String(i.grams) };
+        }),
+    );
     setName(dish.name);
     setPortions(String(dish.portions));
     setCooked("");
@@ -231,7 +237,7 @@ export function Cook() {
         </button>
         <h1 className="pt-1 text-[1.15rem] leading-none">What did it make?</h1>
         <p className="pt-2 text-[0.9rem] leading-relaxed text-ink-dim">
-          {ready.map(({ food, a }) => `${food.name} ${fmt(a.grams, 0)}g`).join(" · ")}
+          {ready.map(({ food, a }) => `${food.name} ${amountText(food, a.grams)}`).join(" · ")}
         </p>
 
         <div className="mt-auto flex flex-col gap-3 pt-6 pb-4">
@@ -321,8 +327,8 @@ export function Cook() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[1.02rem] leading-snug">{food.name}</p>
                   <p className="text-[0.8rem] leading-snug text-ink-dim">
-                    {fmt(food.per100.kcal, 0)} kcal per 100g
-                    {inFridge.has(food.id) ? ` · ${fmt(inFridge.get(food.id)!, 0)}g in the fridge` : " · not in the fridge"}
+                    {fmt(food.per100.kcal, 0)} kcal {food.countedOnly ? `a ${food.servings[0]?.label ?? "pack"}` : "per 100g"}
+                    {inFridge.has(food.id) ? ` · ${amountText(food, inFridge.get(food.id)!)} in the fridge` : " · not in the fridge"}
                   </p>
                 </div>
                 <button
@@ -347,7 +353,9 @@ export function Cook() {
                 <button aria-label="More" onClick={() => patch(food.id, { unit: a.unit, count: String(round(a.n + a.by)) })} className={stepButton}>
                   +
                 </button>
-                {food.servings.length ? (
+                {food.countedOnly && food.servings.length ? (
+                  <span className="flex-1 text-[0.9rem] text-ink-dim">{plural(food.servings[0].label, a.n)}</span>
+                ) : food.servings.length ? (
                   <select
                     aria-label="Counted in"
                     value={a.unit}
@@ -364,7 +372,7 @@ export function Cook() {
                 ) : (
                   <span className="flex-1 text-[0.9rem] text-ink-dim">grams</span>
                 )}
-                <span className="w-12 shrink-0 text-right text-[0.85rem] tabular-nums text-ink-dim">{a.grams ? `${fmt(a.grams, 0)}g` : ""}</span>
+                <span className="w-12 shrink-0 text-right text-[0.85rem] tabular-nums text-ink-dim">{a.grams && !food.countedOnly ? `${fmt(a.grams, 0)}g` : ""}</span>
               </div>
             </li>
           ))}
@@ -379,7 +387,7 @@ export function Cook() {
               <li key={f.id} className="border-b border-hairline">
                 <button onClick={() => add(f.id)} className="flex w-full items-baseline gap-2 py-3 text-left">
                   <span className="min-w-0 flex-1 truncate text-[1rem]">{f.name}</span>
-                  <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">{fmt(inFridge.get(f.id)!, 0)}g</span>
+                  <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">{amountText(f, inFridge.get(f.id)!)}</span>
                 </button>
               </li>
             ))}

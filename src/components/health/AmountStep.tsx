@@ -4,12 +4,11 @@ import { useState } from "react";
 import type { DaySide } from "@/lib/health/entries";
 import type { FoodView } from "@/lib/health/foods";
 import { colorOf } from "./MacroBar";
-import { fmt } from "./fields";
+import { fmt, plural } from "./fields";
 
 type Person = Pick<DaySide, "slug" | "displayName">;
 
 const round = (n: number) => Math.round(n * 10) / 10;
-const plural = (label: string, n: number) => (n === 1 || label.endsWith("s") ? label : `${label}s`);
 const stepButton =
   "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-hairline-strong text-[1.4rem] leading-none text-ink disabled:text-ink-faint";
 

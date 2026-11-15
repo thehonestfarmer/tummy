@@ -16,7 +16,7 @@ import {
 import { prepare } from "@/lib/resize";
 import { uploadFoodImage } from "@/lib/health/upload";
 import { useHealthDay } from "./HealthDay";
-import { fmt } from "./fields";
+import { fmt, plural } from "./fields";
 import { TableRows, useTableRows } from "./TableRows";
 
 /**
@@ -47,6 +47,8 @@ type Seen =
       name: string;
       per100: Macros | null;
       servings: Serving[];
+      /** Counted by the pack with no weight (§5.1): never shown or stocked in grams. */
+      counted: boolean;
       /** Where the numbers came from, in a few words. */
       from: string;
       warn: string | null;
@@ -58,7 +60,6 @@ type Seen =
 const STORE = "tummy-stock-up";
 const POLL_MS = 1500;
 const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").trim().toLowerCase();
-const plural = (label: string, n: number) => (n === 1 || label.endsWith("s") ? label : `${label}s`);
 const round = (n: number) => Math.round(n * 10) / 10;
 let seq = 0;
 const newKey = () => `${Date.now()}-${seq++}`;
@@ -151,7 +152,7 @@ export function StockUp() {
     (line: Line): Seen => {
       const food = line.foodId !== null ? foods.get(line.foodId) : undefined;
       if (food) {
-        return { state: "ok", name: food.name, per100: food.per100, servings: food.servings, from: "bought before", warn: null, maybe: [], isNew: false };
+        return { state: "ok", name: food.name, per100: food.per100, servings: food.servings, counted: food.countedOnly, from: "bought before", warn: null, maybe: [], isNew: false };
       }
       if (line.error && line.draftId === null) return { state: "failed", why: line.error };
       if (line.draftId === null) return { state: "sending" };
@@ -165,7 +166,7 @@ export function StockUp() {
       const sameAs = line.sameAs !== undefined ? line.sameAs : (exact?.id ?? null);
       const same = sameAs !== null ? foods.get(sameAs) : undefined;
       if (same) {
-        return { state: "ok", name: same.name, per100: same.per100, servings: same.servings, from: "one we already have", warn: null, maybe: [], isNew: false };
+        return { state: "ok", name: same.name, per100: same.per100, servings: same.servings, counted: same.countedOnly, from: "one we already have", warn: null, maybe: [], isNew: false };
       }
 
       const n = normalize(reading);
@@ -184,6 +185,7 @@ export function StockUp() {
         name: reading.name || line.label,
         per100: n.per100,
         servings: n.servings,
+        counted: n.countedBy !== null,
         from: draft.checking
           ? "checking against typical values…"
           : label
@@ -367,7 +369,7 @@ export function StockUp() {
                       <p className="truncate text-[1.02rem] leading-snug">{known.name}</p>
                       <p className="text-[0.8rem] leading-snug text-ink-dim">
                         {known.per100
-                          ? `${fmt(known.per100.kcal, 0)} kcal · P ${fmt(known.per100.protein_g)} · F ${fmt(known.per100.fat_g)} · C ${fmt(known.per100.carbs_g)} per 100g · `
+                          ? `${fmt(known.per100.kcal, 0)} kcal · P ${fmt(known.per100.protein_g)} · F ${fmt(known.per100.fat_g)} · C ${fmt(known.per100.carbs_g)} ${known.counted ? `a ${known.servings[0]?.label ?? "pack"}` : "per 100g"} · `
                           : ""}
                         {known.from}
                       </p>
@@ -434,7 +436,9 @@ export function StockUp() {
                   >
                     +
                   </button>
-                  {known.servings.length ? (
+                  {known.counted ? (
+                    <span className="flex-1 text-[0.9rem] text-ink-dim">{plural(known.servings[0]?.label ?? "pack", a.n)}</span>
+                  ) : known.servings.length ? (
                     <select
                       aria-label="Counted in"
                       value={a.unit}
@@ -451,7 +455,7 @@ export function StockUp() {
                   ) : (
                     <span className="flex-1 text-[0.9rem] text-ink-dim">grams</span>
                   )}
-                  <span className="w-12 shrink-0 text-right text-[0.85rem] tabular-nums text-ink-dim">{a.grams ? `${fmt(a.grams, 0)}g` : ""}</span>
+                  <span className="w-12 shrink-0 text-right text-[0.85rem] tabular-nums text-ink-dim">{a.grams && !known.counted ? `${fmt(a.grams, 0)}g` : ""}</span>
                 </div>
               ) : null}
 

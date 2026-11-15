@@ -13,7 +13,7 @@ import { useHealthDay } from "./HealthDay";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
 import { TableRows, useTableRows } from "./TableRows";
-import { fmt } from "./fields";
+import { amountText, fmt } from "./fields";
 
 const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLowerCase();
 
@@ -171,7 +171,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
       return;
     }
     onClose();
-    toast({ text: `${fmt(grams, 0)}g of ${food.name} is in the fridge.` });
+    toast({ text: `${amountText(food, grams)} of ${food.name} ${food.countedOnly && grams !== food.servings[0]?.grams ? "are" : "is"} in the fridge.` });
   }
 
   /** The photo goes up and becomes a draft, read in the background; ScanStep waits for it. */
@@ -261,8 +261,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
                     <button onClick={() => setStep({ kind: "amount", food })} className="flex w-full items-baseline gap-2 py-2.5 text-left">
                       <span className="min-w-0 flex-1 truncate text-[1rem]">{food.name}</span>
                       <span className="shrink-0 text-[0.85rem] tabular-nums text-ink-faint">
-                        {count ? `${fmt(count.n)} left · ` : ""}
-                        {fmt(left, 0)}g
+                        {amountText(food, left, count)}
                       </span>
                     </button>
                   </li>
