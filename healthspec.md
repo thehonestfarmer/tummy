@@ -458,6 +458,8 @@ Computed per user, once at least 14 days of data exist:
 
 - `exercises` table with canonical names and aliases ("chest-supported row", "CS row", "incline DB row"), and the kind of set it takes (§7.3). The model maps whatever is said to a canonical exercise; an unknown name creates a new exercise after one confirmation.
 - The list is shared. History is per person.
+- A pushed plan that names an exercise the list doesn't have saves nothing: the unknown names come back with the exercises they might have meant, and the plan is sent again with the existing names or, after the person's yes, with the new ones created.
+- Each exercise has its equipment (`barbell`, `dumbbell`, `kettlebell`, `machine`, `bodyweight`, `other`), which decides how its load is counted (§7.5).
 
 ### 7.3 Set kinds
 
@@ -658,7 +660,7 @@ The same conversation can happen in two places: in Claude or ChatGPT through the
 3. **Scan and eat in one flow; shared by default.** *(Built: camera straight from Add food, confirm in place, amounts in servings, the two-person amount step, who-ate-it parsing with the Split / Only me question.)* Single-item scan that confirms in place and logs. The two-person amount step with per-person grams and pieces; who-ate-it parsing for voice.
 4. **Eating out.** Places and dishes, published values, the photo and description estimates as ranges, ranges carried through totals and the macro display.
 5. **Chat inside the app.** One tool list shared with the MCP server; the chat sheet; planning from the fridge.
-6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line; (c) web push and joining; (d) sets by voice and chat.
+6. **Training.** In four slices, each usable in the gym: (a) exercises, routines and dated plans pushed from Claude, and reading them back *(built 2026-11-15: every training table, and `list_exercises`, `list_routines`, `push_routine`, `push_session_plan` and `remove_routine` over MCP; no screens yet)*; (b) a solo session by touch: Start workout, workout mode, progression, finish, the Trained line; (c) web push and joining; (d) sets by voice and chat.
 7. **Later:** weigh-ins and the trend, adaptive expenditure and proposals (§6), Trends, runs from Strava.
 
 **Ship points:** each of steps 1 to 5 is usable on its own. Step 1 changes how the app feels without changing what it stores.

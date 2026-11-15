@@ -16,12 +16,14 @@ import {
   logShared,
   recentFoods,
   updateEntry,
+  partnerOf,
   type HealthDayView,
 } from "./entries";
 import { changeFridge, getFridge } from "./fridge";
 import { createNamedDraft, FoodPatchSchema, getFood, getLibrary, readDraft, searchFoods, updateFood } from "./foods";
 import { getGuidelines, SectionSchema, updateGuideline } from "./guidance";
 import { once } from "./once";
+import { getRoutines, listExercises, PlanInput, pushPlan, removeRoutine, type PlanView } from "./plans";
 import { CorrectionSchema, PrintedSchema, type Printed } from "./printed";
 import { learnAlias, quickLog, resolvePending, undoLast, type PendingItem } from "./quicklog";
 import { lastZoneOf } from "./tokens";
@@ -137,6 +139,32 @@ async function fridgeOut() {
     ...(i.count ? { count_left: `${i.count.n} ${i.count.label}` } : {}),
     per_100g: i.food.per100,
   }));
+}
+
+/** A plan as an assistant should read it, in the same words push_routine takes. */
+function planOut(p: PlanView) {
+  return {
+    name: p.name,
+    ...(p.date ? { date: p.date } : {}),
+    ...(p.standsInFor ? { stands_in_for: p.standsInFor } : {}),
+    ...(p.notes ? { notes: p.notes } : {}),
+    blocks: p.blocks.map((b) => ({
+      ...(b.label ? { label: b.label } : {}),
+      kind: b.kind,
+      exercises: b.exercises.map((e) => ({
+        exercise: e.exercise.name,
+        exercise_id: e.exercise.id,
+        equipment: e.exercise.equipment,
+        prescription: e.prescription,
+        ...(e.targetSets !== null ? { target_sets: e.targetSets } : {}),
+        ...(e.repMin !== null ? { rep_min: e.repMin } : {}),
+        ...(e.repMax !== null ? { rep_max: e.repMax } : {}),
+        ...(e.targetRir !== null ? { target_rir: e.targetRir } : {}),
+        ...(e.startLoadKg !== null ? { start_load_kg: e.startLoadKg } : {}),
+        step_kg: e.stepKg,
+      })),
+    })),
+  };
 }
 
 async function zoneFor(user: User): Promise<string> {
@@ -769,6 +797,127 @@ export function mcpHandlerFor(user: User, client: Client) {
           write("undo_last", input, async () => {
             const removed = await undoLast(user);
             return { message: removed.length ? `Removed ${removed.join(", ")}.` : "Nothing recent to remove." };
+          }),
+      );
+
+      /* ─── Training plans (healthspec.md §7.1) ──────────────────────────── */
+
+      const whose = z
+        .enum(["me", "partner"])
+        .default("me")
+        .describe("Whose plans. Either person may read or write the other's.");
+      const owner = async (who: "me" | "partner") => (who === "partner" ? partnerOf(user) : user);
+      const createMissing = z
+        .boolean()
+        .optional()
+        .describe("Set only after the person has seen the new exercise names and said yes. Without it, an unknown exercise saves nothing.");
+      const routinesOut = async (who: "me" | "partner") => {
+        const person = await owner(who);
+        const view = await getRoutines(person, await today());
+        return {
+          whose: person.displayName,
+          rotation: view.routines.map(planOut),
+          next_in_rotation: view.next,
+          ...(view.dated ? { dated_plan_today: planOut(view.dated) } : {}),
+        };
+      };
+
+      server.registerTool(
+        "list_exercises",
+        {
+          title: "The exercise list",
+          description:
+            "Every exercise the app knows, shared by both people, with its other names and its equipment. Call " +
+            "this before writing a plan and use these names: a plan that names an exercise in a new way would " +
+            "otherwise split its history in two. Equipment decides how a load is counted: barbell and machine " +
+            "loads are the total including the 20 kg bar; dumbbell and kettlebell loads are per hand including " +
+            "the 2.5 kg handle; a bodyweight load is the weight added.",
+          inputSchema: z.object({ query: z.string().max(120).optional().describe("Part of a name. Omit for all.") }),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        (input) => run(async () => ({ exercises: await listExercises(input.query) })),
+      );
+
+      server.registerTool(
+        "list_routines",
+        {
+          title: "Routines and what's next",
+          description:
+            "A person's routines in rotation order, which one the rotation says is next, and today's dated plan " +
+            "if one was pushed (it wins over the rotation today). Read this before replacing a routine.",
+          inputSchema: z.object({ whose }),
+          annotations: { readOnlyHint: true, openWorldHint: false },
+        },
+        (input) => run(() => routinesOut(input.whose)),
+      );
+
+      server.registerTool(
+        "push_routine",
+        {
+          title: "Save a routine",
+          description:
+            "Creates a routine, or replaces the routine of the same name: 'Upper A', 'Lower B'. A routine has no " +
+            "date; the app offers the next one in the rotation each time the person starts a workout. Replacing " +
+            "one keeps every set already logged. The gym loads in these steps: barbell 2.5 kg total, dumbbells " +
+            "2.5 kg per hand from 2.5 to 20 kg, weighted bodyweight 1.25 kg. The app raises loads on its own by " +
+            "one step when every working set reaches rep_max, and never lowers them: to deload, or to add load " +
+            "to a bodyweight exercise, push the routine again with new start loads. Keep each exercise's " +
+            "prescription exactly as written in the plan.",
+          inputSchema: PlanInput.extend({
+            whose,
+            position: z.number().int().min(1).max(20).optional().describe("Place in the rotation, from 1. A new routine goes last by default."),
+            create_missing: createMissing,
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("push_routine", input, async () => {
+            const { whose: who, position, create_missing, ...plan } = input;
+            const result = await pushPlan(user, await owner(who), plan, { position, createMissing: create_missing, client });
+            if (result.status !== "saved") return result;
+            return { status: "saved", created_exercises: result.created_exercises, ...(await routinesOut(who)) };
+          }),
+      );
+
+      server.registerTool(
+        "push_session_plan",
+        {
+          title: "Save a plan for one day",
+          description:
+            "A plan for one date, for a deload or a swap. It replaces the rotation on that day only and is not " +
+            "used again. Name the routine it stands in for so the rotation moves on as if that routine had been " +
+            "done. Pushing again for the same date replaces it. Same structure and load rules as push_routine.",
+          inputSchema: PlanInput.extend({
+            whose,
+            date: z.string().refine(isDate, "YYYY-MM-DD").describe("The day it is for, YYYY-MM-DD."),
+            stands_in_for: z.string().max(60).optional().describe("The name of the routine this replaces that day."),
+            create_missing: createMissing,
+            request_id: requestId,
+          }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("push_session_plan", input, async () => {
+            const { whose: who, date, stands_in_for, create_missing, ...plan } = input;
+            const result = await pushPlan(user, await owner(who), plan, { date, standsInFor: stands_in_for, createMissing: create_missing, client });
+            return result.status === "saved" ? { ...result, plan: planOut(result.plan) } : result;
+          }),
+      );
+
+      server.registerTool(
+        "remove_routine",
+        {
+          title: "Take a routine out of the rotation",
+          description:
+            "Removes a routine by name. Sets logged under it are kept. Only when the person asks for it directly.",
+          inputSchema: z.object({ whose, name: z.string().min(1).max(60), request_id: requestId }),
+          annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+        },
+        (input) =>
+          write("remove_routine", input, async () => {
+            await removeRoutine(await owner(input.whose), input.name);
+            return { message: `Removed ${input.name}.`, ...(await routinesOut(input.whose)) };
           }),
       );
     },
