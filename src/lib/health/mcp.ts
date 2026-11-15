@@ -967,7 +967,13 @@ export function mcpHandlerFor(user: User, client: Client) {
 
       /* ─── The workout itself (healthspec.md §7.4) ──────────────────────── */
 
-      const myWorkout = async (extra: number[] = []) => workoutOut(await getWorkout(user, await today(), extra));
+      const workoutOf = async (who: "me" | "partner") => {
+        const person = await owner(who);
+        return { whose: person.displayName, ...workoutOut(await getWorkout(person, await today())) };
+      };
+      const forWhom = whose.describe(
+        "Whose workout. Either person can start, log, correct and finish for the other: 'partner' when the caller reports what their partner did.",
+      );
       const setFields = {
         load_kg: z.number().min(0).max(1000).optional().describe("Barbell or machine: the total including the 20 kg bar. Dumbbell: per hand including the 2.5 kg handle. Bodyweight: the weight added, 0 for none."),
         reps: z.number().int().min(0).max(1000).optional(),
@@ -993,13 +999,13 @@ export function mcpHandlerFor(user: User, client: Client) {
         {
           title: "Today's workout",
           description:
-            "The caller's workout: the open session, or the one done today, with every exercise, the sets logged, " +
+            "A person's workout: the open session, or the one done today, with every exercise, the sets logged, " +
             "last time's sets and the load the app suggests next. When no session is open it lists what Start " +
             "workout would offer. Call this before logging sets or talking about how training went.",
-          inputSchema: z.object({}),
+          inputSchema: z.object({ whose: forWhom }),
           annotations: { readOnlyHint: true, openWorldHint: false },
         },
-        () => run(() => myWorkout()),
+        (input) => run(() => workoutOf(input.whose)),
       );
 
       server.registerTool(
@@ -1007,23 +1013,24 @@ export function mcpHandlerFor(user: User, client: Client) {
         {
           title: "Start or join a workout",
           description:
-            "Starts the caller's workout, or joins the one their partner has open. `plan` is the name of one of " +
-            "the caller's routines, or omitted to use today's dated plan if there is one and otherwise the next " +
+            "Starts a person's workout, or joins the one the other has open. `plan` is the name of one of " +
+            "that person's routines, or omitted to use today's dated plan if there is one and otherwise the next " +
             "routine in the rotation. no_plan: true starts with no plan. Only when the person asks to start.",
-          inputSchema: z.object({ plan: z.string().max(60).optional(), no_plan: z.boolean().optional(), request_id: requestId }),
+          inputSchema: z.object({ whose: forWhom, plan: z.string().max(60).optional(), no_plan: z.boolean().optional(), request_id: requestId }),
           annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
         },
         (input) =>
           write("start_workout", input, async () => {
-            const now = await getWorkout(user, await today());
+            const person = await owner(input.whose);
+            const now = await getWorkout(person, await today());
             const choice = input.no_plan
               ? null
               : input.plan
                 ? now.choices.find((c) => c.name.toLowerCase() === input.plan!.toLowerCase())
                 : (now.choices[0] ?? null);
             if (choice === undefined) throw new Error(`No routine called ${input.plan}. The choices are: ${now.choices.map((c) => c.name).join(", ") || "none"}.`);
-            await startWorkout(user, await today(), choice?.id ?? null);
-            return myWorkout();
+            await startWorkout(person, await today(), choice?.id ?? null);
+            return workoutOf(input.whose);
           }),
       );
 
@@ -1032,11 +1039,12 @@ export function mcpHandlerFor(user: User, client: Client) {
         {
           title: "Log sets",
           description:
-            "Logs sets of one exercise into the caller's open workout, in the order given. Name the exercise as " +
+            "Logs sets of one exercise into a person's open workout, in the order given. Name the exercise as " +
             "get_workout or list_exercises does; an exercise that isn't in today's plan is added to this session " +
             "only. Log what the person says they did, never the plan's numbers. If no workout is open, " +
             "start_workout first.",
           inputSchema: z.object({
+            whose: forWhom,
             exercise: z.string().min(1).max(120).describe("The exercise's name or one of its other names."),
             sets: z.array(z.object(setFields)).min(1).max(20),
             said: z.string().max(500).optional().describe("The person's own words, kept with the sets."),
@@ -1053,8 +1061,14 @@ export function mcpHandlerFor(user: User, client: Client) {
                 `No exercise is called exactly "${input.exercise}". ${near.length ? `Did they mean: ${near.slice(0, 5).map((e) => e.name).join(", ")}?` : "Check list_exercises."} Ask rather than guess.`,
               );
             }
-            for (const s of input.sets) await logSet(user, toSetInput(matches[0].id, s), { source: "mcp", client, inputText: input.said });
-            return { message: `Logged ${input.sets.length} set${input.sets.length === 1 ? "" : "s"} of ${matches[0].name}.`, ...(await myWorkout()) };
+            const person = await owner(input.whose);
+            for (const s of input.sets) {
+              await logSet(person, toSetInput(matches[0].id, s), { source: "mcp", client, inputText: input.said, enteredBy: user });
+            }
+            return {
+              message: `Logged ${input.sets.length} set${input.sets.length === 1 ? "" : "s"} of ${matches[0].name} for ${person.displayName}.`,
+              ...(await workoutOf(input.whose)),
+            };
           }),
       );
 
@@ -1062,16 +1076,16 @@ export function mcpHandlerFor(user: User, client: Client) {
         "edit_set",
         {
           title: "Correct a set",
-          description: "Changes one of the caller's own sets, by set_id from get_workout. Send only the fields that change.",
-          inputSchema: z.object({ set_id: z.number().int(), ...setFields, request_id: requestId }),
+          description: "Changes a set, by set_id from get_workout, for the same person get_workout was read for. Send only the fields that change.",
+          inputSchema: z.object({ whose: forWhom, set_id: z.number().int(), ...setFields, request_id: requestId }),
           annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
         },
         (input) =>
           write("edit_set", input, async () => {
             const { exerciseId: _unused, ...patch } = toSetInput(0, input);
             void _unused;
-            await updateSet(user, input.set_id, Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)));
-            return myWorkout();
+            await updateSet(await owner(input.whose), input.set_id, Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)));
+            return workoutOf(input.whose);
           }),
       );
 
@@ -1079,14 +1093,14 @@ export function mcpHandlerFor(user: User, client: Client) {
         "delete_set",
         {
           title: "Remove a set",
-          description: "Removes one of the caller's own sets, by set_id from get_workout. Only when the person asks.",
-          inputSchema: z.object({ set_id: z.number().int(), request_id: requestId }),
+          description: "Removes a set, by set_id from get_workout, for the same person get_workout was read for. Only when the person asks.",
+          inputSchema: z.object({ whose: forWhom, set_id: z.number().int(), request_id: requestId }),
           annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
         },
         (input) =>
           write("delete_set", input, async () => {
-            await deleteSet(user, input.set_id);
-            return myWorkout();
+            await deleteSet(await owner(input.whose), input.set_id);
+            return workoutOf(input.whose);
           }),
       );
 
@@ -1095,13 +1109,13 @@ export function mcpHandlerFor(user: User, client: Client) {
         {
           title: "Finish the workout",
           description: "The caller's Finish: an optional rating out of 10 and a note. Only when the person says they're done.",
-          inputSchema: z.object({ rating: z.number().int().min(0).max(10).optional(), note: z.string().max(1000).optional(), request_id: requestId }),
+          inputSchema: z.object({ whose: forWhom, rating: z.number().int().min(0).max(10).optional(), note: z.string().max(1000).optional(), request_id: requestId }),
           annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
         },
         (input) =>
           write("finish_workout", input, async () => {
-            await finishWorkout(user, { rating: input.rating, note: input.note });
-            return myWorkout();
+            await finishWorkout(await owner(input.whose), { rating: input.rating, note: input.note });
+            return workoutOf(input.whose);
           }),
       );
 

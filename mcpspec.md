@@ -158,6 +158,8 @@ About 25 tools. Each description states its rules plainly, because the descripti
 
 ### Training
 
+Every workout tool takes `whose: "me" | "partner"`, default `me`: either person can start, log, correct and finish the other's workout from a chat, and each set records who entered it.
+
 | Tool | Does |
 |---|---|
 | `push_routine` | Create or replace one of a user's routines by name (the caller's or their partner's), with its place in the rotation, using the structure in `healthspec.md` §7.1 (blocks, exercises, prescription text, rep ranges, target RIR, start loads, load steps). |

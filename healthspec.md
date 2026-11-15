@@ -497,7 +497,8 @@ One more tap starts it. On a rest day the button simply sits there; nothing coun
 - **Warm-up sets are logged.** A **Warm-up** toggle beside the log button marks the set; by voice, "warm-up, 20 for 10". They show in the session and in history, smaller, and count toward neither the planned sets nor progression (§7.5).
 - In a superset the active exercise alternates between the block's exercises after each set.
 - **Time since the last logged set** is shown (derived, no timer state). There is no rest countdown.
-- Only your own workout is on your screen. Nothing shows what your partner is doing, and nobody logs a set for someone else. *(This drops "the partner's progress alongside" and logging for each other from the 2026-11-10 draft.)*
+- Only your own workout is on your screen. Nothing there shows what your partner is doing. *(This drops "the partner's progress alongside" from the 2026-11-10 draft.)*
+- **Logging for each other is done by chat** (settled 2026-11-15, because ChatGPT's mobile app can't be relied on to write through a custom connector, so one of us may be the only one with a working chat). From Claude, either of us can start, log, correct and finish the other's workout: "Bunny did 10 for 12". The set is hers; `entered_by` records who typed it. The app's own screens still log only for the person holding the phone.
 
 **4. Going off-plan.** **Add an exercise** finds one in the exercise list by name, or creates it after a confirmation, and makes it active. It belongs to this session only: the routine is not changed. A No plan session is nothing but these. An added exercise exists once it has a set; before that it is only on the screen.
 

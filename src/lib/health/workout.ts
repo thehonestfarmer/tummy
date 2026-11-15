@@ -361,11 +361,11 @@ export const SetInput = z.object({
 
 export type SetInput = z.infer<typeof SetInput>;
 
-/** Logs one set into the caller's open session. Its kind and how its load is counted come from the exercise. */
+/** Logs one set into `me`'s open session, which a partner may do on their behalf. Its kind and how its load is counted come from the exercise. */
 export async function logSet(
   me: User,
   raw: unknown,
-  ctx: { source: "touch" | "voice" | "mcp"; client?: Client; inputText?: string },
+  ctx: { source: "touch" | "voice" | "mcp"; client?: Client; inputText?: string; /** Who typed it, when that isn't `me`. */ enteredBy?: User },
 ): Promise<number> {
   const parsed = SetInput.safeParse(raw);
   if (!parsed.success) throw new Error("That set doesn't look right.");
@@ -379,12 +379,12 @@ export async function logSet(
   const perHand = exercise.equipment === "dumbbell" || exercise.equipment === "kettlebell";
   const [{ id }] = await sql<{ id: number }[]>`
     insert into sets (session_id, user_id, exercise_id, set_order, kind, warmup, load_kg, per_hand, reps, rir, seconds, meters, rounds, rating,
-                      source, client, input_text)
+                      source, client, input_text, entered_by)
     values (${sessionId}, ${me.id}, ${exercise.id},
             (select coalesce(max(set_order), 0) + 1 from sets where session_id = ${sessionId} and user_id = ${me.id}),
             ${exercise.kind}, ${p.warmup ?? false}, ${p.loadKg ?? null}, ${perHand}, ${p.reps ?? null}, ${p.rir ?? null},
             ${p.seconds ?? null}, ${p.meters ?? null}, ${p.rounds ?? null}, ${p.rating ?? null},
-            ${ctx.source}, ${ctx.client ?? "pwa"}, ${ctx.inputText ?? null})
+            ${ctx.source}, ${ctx.client ?? "pwa"}, ${ctx.inputText ?? null}, ${(ctx.enteredBy ?? me).id})
     returning id`;
   // Logging again after Finish means it wasn't finished.
   await sql`update session_people set finished_at = null where session_id = ${sessionId} and user_id = ${me.id}`;
