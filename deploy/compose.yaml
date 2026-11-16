@@ -1,5 +1,5 @@
-# Tummy on the VPS in Tokyo (healthspec.md §3): the database, the app, and
-# Caddy in front. Lives at /srv/tummy beside its .env, Caddyfile, backup.sh,
+# Tummy on the VPS in Tokyo (healthspec.md §3): the database and the app.
+# HTTPS is the box's shared Caddy in /srv/edge (hypernpc repo, deploy/edge). Lives at /srv/tummy beside its .env, Caddyfile, backup.sh,
 # restore-check.sh and crontab; the deploy workflow copies these in.
 #
 #   docker compose up -d               # start, or pick up a new image
@@ -49,8 +49,11 @@ services:
     volumes:
       # Food photos waiting for review (§5.3). On the host so cron can prune it.
       - ./photos:/data/photos
-    # Only Caddy and the host itself (cron) talk to the app.
+    # Only Caddy (over `edge`) and the host itself (cron) talk to the app.
     ports: ["127.0.0.1:3000:3000"]
+    networks:
+      default: {}
+      edge: { aliases: [tummy-app] }
     restart: unless-stopped
     # Forwards SIGTERM to Node, which then finishes in-flight requests and any
     # after() work, such as a label still being read, before exiting.
@@ -63,21 +66,14 @@ services:
       start_period: 20s
     logging: *logging
 
-  caddy:
-    image: caddy:2
-    ports: ["80:80", "443:443", "443:443/udp"]
-    environment:
-      DOMAIN: ${DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on: [app]
-    restart: unless-stopped
-    logging: *logging
+networks:
+  # HTTPS is the box's shared Caddy, in /srv/edge (hypernpc repo, deploy/edge):
+  # only one process can hold 443. It reaches the app as `tummy-app`.
+  edge:
+    external: true
 
 volumes:
   pgdata:
-  # Caddy's certificates. Losing them means re-issuing, which Let's Encrypt rate-limits.
+  # Caddy's certificates, now used by /srv/edge. Kept here so nothing removes them.
   caddy_data:
   caddy_config:

@@ -96,9 +96,9 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-      - name: Copy compose, Caddy, backup and cron files
+      - name: Copy compose, backup and cron files
         run: |
-          scp -i ~/.ssh/id_deploy deploy/compose.yaml deploy/Caddyfile deploy/crontab \
+          scp -i ~/.ssh/id_deploy deploy/compose.yaml deploy/crontab \
             deploy/backup.sh deploy/r2.sh deploy/restore-check.sh \
             deploy@${{ vars.DEPLOY_HOST }}:/srv/tummy/
       - name: Migrate, then start the new image
@@ -119,7 +119,9 @@ jobs:
           docker compose run --rm -T --no-deps app node scripts/migrate.mjs </dev/null
           docker compose up -d --remove-orphans
           docker logout ghcr.io
-          crontab crontab
+          # Every app on the box keeps its own crontab file; install them all, so
+          # this deploy does not erase another app's jobs.
+          cat /srv/*/crontab | crontab -
           chmod +x backup.sh r2.sh restore-check.sh
           docker image prune -f
           # A deploy that ends without the app answering is a failed deploy.

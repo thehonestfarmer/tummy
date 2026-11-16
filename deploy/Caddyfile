@@ -1,3 +1,5 @@
+# Not used since the box's Caddy moved to /srv/edge (hypernpc repo, deploy/edge/Caddyfile),
+# which serves this site and hyper.habitnpc.com. Kept for reference.
 # HTTPS for Tummy, with certificates from Let's Encrypt (healthspec.md §3).
 {$DOMAIN} {
 	# A bulk label upload and a voice clip both arrive as request bodies.

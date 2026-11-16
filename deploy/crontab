@@ -1,5 +1,5 @@
 # The deploy user's crontab on the VPS (healthspec.md §3). The deploy
-# workflow installs it with `crontab /srv/tummy/crontab`, replacing what was there.
+# workflow installs it with every other app's: `cat /srv/*/crontab | crontab -`.
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
 
