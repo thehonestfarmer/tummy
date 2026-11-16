@@ -6,6 +6,8 @@ import type { FoodView, LibraryView } from "@/lib/health/foods";
 import type { HealthDayView, RecentFood } from "@/lib/health/entries";
 import type { MealView } from "@/lib/health/meals";
 import type { FridgeItem, FridgeView } from "@/lib/health/fridge";
+import { NOTHING, of, plus } from "@/lib/health/fit";
+import type { Macros } from "@/lib/health/reading";
 import { prepare } from "@/lib/resize";
 import { uploadFoodImage } from "@/lib/health/upload";
 import { AmountStep } from "./AmountStep";
@@ -25,7 +27,7 @@ type Step =
   | { kind: "scan"; draftId: number | null };
 
 /** One food waiting to be logged with others: what it is, how much for you, and how much for your partner. */
-type Waiting = { id: number; name: string; grams: number; partnerGrams?: number; kcal: number };
+type Waiting = { id: number; name: string; grams: number; partnerGrams?: number; kcal: number; /** Known when it was chosen by amount, so the next food's room allows for it. */ per100?: Macros };
 
 const button =
   "w-full rounded-[10px] border border-hairline-strong bg-ground-raised py-3 text-[1rem] text-ink disabled:text-ink-faint";
@@ -151,6 +153,14 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   const log = (food: { id: number; name: string }, grams: number, partnerGrams?: number) =>
     logAll([...waiting.filter((w) => w.id !== food.id), { id: food.id, name: food.name, grams, partnerGrams }]);
 
+  /** What the other foods waiting come to for each of you: it is already spoken for in this meal (§5.13). */
+  const aheadOf = (foodId: number) =>
+    waiting
+      .filter((w) => w.id !== foodId && w.per100)
+      .reduce(
+        (sum, w) => ({ mine: plus(sum.mine, of(w.per100!, w.grams)), theirs: plus(sum.theirs, of(w.per100!, w.partnerGrams ?? 0)) }),
+        { mine: NOTHING, theirs: NOTHING },
+      );
   /** Keeps a food waiting and goes back for another. Choosing the same food again replaces its amount. */
   function hold(item: Waiting) {
     setWaiting((w) => [...w.filter((x) => x.id !== item.id), item]);
@@ -385,9 +395,10 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
           partner={day.partner}
           onBack={() => setStep({ kind: "search" })}
           waiting={waiting.filter((w) => w.id !== step.food.id).length}
+          ahead={aheadOf(step.food.id)}
           onLog={log}
           onMore={(food, grams, partnerGrams) =>
-            hold({ id: food.id, name: food.name, grams, partnerGrams, kcal: Math.round((food.per100.kcal * grams) / 100) })
+            hold({ id: food.id, name: food.name, grams, partnerGrams, kcal: Math.round((food.per100.kcal * grams) / 100), per100: food.per100 })
           }
           onStock={stock}
           onFood={(food) => {

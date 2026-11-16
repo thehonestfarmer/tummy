@@ -412,6 +412,16 @@ For food with no label and no known weight: a restaurant, a café, someone else'
 - **A missing ingredient** is added without leaving: typing a name that isn't found offers *Photograph label* and *Look it up by name*. Either opens the same read-and-confirm step as Add food (§5.6), and a yes puts the new food in the pot.
 - **Not yet:** cooking by voice or chat, and undoing a cook.
 
+### 5.13 What fits this meal
+
+Choosing an amount is easier against what is left of the day (settled 2026-11-16).
+
+- **Room.** A person's room for a meal is what is left of their day's target, less anything already chosen for this meal, divided by the meals still to come. The number of meals is guessed from the clock (three before 11:00, two before 16:00, then one) and changed with a tap, which is kept until the guess itself moves on.
+- **Fit.** A food fits up to the first thing it would use up: calories always, and any macro that supplies at least 30% of the food's calories. Chicken stops at protein, rice at carbohydrate. It is never more than the fridge holds, and is rounded down to 10g or half a unit.
+- **On the amount step** the room for each of you is shown, and *Fit this meal* sets each person's amount from their own room, so a shared food is not split evenly.
+- **In Cook** the pot is measured against the room for both of us together, each ingredient offers the amount that fits beside the others as they stand, and *Tonight + tomorrow* doubles the room.
+- **Splitting.** A shared amount is moved between us with a slider that keeps the total, in steps of 5g or half a unit; either number can be typed, which changes the total. Changing the total keeps the proportion. The − and + on the total land on round numbers.
+
 ---
 
 ## 6. Targets, weight, and expenditure
@@ -518,7 +528,8 @@ One more tap starts it. On a rest day the button simply sits there; nothing coun
 - **Reps in reserve** are asked for after the set, not before: once it is logged, chips 0–4 sit under it until the next set starts. Tapping one records it; ignoring them records nothing. RIR is a data point for us and for Claude. It decides nothing in the app.
 - **Warm-up sets are logged.** A **Warm-up** toggle beside the log button marks the set; by voice, "warm-up, 20 for 10". They show in the session and in history, smaller, and count toward neither the planned sets nor progression (§7.5).
 - In a superset the active exercise alternates between the block's exercises after each set.
-- **Time since the last logged set** is shown (derived, no timer state). There is no rest countdown.
+- **Time since the last logged set** is shown on the active exercise, beside where the next set is logged (derived, no timer state). There is no rest countdown.
+- **The screen's order** (settled 2026-11-16): the session's clock on top, large, counting from when it started, in place of the macro display, which is hidden here. Then the active exercise, marked *Next*; then what has been logged today, newest first, with each exercise's sets newest first; then what is still to come, in plan order. **Finish workout** is the last thing on the page, away from both clocks, because beside the rest time it read as "finish resting". In a session with no plan, the active exercise is the one logged last.
 - One person's workout is on the screen at a time, yours unless you choose otherwise. Nothing shows the two side by side. *(This drops "the partner's progress alongside" from the 2026-11-10 draft.)*
 - **Either of us can run the other's workout** (settled 2026-11-15, because ChatGPT's mobile app can't be relied on to write through a custom connector, and one phone in the gym is often enough). A Bear / Bunny switch at the top of the workout screens puts the other person's workout on your phone: look at it, start it with their routine, log and correct their sets, finish it. From Claude the same is said in words: "Bunny did 10 for 12". Either way the set is theirs, counts toward their progression, and `entered_by` records who entered it. The address carries the choice (`?who=bunny`), so it survives a reload.
 

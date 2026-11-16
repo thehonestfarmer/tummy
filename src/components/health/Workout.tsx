@@ -50,13 +50,18 @@ const done = (e: WorkoutExercise) => e.targetSets !== null && working(e) >= e.ta
  */
 function nextUp(exercises: WorkoutExercise[]): WorkoutExercise | null {
   const open = exercises.find((e) => e.block && !done(e));
-  if (!open) return exercises.find((e) => !e.block) ?? null;
+  // Outside a plan there is no order to follow: stay on whatever was logged last.
+  if (!open) {
+    const loose = exercises.filter((e) => !e.block);
+    const at = (e: WorkoutExercise) => e.sets.reduce((t, x) => (x.at > t ? x.at : t), "");
+    return loose.reduce<WorkoutExercise | null>((a, b) => (a && at(a) >= at(b) ? a : b), null);
+  }
   if (open.block!.kind !== "superset") return open;
   const block = exercises.filter((e) => e.block?.index === open.block!.index && !done(e));
   return block.reduce((a, b) => (working(b) < working(a) ? b : a));
 }
 
-/** Minutes and seconds since a moment, ticking. Derived from the last set; there is no timer to start or stop. */
+/** Minutes and seconds since a moment, ticking. Derived from the session and its last set; there is no timer to start or stop. */
 function Since({ at }: { at: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -66,7 +71,7 @@ function Since({ at }: { at: string }) {
   const s = Math.max(0, Math.floor((now - new Date(at).getTime()) / 1000));
   return (
     <span className="tabular-nums" suppressHydrationWarning>
-      {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
+      {s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}` : Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
     </span>
   );
 }
@@ -500,7 +505,8 @@ function SetChips({ ex, onEdit }: { ex: WorkoutExercise; onEdit: (s: SetView) =>
   if (!ex.sets.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5 pt-2.5">
-      {ex.sets.map((s) => (
+      {/* Newest first: the set just done is the one to check or correct. */}
+      {[...ex.sets].reverse().map((s) => (
         <button
           key={s.id}
           onClick={() => onEdit(s)}
@@ -524,8 +530,12 @@ const lastLine = (ex: WorkoutExercise) => {
 
 /**
  * Workout mode (healthspec.md §7.4, §8). One person's session: your own, or
- * your partner's when you are logging for them. The day's exercises in order, the active one large with today's suggested
- * load and last time's sets, and one button that logs the set as it stands.
+ * your partner's when you are logging for them. The clock on top is how
+ * long the session has run. Under it comes the exercise to do now, large,
+ * with today's suggested load, last time's sets, the rest since the last
+ * set and one button that logs the set as it stands; then what has been
+ * logged, newest first, then what is still to come. Finish is at the very
+ * bottom, away from both clocks.
  * It re-reads itself every few seconds, so a set logged from a chat shows up
  * here without a reload.
  */
@@ -602,6 +612,85 @@ export function Workout({ initial }: { initial: WorkoutView }) {
   };
 
   const ups = session.exercises.filter((e) => e.goesUpTo !== null);
+  const setsDone = session.exercises.reduce((n, e) => n + working(e), 0);
+  const setsPlanned = session.exercises.reduce((n, e) => n + (e.targetSets ?? 0), 0);
+  const lastAt = (e: WorkoutExercise) => e.sets.reduce((t, x) => (x.at > t ? x.at : t), "");
+  // While training: what has sets, newest first, and what is still untouched, in plan order.
+  const rest = session.exercises.filter((e) => e.exercise.id !== active?.exercise.id);
+  const loggedToday = rest.filter((e) => e.sets.length).sort((a, b) => (lastAt(a) < lastAt(b) ? 1 : -1));
+  const toCome = rest.filter((e) => !e.sets.length);
+
+  const card = (ex: WorkoutExercise) => {
+    const latest = ex.sets[ex.sets.length - 1];
+    const last = lastLine(ex);
+    return (
+      <div className="rounded-xl border border-hairline-strong bg-ground-raised px-3.5 py-3.5">
+        <div className="flex items-baseline gap-2">
+          <h2 className="min-w-0 flex-1 text-[1.3rem] leading-tight">
+            <span className="pr-2 text-[0.85rem] text-ink-dim">Next</span>
+            {ex.exercise.name}
+          </h2>
+          <span className="shrink-0 text-[0.95rem] tabular-nums text-ink-dim">
+            {working(ex)}
+            {ex.targetSets ? ` / ${ex.targetSets}` : ""}
+          </span>
+        </div>
+        {ex.prescription ? <p className="pt-1 text-[0.95rem] text-ink-dim">{ex.prescription}</p> : null}
+        {!ex.sets.length && ex.exercise.kind === "load_reps" && ex.suggestion.loadKg !== null ? (
+          <p className="pt-2 text-[1rem]">
+            Today: {loadText(ex.suggestion.loadKg, ex.exercise)}
+            {ex.repMin && ex.repMax ? ` for ${ex.repMin}–${ex.repMax}` : ""}
+            {ex.suggestion.note ? <span className="text-ink-dim"> · {ex.suggestion.note}</span> : null}
+          </p>
+        ) : null}
+        {last ? (
+          <p className="pt-0.5 text-[0.9rem] tabular-nums text-ink-dim">Last time: {last}</p>
+        ) : (
+          <p className="pt-0.5 text-[0.9rem] text-ink-faint">First time logging this.</p>
+        )}
+        <SetChips ex={ex} onEdit={(set) => setEditing({ set, ex: ex.exercise })} />
+        {latest && latest.kind === "load_reps" && !latest.warmup && latest.rir === null ? (
+          <div className="flex items-center gap-1.5 pt-3">
+            <span className="pr-1 text-[0.85rem] text-ink-dim">Reps left?</span>
+            {[0, 1, 2, 3, 4].map((r) => (
+              <button key={r} onClick={() => rate(latest, r)} className="h-10 flex-1 rounded-full border border-hairline text-[0.95rem] tabular-nums text-ink">
+                {r === 4 ? "4+" : r}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {ex.goesUpTo !== null ? <p className="pt-2.5 text-[0.9rem] text-ink-dim">Top of the range on every set: {loadText(ex.goesUpTo, ex.exercise)} next time.</p> : null}
+        {session.lastSetAt ? (
+        <p className="pt-3 text-[0.9rem] text-ink-dim">
+          <span className="pr-1.5 text-[1.5rem] font-bold text-ink">
+            <Since at={session.lastSetAt} />
+          </span>
+          resting
+        </p>
+      ) : null}
+      <LogPanel key={`${ex.exercise.id}-${ex.sets.length}`} ex={ex} url={url} onLogged={logged} />
+      </div>
+    );
+  };
+  const row = (ex: WorkoutExercise) => (
+    <div className="rounded-xl border border-hairline px-3.5 py-3">
+      <button disabled={!live} onClick={() => setPinned(ex.exercise.id)} className="flex w-full items-baseline gap-2 text-left">
+        <span className={`min-w-0 flex-1 truncate text-[1.02rem] ${done(ex) ? "text-ink-dim" : "text-ink"}`}>{ex.exercise.name}</span>
+        <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">
+          {working(ex)}
+          {ex.targetSets ? ` / ${ex.targetSets}` : ""}
+        </span>
+      </button>
+      {ex.sets.length ? (
+        <SetChips ex={ex} onEdit={(set) => setEditing({ set, ex: ex.exercise })} />
+      ) : ex.prescription ? (
+        <p className="pt-0.5 text-[0.85rem] text-ink-faint">{ex.prescription}</p>
+      ) : null}
+    </div>
+  );
+  const blockOf = (ex: WorkoutExercise) =>
+    ex.block ? [ex.block.label, ex.block.kind === "straight" ? null : ex.block.kind].filter(Boolean).join(" · ") : "Added today";
+
 
   return (
     <div className="px-5 pt-3 pb-8">
@@ -611,42 +700,44 @@ export function Workout({ initial }: { initial: WorkoutView }) {
           Routines and history
         </Link>
       </div>
-      <header className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[1.15rem] leading-tight">
-            {other ? `${data.who.displayName} · ` : ""}
-            {live ? (session.planName ?? "Workout") : `Trained · ${session.planName ?? "no plan"}`}
-          </h1>
-          <p className="text-[0.85rem] text-ink-dim">
-            {live ? (
-              session.lastSetAt ? (
-                <>
-                  <Since at={session.lastSetAt} /> since the last set
-                </>
-              ) : (
-                "No sets yet"
-              )
-            ) : (
-              <>
-                {session.rating !== null ? `${session.rating}/10` : "Done"}
-                {session.note ? ` · ${session.note}` : ""}
-              </>
-            )}
+      {live ? (
+        <header className="flex items-end gap-3 border-b border-hairline pb-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.9rem] text-ink-dim">
+              {other ? `${data.who.displayName} · ` : ""}
+              {session.planName ?? "Workout"}
+            </p>
+            <h1 aria-label="Time training" className="text-[3.25rem] leading-none font-bold tracking-tight">
+              <Since at={session.startedAt} />
+            </h1>
+          </div>
+          <p className="pb-1 text-[0.9rem] tabular-nums text-ink-dim">
+            training · {setsDone}
+            {setsPlanned ? ` of ${setsPlanned}` : ""} {setsDone === 1 && !setsPlanned ? "set" : "sets"}
           </p>
-        </div>
-        {live ? (
-          <button onClick={() => setFinishing(true)} className="h-11 shrink-0 rounded-full border border-hairline-strong px-4 text-[0.95rem] text-ink">
-            Finish
-          </button>
-        ) : session.open ? (
-          <button
-            onClick={async () => setData((await send(`/api/workout${query}`, "POST", { action: "start", planId: null })) as WorkoutView)}
-            className="h-11 shrink-0 rounded-full border border-hairline-strong px-4 text-[0.95rem] text-ink"
-          >
-            Back to it
-          </button>
-        ) : null}
-      </header>
+        </header>
+      ) : (
+        <header className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-[1.15rem] leading-tight">
+              {other ? `${data.who.displayName} · ` : ""}
+              Trained · {session.planName ?? "no plan"}
+            </h1>
+            <p className="text-[0.85rem] text-ink-dim">
+              {session.rating !== null ? `${session.rating}/10` : "Done"}
+              {session.note ? ` · ${session.note}` : ""}
+            </p>
+          </div>
+          {session.open ? (
+            <button
+              onClick={async () => setData((await send(`/api/workout${query}`, "POST", { action: "start", planId: null })) as WorkoutView)}
+              className="h-11 shrink-0 rounded-full border border-hairline-strong px-4 text-[0.95rem] text-ink"
+            >
+              Back to it
+            </button>
+          ) : null}
+        </header>
+      )}
 
       {!live && ups.length ? (
         <ul className="mt-4 rounded-xl border border-hairline bg-ground-raised px-3.5 py-3 text-[0.95rem]">
@@ -658,83 +749,44 @@ export function Workout({ initial }: { initial: WorkoutView }) {
         </ul>
       ) : null}
 
-      <ul className="flex flex-col gap-2 pt-4">
-        {session.exercises.map((ex, i) => {
-          const before = session.exercises[i - 1];
-          const header = i === 0 || (before.block?.index ?? null) !== (ex.block?.index ?? null);
-          const isActive = active?.exercise.id === ex.exercise.id;
-          const latest = ex.sets[ex.sets.length - 1];
-          const last = lastLine(ex);
-          return (
-            <li key={ex.exercise.id}>
-              {header ? (
-                <p className="pt-2 pb-1 text-[0.8rem] text-ink-faint">
-                  {ex.block ? [ex.block.label, ex.block.kind === "straight" ? null : ex.block.kind].filter(Boolean).join(" · ") : "Added today"}
-                </p>
-              ) : null}
-              {isActive ? (
-                <div className="rounded-xl border border-hairline-strong bg-ground-raised px-3.5 py-3.5">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="min-w-0 flex-1 text-[1.3rem] leading-tight">{ex.exercise.name}</h2>
-                    <span className="shrink-0 text-[0.95rem] tabular-nums text-ink-dim">
-                      {working(ex)}
-                      {ex.targetSets ? ` / ${ex.targetSets}` : ""}
-                    </span>
-                  </div>
-                  {ex.prescription ? <p className="pt-1 text-[0.95rem] text-ink-dim">{ex.prescription}</p> : null}
-                  {!ex.sets.length && ex.exercise.kind === "load_reps" && ex.suggestion.loadKg !== null ? (
-                    <p className="pt-2 text-[1rem]">
-                      Today: {loadText(ex.suggestion.loadKg, ex.exercise)}
-                      {ex.repMin && ex.repMax ? ` for ${ex.repMin}–${ex.repMax}` : ""}
-                      {ex.suggestion.note ? <span className="text-ink-dim"> · {ex.suggestion.note}</span> : null}
-                    </p>
-                  ) : null}
-                  {last ? (
-                    <p className="pt-0.5 text-[0.9rem] tabular-nums text-ink-dim">Last time: {last}</p>
-                  ) : (
-                    <p className="pt-0.5 text-[0.9rem] text-ink-faint">First time logging this.</p>
-                  )}
-                  <SetChips ex={ex} onEdit={(set) => setEditing({ set, ex: ex.exercise })} />
-                  {latest && latest.kind === "load_reps" && !latest.warmup && latest.rir === null ? (
-                    <div className="flex items-center gap-1.5 pt-3">
-                      <span className="pr-1 text-[0.85rem] text-ink-dim">Reps left?</span>
-                      {[0, 1, 2, 3, 4].map((r) => (
-                        <button key={r} onClick={() => rate(latest, r)} className="h-10 flex-1 rounded-full border border-hairline text-[0.95rem] tabular-nums text-ink">
-                          {r === 4 ? "4+" : r}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                  {ex.goesUpTo !== null ? <p className="pt-2.5 text-[0.9rem] text-ink-dim">Top of the range on every set: {loadText(ex.goesUpTo, ex.exercise)} next time.</p> : null}
-                  <LogPanel key={`${ex.exercise.id}-${ex.sets.length}`} ex={ex} url={url} onLogged={logged} />
-                </div>
-              ) : (
-                <div className="rounded-xl border border-hairline px-3.5 py-3">
-                  <button disabled={!live} onClick={() => setPinned(ex.exercise.id)} className="flex w-full items-baseline gap-2 text-left">
-                    <span className={`min-w-0 flex-1 truncate text-[1.02rem] ${done(ex) ? "text-ink-dim" : "text-ink"}`}>{ex.exercise.name}</span>
-                    <span className="shrink-0 text-[0.9rem] tabular-nums text-ink-dim">
-                      {working(ex)}
-                      {ex.targetSets ? ` / ${ex.targetSets}` : ""}
-                    </span>
-                  </button>
-                  {ex.sets.length ? (
-                    <SetChips ex={ex} onEdit={(set) => setEditing({ set, ex: ex.exercise })} />
-                  ) : ex.prescription ? (
-                    <p className="pt-0.5 text-[0.85rem] text-ink-faint">{ex.prescription}</p>
-                  ) : null}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {live ? (
+        <div className="flex flex-col gap-2 pt-4">
+          {active ? card(active) : null}
+          {loggedToday.length ? <p className="pt-3 pb-1 text-[0.8rem] text-ink-faint">Logged today · newest first</p> : null}
+          {loggedToday.map((ex) => (
+            <div key={ex.exercise.id}>{row(ex)}</div>
+          ))}
+          {toCome.length ? <p className="pt-3 pb-1 text-[0.8rem] text-ink-faint">Still to come</p> : null}
+          {toCome.map((ex) => (
+            <div key={ex.exercise.id}>{row(ex)}</div>
+          ))}
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2 pt-4">
+          {session.exercises.map((ex, i) => {
+            const before = session.exercises[i - 1];
+            const header = i === 0 || (before.block?.index ?? null) !== (ex.block?.index ?? null);
+            return (
+              <li key={ex.exercise.id}>
+                {header ? <p className="pt-2 pb-1 text-[0.8rem] text-ink-faint">{blockOf(ex)}</p> : null}
+                {row(ex)}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       {live && !session.exercises.length ? <p className="pt-2 text-[0.95rem] leading-relaxed text-ink-dim">No plan today. Add the first exercise.</p> : null}
 
       {live ? (
-        <button onClick={() => setAdding(true)} className="mt-4 h-12 w-full rounded-xl border border-hairline-strong text-[1rem] text-ink">
-          Add an exercise
-        </button>
+        <>
+          <button onClick={() => setAdding(true)} className="mt-4 h-12 w-full rounded-xl border border-hairline-strong text-[1rem] text-ink">
+            Add an exercise
+          </button>
+          <button onClick={() => setFinishing(true)} className="mt-8 h-14 w-full rounded-xl border border-hairline-strong bg-ground-raised text-[1.05rem] font-semibold text-ink">
+            Finish workout
+          </button>
+        </>
       ) : (
         <div className="mt-5 flex gap-2">
           <Link href={`/workouts${query}`} className="flex h-12 flex-1 items-center justify-center rounded-xl border border-hairline-strong text-[1rem] text-ink">

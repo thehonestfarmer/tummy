@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import type { DishView } from "@/lib/health/cook";
 import type { FoodView, LibraryView } from "@/lib/health/foods";
 import type { FridgeView } from "@/lib/health/fridge";
+import { fit, less, of, plus, roomFor, times } from "@/lib/health/fit";
 import { fold } from "@/lib/health/fold";
 import { uploadFoodImage } from "@/lib/health/upload";
 import { prepare } from "@/lib/resize";
 import { useHealthDay } from "./HealthDay";
+import { MealsChips, macroText, useMeals } from "./Room";
 import { ScanStep } from "./ScanStep";
 import { Sheet } from "./Sheet";
 import { TableRows, useTableRows } from "./TableRows";
@@ -17,7 +19,7 @@ import { amountText, fmt, plural } from "./fields";
 
 /** One ingredient: a food, and how much of it in one of its servings or in grams. */
 type Line = { foodId: number; /** Null until chosen: the food's first serving, or grams. */ unit: number | null; count: string | null };
-type Kept = { lines: Line[]; name: string; portions: string; cooked: string; step: "pick" | "dish" };
+type Kept = { lines: Line[]; name: string; portions: string; cooked: string; step: "pick" | "dish"; nights?: number };
 
 const STORE = "tummy-cook";
 const round = (n: number) => Math.round(n * 10) / 10;
@@ -32,6 +34,9 @@ const field =
  * into the fridge while its ingredients leave. From then on a portion is
  * eaten, and split, like any other food.
  *
+ * While choosing, the pot is measured against what the two of us have left
+ * for this meal, and each ingredient says how much of it would fit (§5.13).
+ *
  * Two steps, so the list of ingredients has the whole screen: what went in,
  * then what came out. An ingredient that isn't one of our foods yet is added
  * without leaving: photograph its label, or look it up by name, confirm what
@@ -40,7 +45,10 @@ const field =
  */
 export function Cook() {
   const router = useRouter();
-  const { toast } = useHealthDay();
+  const { toast, day } = useHealthDay();
+  const [meals, setMeals] = useMeals(day.date);
+  /** One night's dinner, or the same again for tomorrow. */
+  const [nights, setNights] = useState(1);
   const [foods, setFoods] = useState<Map<number, FoodView> | null>(null);
   const [inFridge, setInFridge] = useState<Map<number, number>>(new Map());
   const [dishes, setDishes] = useState<DishView[]>([]);
@@ -74,6 +82,7 @@ export function Cook() {
           setName(kept.name);
           setPortions(kept.portions);
           setCooked(kept.cooked);
+          setNights(kept.nights === 2 ? 2 : 1);
           setStep(still.length ? kept.step : "pick");
         } catch {
           // Nothing kept, or nothing readable: start a fresh pot.
@@ -92,11 +101,11 @@ export function Cook() {
   useEffect(() => {
     if (!foods) return;
     try {
-      sessionStorage.setItem(STORE, JSON.stringify({ lines, name, portions, cooked, step } satisfies Kept));
+      sessionStorage.setItem(STORE, JSON.stringify({ lines, name, portions, cooked, step, nights } satisfies Kept));
     } catch {
       // Private mode: the pot just isn't kept across a reload.
     }
-  }, [foods, lines, name, portions, cooked, step]);
+  }, [foods, lines, name, portions, cooked, step, nights]);
 
   /** A line's amount: the unit it is counted in, the number as typed, and the grams that makes. */
   const amount = (line: Line, food: FoodView) => {
@@ -112,7 +121,7 @@ export function Cook() {
     const n = Number(text);
     const ok = text !== "" && Number.isFinite(n) && n > 0;
     const grams = ok ? round(n * each) : 0;
-    return { GRAMS, unit, text, n: ok ? n : 0, grams, by: unit === GRAMS ? 50 : 1 };
+    return { GRAMS, unit, each, text, n: ok ? n : 0, grams, by: unit === GRAMS ? 50 : 1 };
   };
 
   const patch = (foodId: number, change: Partial<Line>) => setLines((ls) => ls.map((l) => (l.foodId === foodId ? { ...l, ...change } : l)));
@@ -189,6 +198,26 @@ export function Cook() {
     }),
     { grams: 0, kcal: 0, protein: 0, fat: 0, carbs: 0 },
   );
+  // The room the pot is cooked into: what both of us have left for this meal, for as many nights as it is for.
+  const rooms = [roomFor(day.me, meals), roomFor(day.partner, meals)].flatMap((r) => (r ? [r] : []));
+  const room = rooms.length ? times(rooms.reduce(plus), nights) : null;
+  const inPot = { kcal: total.kcal, protein_g: total.protein, fat_g: total.fat, carbs_g: total.carbs };
+  /** How much of one ingredient fits beside the others as they stand, in the unit it is counted in, and never more than the fridge holds. */
+  const fits = (food: FoodView, a: ReturnType<typeof amount>) => {
+    if (!room) return null;
+    const others = less(inPot, of(food.per100, a.grams));
+    const left = inFridge.get(food.id);
+    const most = fit(food.per100, less(room, others)).grams;
+    const grams = left === undefined ? most : Math.min(most, left);
+    const by = a.unit === a.GRAMS ? 10 : 0.5;
+    // All of what's there counts as fitting even when it isn't a round number.
+    const all = left !== undefined && most >= left;
+    const count = all ? round(left / a.each) : round(Math.floor(grams / a.each / by + 1e-9) * by);
+    return { count, all, text: a.unit === a.GRAMS ? `${fmt(count, 0)}g` : `${fmt(count)} ${plural(food.servings[a.unit].label, count)}` };
+  };
+  const spare = room ? room.kcal - total.kcal : 0;
+  const short = room ? room.protein_g - total.protein : 0;
+
   const n = Number(portions);
   const made = portions !== "" && Number.isFinite(n) && n > 0 ? n : 0;
   const weighed = Number(cooked) > 0 ? Number(cooked) : null;
@@ -321,7 +350,9 @@ export function Cook() {
 
       {pot.length ? (
         <ul className="flex flex-col gap-2.5 pt-4">
-          {pot.map(({ food, a }) => (
+          {pot.map(({ food, a }) => {
+            const f = fits(food, a);
+            return (
             <li key={food.id} className="rounded-xl border border-hairline bg-ground-raised px-3 py-3">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
@@ -374,9 +405,76 @@ export function Cook() {
                 )}
                 <span className="w-12 shrink-0 text-right text-[0.85rem] tabular-nums text-ink-dim">{a.grams && !food.countedOnly ? `${fmt(a.grams, 0)}g` : ""}</span>
               </div>
+              {f ? (
+                <div className="flex justify-end pt-2">
+                  {f.count <= 0 ? (
+                    <span className="text-[0.85rem] text-ink-dim">No room left for this</span>
+                  ) : f.count === a.n ? (
+                    <span className="text-[0.85rem] text-ink-dim">{f.all ? "All of it fits" : "This is what fits"}</span>
+                  ) : (
+                    <button
+                      onClick={() => patch(food.id, { unit: a.unit, count: String(f.count) })}
+                      className="h-10 rounded-full border border-dashed border-ink-dim px-3.5 text-[0.9rem] tabular-nums text-ink"
+                    >
+                      {f.all ? `All ${f.text} fits` : `Fits ${f.text}`}
+                    </button>
+                  )}
+                </div>
+              ) : null}
             </li>
-          ))}
+            );
+          })}
         </ul>
+      ) : null}
+
+      {room && pot.length ? (
+        <section aria-label="Against this meal" className="mt-4 flex flex-col gap-2 border-t border-hairline-strong pt-3">
+          <MealsChips meals={meals} onMeals={setMeals} />
+          <p className="flex items-baseline text-[0.95rem]">
+            <span className="flex-1">This pot</span>
+            <span className="font-bold tabular-nums">{macroText(inPot)}</span>
+          </p>
+          <p className="flex items-baseline text-[0.95rem] text-ink-dim">
+            <span className="flex-1">Room for you two, {nights === 2 ? "two nights" : "this meal"}</span>
+            <span className="tabular-nums">{macroText(room)}</span>
+          </p>
+          <div aria-hidden className="h-2 overflow-hidden rounded-full bg-hairline">
+            <div className="h-full rounded-full bg-ink" style={{ width: `${room.kcal > 0 ? Math.min(100, (total.kcal / room.kcal) * 100) : 100}%` }} />
+          </div>
+          <p className="text-[0.85rem] leading-relaxed tabular-nums text-ink-dim">
+            {spare >= 0 ? `${fmt(spare, 0)} kcal of room left` : `${fmt(-spare, 0)} kcal over`}
+            {" · "}
+            {Math.abs(short) <= 5 ? "protein on target" : short > 0 ? `protein ${fmt(short, 0)}g short` : `protein ${fmt(-short, 0)}g over`}
+          </p>
+          <div className="flex items-center gap-1.5 pt-1" role="group" aria-label="Cook for">
+            <span className="pr-1 text-[0.85rem] text-ink-dim">Cook for</span>
+            {(
+              [
+                [1, "Tonight"],
+                [2, "Tonight + tomorrow"],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                aria-pressed={nights === k}
+                onClick={() => {
+                  setNights(k);
+                  // Two portions a night, unless the number has already been set to something else.
+                  if (portions === String(nights * 2)) setPortions(String(k * 2));
+                }}
+                className="h-10 rounded-full border px-3.5 text-[0.9rem]"
+                style={{
+                  borderColor: nights === k ? "var(--ink)" : "var(--hairline-strong)",
+                  background: nights === k ? "var(--ink)" : "transparent",
+                  color: nights === k ? "var(--ground)" : "var(--ink-dim)",
+                  fontWeight: nights === k ? 700 : 400,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {!q && stocked.length ? (

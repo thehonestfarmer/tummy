@@ -3,7 +3,11 @@
 import { useState } from "react";
 import type { DaySide } from "@/lib/health/entries";
 import type { FoodView } from "@/lib/health/foods";
+import { NOTHING, WORD, fit, of, roomFor } from "@/lib/health/fit";
+import type { Macros } from "@/lib/health/reading";
+import { useHealthDay } from "./HealthDay";
 import { colorOf } from "./MacroBar";
+import { MealsChips, RoomLine, macroText, useMeals } from "./Room";
 import { fmt, plural } from "./fields";
 
 type Person = Pick<DaySide, "slug" | "displayName">;
@@ -18,8 +22,10 @@ const stepButton =
  * eaten, and in grams when it doesn't or when you'd rather weigh it.
  *
  * Food from the fridge is shared by default: the total splits evenly, and
- * either side can be moved on its own, so "two yogurts for me, one for
- * Bunny" is one tap. Anything else starts as only yours. Then one of two
+ * a slider moves it between you without changing the total, so 90 and 40
+ * out of 130 is one drag; either number can also be typed. Anything else
+ * starts as only yours. "Fit this meal" sets the amount from what each of
+ * you has left of the day (§5.13). Then one of two
  * things: log it as eaten, or put it in the fridge for later (§5.10). "Add
  * another food" keeps this one waiting, so a whole meal is logged at once.
  *
@@ -34,6 +40,7 @@ export function AmountStep({
   me,
   partner,
   waiting,
+  ahead,
   onBack,
   onLog,
   onMore,
@@ -47,6 +54,8 @@ export function AmountStep({
   partner: Person;
   /** How many other foods are already waiting to be logged with this one. */
   waiting: number;
+  /** What the foods already waiting come to for each of you, so the room shown is what's left of this meal. */
+  ahead?: { mine: Macros; theirs: Macros };
   onBack: () => void;
   onLog: (food: FoodView, grams: number, partnerGrams?: number) => Promise<void>;
   /** Keep this one waiting and go back to choose another. */
@@ -74,7 +83,16 @@ export function AmountStep({
   const [theirs, setTheirs] = useState(solo ? 0 : round(first / 2));
   // The total as typed, so "1." or an emptied box survive a re-render.
   const [text, setText] = useState(String(first));
+  /** Your share of a split total, kept so the total can change without evening the split out. */
+  const [ratio, setRatio] = useState(0.5);
+  /** One side's amount while it is being typed, so "1." or an emptied box survive. */
+  const [typing, setTyping] = useState<{ who: "mine" | "theirs"; text: string } | null>(null);
+  const [fitNote, setFitNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<"log" | "stock" | "piece" | null>(null);
+  const { day } = useHealthDay();
+  const [meals, setMeals] = useMeals(day.date);
+  const roomMine = roomFor(day.me, meals, ahead?.mine ?? NOTHING);
+  const roomTheirs = roomFor(day.partner, meals, ahead?.theirs ?? NOTHING);
   // Naming a piece ("egg", 50g), so this food can be counted rather than weighed.
   const [piece, setPiece] = useState<{ label: string; grams: string; error: string | null } | null>(null);
 
@@ -82,12 +100,15 @@ export function AmountStep({
   const total = solo ? mine : mine + theirs;
   const grams = total > 0 ? round(total * per) : null;
   const step = serving ? 1 : 10;
-  const shareStep = serving ? 0.5 : 10;
+  const shareStep = serving ? 0.5 : 5;
+  const stepOf = (u: number) => (u === GRAMS ? 5 : 0.5);
 
-  /** Sets both sides from a total: all yours when solo, split evenly otherwise. */
-  const fromTotal = (t: number, alone = solo) => {
-    setMine(alone ? t : round(t / 2));
-    setTheirs(alone ? 0 : round(t / 2));
+  /** Sets both sides from a total: all yours when solo, otherwise in the proportion the split already has. */
+  const fromTotal = (t: number, alone = solo, share = ratio, by = shareStep) => {
+    setFitNote(null);
+    const m = alone ? t : Math.min(t, round(Math.round((t * share) / by) * by));
+    setMine(m);
+    setTheirs(alone ? 0 : round(t - m));
   };
   const typeTotal = (raw: string) => {
     setText(raw);
@@ -102,13 +123,54 @@ export function AmountStep({
     setUnit(i);
     const t = start(i, solo);
     setText(String(t));
-    fromTotal(t);
+    fromTotal(t, solo, ratio, stepOf(i));
   };
-  const share = (who: "mine" | "theirs", by: number) => {
-    const next = Math.max(0, round((who === "mine" ? mine : theirs) + by));
-    if (who === "mine") setMine(next);
-    else setTheirs(next);
-    setText(String(round(next + (who === "mine" ? theirs : mine))));
+  /** The slider: moves the same total between the two of you. */
+  const slide = (m: number) => {
+    setFitNote(null);
+    setMine(m);
+    setTheirs(round(total - m));
+    if (total > 0) setRatio(m / total);
+  };
+  /** A number typed for one of you: that side changes, the other stays, and the total follows. */
+  const typeShare = (who: "mine" | "theirs", raw: string) => {
+    setTyping({ who, text: raw });
+    setFitNote(null);
+    const n = Number(raw);
+    const next = raw !== "" && Number.isFinite(n) && n > 0 ? round(n) : 0;
+    const m = who === "mine" ? next : mine;
+    const t = who === "mine" ? theirs : next;
+    setMine(m);
+    setTheirs(t);
+    setText(String(round(m + t)));
+    if (m + t > 0) setRatio(m / (m + t));
+  };
+  /** The most of this that fits what each of you has left for this meal, and never more than the fridge holds. */
+  const fitNow = () => {
+    if (!roomMine) return;
+    const a = fit(food.per100, roomMine);
+    const b = !solo && roomTheirs ? fit(food.per100, roomTheirs) : null;
+    let gm = a.grams;
+    let gt = b?.grams ?? 0;
+    const capped = left !== null && gm + gt > left;
+    if (capped) {
+      const k = left / (gm + gt);
+      gm *= k;
+      gt *= k;
+    }
+    const by = serving ? 0.5 : 10;
+    const down = (g: number) => round(Math.floor(g / per / by + 1e-9) * by);
+    const m = down(gm);
+    const t = solo ? 0 : down(gt);
+    if (m + t <= 0) {
+      setFitNote("There's no room left for this in this meal.");
+      return;
+    }
+    setMine(m);
+    setTheirs(t);
+    setText(String(round(m + t)));
+    setRatio(m / (m + t));
+    setFitNote(capped ? "Fitted to what the fridge holds." : `Fitted: it stops at ${WORD[a.by]}, the first thing to run out.`);
   };
   const toggleSolo = () => {
     const alone = !solo;
@@ -116,7 +178,8 @@ export function AmountStep({
     // Going solo keeps your amount; bringing your partner in gives them the same.
     const t = alone ? mine || usual(unit) : (mine || usual(unit)) * 2;
     setText(String(round(t)));
-    fromTotal(round(t), alone);
+    setRatio(0.5);
+    fromTotal(round(t), alone, 0.5);
   };
 
   /** Saves the piece to the food, for good, and counts in it from here on: one each. */
@@ -152,7 +215,10 @@ export function AmountStep({
   }
 
   const kcal = (amount: number) => fmt((food.per100.kcal * amount * per) / 100, 0);
-  const said = (amount: number) => (serving ? `${fmt(amount)} ${plural(serving.label, amount)}` : `${fmt(amount)}g`);
+  // Steps land on round numbers: 95 goes down to 90, not 85.
+  const lower = Math.max(step, round(Math.ceil(total / step - 1e-9) * step - step));
+  const higher = round(Math.floor(total / step + 1e-9) * step + step);
+  const pct = total > 0 ? (mine / total) * 100 : 50;
 
   return (
     // Nothing else is touched while a piece is being saved: the amounts are reset when it lands.
@@ -238,8 +304,20 @@ export function AmountStep({
         </div>
       ) : null}
 
+      {roomMine ? (
+        <div className="mt-4 flex flex-col gap-2 rounded-xl border border-hairline bg-ground-raised px-3.5 py-3">
+          <MealsChips meals={meals} onMeals={setMeals} />
+          <RoomLine name={me.displayName} color={colorOf(me.slug)} room={roomMine} />
+          {!solo && roomTheirs ? <RoomLine name={partner.displayName} color={colorOf(partner.slug)} room={roomTheirs} /> : null}
+          <button onClick={fitNow} className="mt-1 h-11 rounded-full border border-hairline-strong text-[0.95rem] font-semibold text-ink">
+            Fit this meal
+          </button>
+          {fitNote ? <p className="text-[0.8rem] leading-relaxed text-ink-dim">{fitNote}</p> : null}
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-3 pt-4">
-        <button aria-label="Less" onClick={() => setTotal(Math.max(step, round(total - step)))} disabled={total <= step} className={stepButton}>
+        <button aria-label="Less" onClick={() => setTotal(lower)} disabled={total <= step} className={stepButton}>
           −
         </button>
         <label className="flex min-w-0 flex-1 items-baseline justify-center gap-2 rounded-[10px] border border-hairline bg-ground-sunk px-3 py-2">
@@ -255,7 +333,7 @@ export function AmountStep({
             {solo ? "" : " in all"}
           </span>
         </label>
-        <button aria-label="More" onClick={() => setTotal(round(total + step))} className={stepButton}>
+        <button aria-label="More" onClick={() => setTotal(higher)} className={stepButton}>
           +
         </button>
       </div>
@@ -274,31 +352,67 @@ export function AmountStep({
         </button>
       </div>
       {solo ? null : (
-        <div className="flex flex-col gap-2 pt-2">
-          {(
-            [
-              [me, mine, "mine", " · you"],
-              [partner, theirs, "theirs", ""],
-            ] as const
-          ).map(([person, amount, who, note]) => (
-            <div key={who} className="flex items-center gap-3 rounded-[10px] border border-hairline bg-ground-raised py-2 pr-2 pl-3">
-              <span aria-hidden className="h-9 w-1 rounded-full" style={{ background: colorOf(person.slug) }} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[0.95rem]">
+        <div className="mt-2 rounded-xl border border-hairline bg-ground-raised px-3.5 pt-3 pb-3">
+          <div className="flex items-end justify-between gap-3">
+            {(
+              [
+                [me, mine, "mine", " · you", "items-start"],
+                [partner, theirs, "theirs", "", "items-end"],
+              ] as const
+            ).map(([person, amount, who, note, side]) => (
+              <label key={who} className={`flex min-w-0 flex-col ${side}`}>
+                <span className="text-[0.85rem] text-ink-dim">
                   {person.displayName}
-                  <span className="text-ink-dim">{note}</span>
+                  {note}
                 </span>
-                <span className="block text-[0.8rem] tabular-nums text-ink-dim">{kcal(amount)} kcal</span>
-              </span>
-              <button aria-label={`Less for ${person.displayName}`} onClick={() => share(who, -shareStep)} disabled={amount <= 0} className={stepButton}>
-                −
-              </button>
-              <span className="w-20 text-center text-[1rem] font-semibold tabular-nums">{said(amount)}</span>
-              <button aria-label={`More for ${person.displayName}`} onClick={() => share(who, shareStep)} className={stepButton}>
-                +
-              </button>
+                <span className="flex items-baseline gap-1 border-b border-dashed border-hairline-strong">
+                  <input
+                    aria-label={`Amount for ${person.displayName}`}
+                    inputMode="decimal"
+                    value={typing?.who === who ? typing.text : fmt(amount)}
+                    onFocus={(e) => {
+                      setTyping({ who, text: fmt(amount) });
+                      e.target.select();
+                    }}
+                    onChange={(e) => typeShare(who, e.target.value.replace(/[^\d.,]/g, "").replace(",", "."))}
+                    onBlur={() => setTyping(null)}
+                    className="min-w-0 bg-transparent text-[1.6rem] leading-tight font-bold tabular-nums text-ink focus:outline-none"
+                    // As wide as what it holds, so the unit sits beside the number on both sides.
+                    style={{ width: `${Math.max(2, (typing?.who === who ? typing.text : fmt(amount)).length) + 0.3}ch` }}
+                  />
+                  <span className="text-[0.9rem] text-ink-dim">{serving ? plural(serving.label, amount) : "g"}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <div className="relative mx-4 mt-2 flex h-11 items-center">
+            <div aria-hidden className="flex h-2 w-full gap-0.5">
+              <span className="rounded-l-full" style={{ width: `${pct}%`, background: colorOf(me.slug) }} />
+              <span className="flex-1 rounded-r-full" style={{ background: colorOf(partner.slug) }} />
             </div>
-          ))}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-ground-raised bg-ink"
+              style={{ left: `${pct}%` }}
+            />
+            <input
+              type="range"
+              aria-label={`How much of it is for ${me.displayName}`}
+              min={0}
+              max={total}
+              step={shareStep}
+              value={mine}
+              disabled={total <= 0}
+              onChange={(e) => slide(Number(e.target.value))}
+              className="absolute -inset-x-4 inset-y-0 h-full opacity-0"
+              style={{ width: "calc(100% + 2rem)" }}
+            />
+          </div>
+          <div className="flex justify-between text-[0.8rem] tabular-nums text-ink-dim">
+            <span>{macroText(of(food.per100, mine * per))}</span>
+            <span>{macroText(of(food.per100, theirs * per))}</span>
+          </div>
+          <p className="pt-2 text-[0.8rem] leading-relaxed text-ink-faint">Drag to move it between you; the total stays. Tap a number to type it.</p>
         </div>
       )}
 
