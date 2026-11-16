@@ -649,8 +649,8 @@ export async function searchFoods(query: string): Promise<FoodView[]> {
  */
 export async function foodFromReference(me: User, referenceId: number, client: Client = "pwa"): Promise<FoodView> {
   const [row] = await sql<{ name: string; name_en: string | null; name_ja: string | null; kcal: number | null; protein_g: number | null; fat_g: number | null; carbs_g: number | null }[]>`
-    select r.name, n.name_en, n.name_ja, r.kcal, r.protein_g, r.fat_g, r.carbs_g
-    from reference_foods r left join reference_names n using (food_number)
+    select r.name, coalesce(s.name, n.name_en) as name_en, n.name_ja, r.kcal, r.protein_g, r.fat_g, r.carbs_g
+    from reference_foods r left join reference_names n using (food_number) left join reference_staples s using (food_number)
     where r.id = ${referenceId}`;
   if (!row || row.kcal === null) throw new Error("That row isn't in the food table.");
 

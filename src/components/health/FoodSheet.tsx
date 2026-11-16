@@ -88,7 +88,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
   }, [library, query]);
 
   // The food table, searched alongside our own foods (§5.8).
-  const tableRows = useTableRows(query, results);
+  const table = useTableRows(query, results);
 
   /** Undo removes exactly what was added, including the partner's half of a shared meal. */
   const undo = (ids: number[]) => async () => {
@@ -311,7 +311,7 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
               </li>
             ))}
             <TableRows
-              rows={tableRows}
+              table={table}
               onError={setError}
               onFood={(food) => {
                 setLibrary((l) => (l ? [food, ...l.filter((f) => f.id !== food.id)] : [food]));

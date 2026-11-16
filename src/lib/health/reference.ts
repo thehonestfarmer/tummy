@@ -130,7 +130,7 @@ export async function pickReference(
 /** One row of the food table as a person searching sees it. */
 export type ReferenceHit = {
   id: number;
-  /** English where there is one, the table's Japanese otherwise. */
+  /** Our own name for a staple; else English where there is one, the table's Japanese otherwise. */
   name: string;
   nameJa: string;
   kcal: number;
@@ -138,16 +138,25 @@ export type ReferenceHit = {
   foodId: number | null;
 };
 
+/** What a search of the table shows: the rows, and how many more matched than are here. */
+export type ReferenceLookup = { rows: ReferenceHit[]; more: number };
+
+/** Staples all show; with none, a few of the rest stand in for them. */
+const FEW = 5;
+const EVERYTHING = 40;
+
 /**
  * The table searched by what a person types (§5.8): English, romaji or
- * Japanese, every word of it found somewhere in the row's names. Rows named
- * for what was typed come first, then raw ones, because that is how we
- * weigh, then the plainest name.
+ * Japanese, every word of it found somewhere in the row's names. Only the
+ * staples that match are given, or with none the first few rows, and the
+ * count of what was left out; `all` gives the rest as well. Staples come
+ * first, then rows named for what was typed, then raw ones, because that
+ * is how we weigh, then the plainest name.
  */
-export async function lookupReference(query: string, limit = 12): Promise<ReferenceHit[]> {
+export async function lookupReference(query: string, all = false): Promise<ReferenceLookup> {
   const words = query.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
   // One letter of English matches half the table; one kanji (米, 卵) is a food.
-  if (!words.length || words.every((w) => /^[a-z0-9]?$/.test(w))) return [];
+  if (!words.length || words.every((w) => /^[a-z0-9]?$/.test(w))) return { rows: [], more: 0 };
   const escape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
   const latin = words.map((w) => `%${escape(w)}%`);
   const kana = words.map((w) => `%${escape(fold(w))}%`);
@@ -155,25 +164,34 @@ export async function lookupReference(query: string, limit = 12): Promise<Refere
   // "honey" is the word in Honey and only the start of one in honeysuckle; a plural still counts.
   const whole = words.map((w) => `% ${escape(w)} %`);
   const plural = words.map((w) => `% ${escape(w)}s %`);
-  const rows = await sql<{ id: number; name_en: string | null; name_ja: string | null; name: string; kcal: number; food_id: number | null }[]>`
-    select r.id, n.name_en, n.name_ja, r.name, r.kcal,
+  const rows = await sql<{ id: number; name_en: string | null; name_ja: string | null; name: string; kcal: number; food_id: number | null; staple: boolean; total: number }[]>`
+    select r.id, coalesce(s.name, n.name_en) as name_en, n.name_ja, r.name, r.kcal, (s.food_number is not null) as staple, (count(*) over ())::int as total,
            (select min(f.id) from foods f
             where f.reference_food_id = r.id and f.source = 'reference_table' and f.status = 'confirmed') as food_id
-    from reference_foods r left join reference_names n using (food_number)
+    from reference_foods r left join reference_names n using (food_number) left join reference_staples s using (food_number)
     where r.kcal is not null
-      and (select bool_and(coalesce(n.search, '') like l or r.search_key like k)
+      and (select bool_and(lower(coalesce(s.name, '')) like l or coalesce(n.search, '') like l or r.search_key like k)
            from unnest(${latin}::text[], ${kana}::text[]) as w(l, k))
-    order by (coalesce(n.search, '') like ${first} or coalesce(n.name_ja, r.name) like ${first}) desc,
+    order by (s.food_number is not null) desc,
+             -- Every word in our own name for it: "egg" is Egg before it is the egg in mayonnaise.
+             coalesce((select bool_and(lower(s.name) like l) from unnest(${latin}::text[]) as w(l)), false) desc,
+             (lower(coalesce(s.name, '')) like ${first} or coalesce(n.search, '') like ${first} or coalesce(n.name_ja, r.name) like ${first}) desc,
              (select count(*) from unnest(${whole}::text[], ${plural}::text[]) as w(one, many)
               where ' ' || coalesce(n.search, '') || ' ' like one or ' ' || coalesce(n.search, '') || ' ' like many) desc,
              (r.name ~ '(^| )生( |$)') desc,
-             length(coalesce(n.name_en, n.name_ja, r.name)) asc, r.food_number asc
-    limit ${limit}`;
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name_en ?? r.name_ja ?? r.name,
-    nameJa: r.name_ja ?? r.name,
-    kcal: r.kcal,
-    foodId: r.food_id,
-  }));
+             length(coalesce(s.name, n.name_en, n.name_ja, r.name)) asc, r.food_number asc
+    limit ${EVERYTHING}`;
+  const staples = rows.filter((r) => r.staple);
+  const shown = all ? rows : staples.length ? staples : rows.slice(0, FEW);
+  return {
+    rows: shown.map((r) => ({
+      id: r.id,
+      name: r.name_en ?? r.name_ja ?? r.name,
+      nameJa: r.name_ja ?? r.name,
+      kcal: r.kcal,
+      foodId: r.food_id,
+    })),
+    // With everything asked for, what is past the limit is not offered: type more of the name.
+    more: all ? 0 : (rows[0]?.total ?? 0) - shown.length,
+  };
 }

@@ -335,7 +335,7 @@ export function StockUp() {
         .filter((f) => !(lines ?? []).some((l) => l.foodId === f.id))
         .slice(0, 5)
     : [];
-  const tableRows = useTableRows(query, found).slice(0, 5);
+  const table = useTableRows(query, found);
 
   return (
     <div className="px-5 pt-3">
@@ -492,7 +492,7 @@ export function StockUp() {
               </li>
             ))}
             <TableRows
-              rows={tableRows}
+              table={table}
               onError={setError}
               onFood={(food) => {
                 setFoods((f) => new Map(f).set(food.id, food));
