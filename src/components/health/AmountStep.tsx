@@ -41,6 +41,7 @@ export function AmountStep({
   partner,
   waiting,
   ahead,
+  last,
   onBack,
   onLog,
   onMore,
@@ -56,6 +57,8 @@ export function AmountStep({
   waiting: number;
   /** What the foods already waiting come to for each of you, so the room shown is what's left of this meal. */
   ahead?: { mine: Macros; theirs: Macros };
+  /** What each of you had the last time this was logged, in grams: where the amounts start (§5.6). */
+  last?: { grams: number; partnerGrams: number };
   onBack: () => void;
   onLog: (food: FoodView, grams: number, partnerGrams?: number) => Promise<void>;
   /** Keep this one waiting and go back to choose another. */
@@ -66,7 +69,17 @@ export function AmountStep({
 }) {
   // The last unit is always plain grams.
   const GRAMS = food.servings.length;
-  const [unit, setUnit] = useState(food.servings.length ? 0 : GRAMS);
+  /** Last time's amounts in the first unit when they come to halves of it, in grams otherwise. */
+  const [again] = useState(() => {
+    if (!last || !(last.grams > 0)) return null;
+    const each = food.servings[0]?.grams;
+    const halves = (g: number) => !!each && Math.abs((g / each) * 2 - Math.round((g / each) * 2)) < 0.02;
+    const counted = halves(last.grams) && halves(last.partnerGrams);
+    const per = counted ? each! : 1;
+    const amount = (g: number) => (counted ? Math.round((g / per) * 2) / 2 : round(g));
+    return { unit: counted ? 0 : GRAMS, mine: amount(last.grams), theirs: amount(last.partnerGrams) };
+  });
+  const [unit, setUnit] = useState(again ? again.unit : food.servings.length ? 0 : GRAMS);
   const serving = unit === GRAMS ? null : food.servings[unit];
   /** One person's usual amount in a unit: one serving, or the food's default grams. */
   const usual = (u: number) => (u === GRAMS ? (food.defaultGrams ?? 100) : 1);
@@ -77,14 +90,15 @@ export function AmountStep({
     return left !== null && t * each > left ? Math.max(0.5, Math.round((left / each) * 2) / 2) : t;
   };
 
-  const [solo, setSolo] = useState(left === null);
-  const first = start(unit, solo);
-  const [mine, setMine] = useState(solo ? first : round(first / 2));
-  const [theirs, setTheirs] = useState(solo ? 0 : round(first / 2));
+  // Something from the fridge starts shared; something had before starts as it was had.
+  const [solo, setSolo] = useState(again ? again.theirs === 0 : left === null);
+  const first = again ? round(again.mine + again.theirs) : start(unit, solo);
+  const [mine, setMine] = useState(again ? again.mine : solo ? first : round(first / 2));
+  const [theirs, setTheirs] = useState(again ? again.theirs : solo ? 0 : round(first / 2));
   // The total as typed, so "1." or an emptied box survive a re-render.
   const [text, setText] = useState(String(first));
   /** Your share of a split total, kept so the total can change without evening the split out. */
-  const [ratio, setRatio] = useState(0.5);
+  const [ratio, setRatio] = useState(again && first > 0 ? again.mine / first : 0.5);
   /** One side's amount while it is being typed, so "1." or an emptied box survive. */
   const [typing, setTyping] = useState<{ who: "mine" | "theirs"; text: string } | null>(null);
   const [fitNote, setFitNote] = useState<string | null>(null);

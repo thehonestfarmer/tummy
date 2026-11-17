@@ -299,6 +299,8 @@ No Siri Shortcut.
 
 A fifth path, **Eating out**, is for food with no label and no weight (§5.11).
 
+**Recent** (changed 2026-11-17). Below the fridge the sheet lists what you logged in the last two weeks, each with the amount you had last time. Tapping one opens the amount step, the same as any other food, starting from last time: your amount, and your partner's as well if it was logged for both of you. It used to log the same amount again for you alone at one tap, which left no way to change the amount or to share it.
+
 **By the piece** (added 2026-11-15). A food from the food table comes with no unit but grams, and eggs are eaten by the egg. On the amount step, "Count by the piece" asks what one is called and what it weighs, saves that to the food as a serving, and counts in it from then on, there and in Cook and Stock up. The table has no piece weights, so one is weighed once, the part that is eaten: an egg without its shell. A food that already has units is offered "Another unit" the same way; a unit of the same name is replaced.
 
 **Several at once.** A meal is rarely one food. On the amount step, "Add another food" keeps the food waiting and goes back to the list; the foods waiting sit in a short list above the search box, each with its amount and a way to take it out, and one button logs them all. Each keeps its own split (§5.7). One undo removes the lot. Nothing is saved until that button: closing the sheet drops the list.

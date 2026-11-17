@@ -21,7 +21,8 @@ const fold = (s: string | null | undefined) => (s ?? "").normalize("NFKC").toLow
 
 type Step =
   | { kind: "search" }
-  | { kind: "amount"; food: FoodView }
+  /** `last` is what was had last time, when the food was picked from Recent. */
+  | { kind: "amount"; food: FoodView; last?: { grams: number; partnerGrams: number } }
   | { kind: "asked"; name: string }
   /** A label has been photographed; `draftId` is null until the photo has landed. */
   | { kind: "scan"; draftId: number | null };
@@ -280,15 +281,16 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
             ) : null}
             {!query.trim() && recents.length ? (
               <>
-                <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">{waiting.length ? "Recent · tap to add the same again" : "Recent · tap to log the same again"}</li>
+                <li className="pt-2 pb-1 text-[0.8rem] text-ink-faint">Recent · starts from what you had last time</li>
                 {recents.map((r) => (
                   <li key={`r${r.foodId}`} className="border-b border-hairline">
                     <button
-                      onClick={() =>
-                        waiting.length
-                          ? hold({ id: r.foodId, name: r.name, grams: r.grams, kcal: r.kcal })
-                          : log({ id: r.foodId, name: r.name }, r.grams)
-                      }
+                      onClick={() => {
+                        // Never straight into the day: the amount and who had it are asked first (§5.6).
+                        const food = library?.find((f) => f.id === r.foodId);
+                        if (food) setStep({ kind: "amount", food, last: { grams: r.grams, partnerGrams: r.partnerGrams } });
+                      }}
+                      disabled={!library}
                       className="flex w-full items-baseline gap-2 py-2.5 text-left"
                     >
                       <span className="min-w-0 flex-1 truncate text-[1rem]">{r.name}</span>
@@ -389,7 +391,9 @@ export function FoodSheet({ onClose }: { onClose: () => void }) {
         </>
       ) : step.kind === "amount" ? (
         <AmountStep
+          key={step.food.id}
           food={step.food}
+          last={step.last}
           left={fridge.find((i) => i.food.id === step.food.id)?.left ?? null}
           me={day.me}
           partner={day.partner}

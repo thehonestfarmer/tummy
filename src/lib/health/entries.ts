@@ -381,14 +381,26 @@ export async function logShared(
 
 /* ─── Recents (§5.6) ─────────────────────────────────────────────────────── */
 
-export type RecentFood = { foodId: number; name: string; nameJa: string | null; grams: number; kcal: number };
+export type RecentFood = {
+  foodId: number;
+  name: string;
+  nameJa: string | null;
+  grams: number;
+  /** What your partner had of it in the same logging, or 0 when it was yours alone. */
+  partnerGrams: number;
+  kcal: number;
+};
 
 /** What you've logged in the last two weeks, most recent first, each with the amount you had last time. */
 export async function recentFoods(me: User): Promise<RecentFood[]> {
   const rows = await sql<
-    { food_id: number; name: string; name_ja: string | null; grams: number; kcal: number; logged_at: Date }[]
+    { food_id: number; name: string; name_ja: string | null; grams: number; partner_grams: number; kcal: number; logged_at: Date }[]
   >`
-    select distinct on (e.food_id) e.food_id, f.name, f.name_ja, e.grams, f.kcal, e.logged_at
+    select distinct on (e.food_id) e.food_id, f.name, f.name_ja, e.grams, f.kcal, e.logged_at,
+           -- Logged for both of you at once: the same food, the other person, the same moment.
+           coalesce((select sum(p.grams) from food_entries p
+                     where p.food_id = e.food_id and p.user_id <> e.user_id
+                       and abs(extract(epoch from p.created_at - e.created_at)) < 2), 0)::float8 as partner_grams
     from food_entries e join foods f on f.id = e.food_id and f.status = 'confirmed'
     where e.user_id = ${me.id} and e.logged_at > now() - interval '14 days'
     order by e.food_id, e.logged_at desc`;
@@ -400,6 +412,7 @@ export async function recentFoods(me: User): Promise<RecentFood[]> {
       name: r.name,
       nameJa: r.name_ja,
       grams: r.grams,
+      partnerGrams: r.partner_grams,
       kcal: Math.round((r.kcal * r.grams) / 100),
     }));
 }
